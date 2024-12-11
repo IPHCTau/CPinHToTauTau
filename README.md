@@ -17,16 +17,16 @@ A Columnflow based analysis framework from IPHC and DESY
 
 ### Setting up the framework (on the main branch)
 Clone from the main github repo:
-
+```
 git clone --recurse-submodules git@github.com:DesyTau/CPinHToTauTau.git
-
-
+```
 ATTENTION: If you are setting up the framework on lxplus (i.e. on you /afs/cern.ch/user/user_first_char/cern_user_name/ you will encounter problems with micromaba.
 A work around to this is selecting the /eos/user/user_first_char/cern_user_name/software as the path for the vens, cmssw and conda folders. As far as I know only afs is giving issues, columnflow people are aware of this but they can not do anything (Jacopo 11/12/24)
-This can be achieved by specifying the path we
+This can be achieved by specifying the path that you want to use in the iterative setting up procedure 
 
 With this is mind, now you can set up the framework by:
-
+```
 cd CPinHToTauTau
-source setup.sh your_setup_name 
+source setup.sh your_setup_name
+```
 ### Setting up the frame
