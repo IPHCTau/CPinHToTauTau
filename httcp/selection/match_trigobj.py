@@ -9,7 +9,7 @@ from typing import Optional
 from columnflow.selection import Selector, SelectionResult, selector
 from columnflow.util import maybe_import
 from columnflow.columnar_util import set_ak_column
-from IPython import embed
+#from IPython import embed
 from httcp.util import trigger_object_matching
 
 np = maybe_import("numpy")
@@ -32,6 +32,7 @@ def hlt_path_fired(dictionary):
 
     hlt_condition_values = list(hlt_condition.values())
     hlt_condition_values_concat = ak.concatenate(hlt_condition_values, axis=-1)
+    #from IPython import embed; embed()
     HLT_path_fired = ak.max(hlt_condition_values_concat, axis=-1)
 
     return HLT_path_fired 
@@ -46,7 +47,10 @@ def hlt_path_fired(dictionary):
     produces={"single_electron_triggered", "cross_electron_triggered", 
               "single_muon_triggered",     "cross_muon_triggered",
               "cross_tau_triggered", 
-              "matched_triggerID_e", "matched_triggerID_mu", "matched_triggerID_tau"
+              #"matched_triggerID_e", "matched_triggerID_mu", "matched_triggerID_tau",
+              #"Electron.matched_triggerID",
+              #"Muon.matched_triggerID",
+              #"Tau.matched_triggerID",
           },
     exposed=False
 )
@@ -102,49 +106,6 @@ def match_trigobj(
             is_cross_mu  = trigger.has_tag("cross_mu_tau")
             is_cross_tau = trigger.has_tag("cross_tau_tau")
             
-            if is_single_mu or is_cross_mu:
-                mu_matches_leg0 = None
-                # muon selection
-                muons = events.Muon[muon_indices]
-                # start per-muon mask with trigger object matching
-                if is_single_mu:
-                    # catch config errors
-                    assert trigger.n_legs == len(leg_masks) == 1
-                    assert abs(trigger.legs[0].pdg_id) == 13
-                    # match leg 0
-                    mu_matches_leg0 = trigger_object_matching(muons, events.TrigObj[leg_masks[0]])
-                    single_muon_triggered = ak.where(trigger_fired & is_single_mu, True, single_muon_triggered)
-                elif is_cross_mu:
-                    # catch config errors
-                    assert trigger.n_legs == len(leg_masks) == 2
-                    assert abs(trigger.legs[0].pdg_id) == 13
-                    # match leg 0
-                    mu_matches_leg0 = trigger_object_matching(muons, events.TrigObj[leg_masks[0]])
-                    cross_muon_triggered = ak.where(trigger_fired & is_cross_mu, True, cross_muon_triggered)
-                hlt_path_fired_mu[trigger.hlt_field]= ak.where(mu_matches_leg0, trigger.id,-1)                    
-
-            if is_single_el or is_cross_el:
-                el_matches_leg0 = None
-                # electron selection
-                electrons = events.Electron[electron_indices]
-                # start per-muon mask with trigger object matching
-                if is_single_el:
-                    # catch config errors
-                    assert trigger.n_legs == len(leg_masks) == 1
-                    assert abs(trigger.legs[0].pdg_id) == 11
-                    # match leg 0
-                    el_matches_leg0 = trigger_object_matching(electrons, events.TrigObj[leg_masks[0]])
-                    single_electron_triggered = ak.where(trigger_fired & is_single_el, True, single_electron_triggered)
-                elif is_cross_el:
-                    # catch config errors
-                    assert trigger.n_legs == len(leg_masks) == 2
-                    assert abs(trigger.legs[0].pdg_id) == 11
-                    # match leg 0
-                    el_matches_leg0 = trigger_object_matching(electrons, events.TrigObj[leg_masks[0]])
-                    cross_electron_triggered = ak.where(trigger_fired & is_cross_el, True, cross_electron_triggered)
-                    # sel_electron_indices = ak.local_index(electrons[el_matches_leg0])
-                hlt_path_fired_e[trigger.hlt_field]= ak.where(el_matches_leg0, trigger.id,-1)
-
             if is_cross_el or is_cross_mu or is_cross_tau:
                 tau_matches = None
                 # start per-tau mask with trigger object matching per leg
@@ -175,17 +136,64 @@ def match_trigobj(
                     cross_tau_triggered = ak.where(trigger_fired & is_cross_tau, True, cross_tau_triggered)
                 hlt_path_fired_tau[trigger.hlt_field]= ak.where(tau_matches, trigger.id,-1)
 
+            if is_single_el or is_cross_el:
+                el_matches_leg0 = None
+                # electron selection
+                electrons = events.Electron[electron_indices]
+                # start per-muon mask with trigger object matching
+                if is_single_el:
+                    # catch config errors
+                    assert trigger.n_legs == len(leg_masks) == 1
+                    assert abs(trigger.legs[0].pdg_id) == 11
+                    # match leg 0
+                    el_matches_leg0 = trigger_object_matching(electrons, events.TrigObj[leg_masks[0]])
+                    single_electron_triggered = ak.where(trigger_fired & is_single_el, True, single_electron_triggered)
+                elif is_cross_el:
+                    # catch config errors
+                    assert trigger.n_legs == len(leg_masks) == 2
+                    assert abs(trigger.legs[0].pdg_id) == 11
+                    # match leg 0
+                    el_matches_leg0 = trigger_object_matching(electrons, events.TrigObj[leg_masks[0]])
+                    cross_electron_triggered = ak.where(trigger_fired & is_cross_el, True, cross_electron_triggered)
+                    # sel_electron_indices = ak.local_index(electrons[el_matches_leg0])
+                hlt_path_fired_e[trigger.hlt_field]= ak.where(el_matches_leg0, trigger.id,-1)
+
+            if is_single_mu or is_cross_mu:
+                mu_matches_leg0 = None
+                # muon selection
+                muons = events.Muon[muon_indices]
+                # start per-muon mask with trigger object matching
+                if is_single_mu:
+                    # catch config errors
+                    assert trigger.n_legs == len(leg_masks) == 1
+                    assert abs(trigger.legs[0].pdg_id) == 13
+                    # match leg 0
+                    mu_matches_leg0 = trigger_object_matching(muons, events.TrigObj[leg_masks[0]])
+                    single_muon_triggered = ak.where(trigger_fired & is_single_mu, True, single_muon_triggered)
+                elif is_cross_mu:
+                    # catch config errors
+                    assert trigger.n_legs == len(leg_masks) == 2
+                    assert abs(trigger.legs[0].pdg_id) == 13
+                    # match leg 0
+                    mu_matches_leg0 = trigger_object_matching(muons, events.TrigObj[leg_masks[0]])
+                    cross_muon_triggered = ak.where(trigger_fired & is_cross_mu, True, cross_muon_triggered)
+                hlt_path_fired_mu[trigger.hlt_field]= ak.where(mu_matches_leg0, trigger.id,-1)                    
+
+
         #from IPython import embed; embed()
     
         triggerID_e = hlt_path_fired(hlt_path_fired_e)
         triggerID_mu = hlt_path_fired(hlt_path_fired_mu)
         triggerID_tau = hlt_path_fired(hlt_path_fired_tau)
-    
+
+        #from IPython import embed; embed()
+        
         mask_triggerID_e = ak.fill_none(triggerID_e > 0, False)
         matched_idx_e = electron_indices[mask_triggerID_e]
         matched_triggerID_e = triggerID_e[mask_triggerID_e]
         
         mask_triggerID_mu = ak.fill_none(triggerID_mu > 0, False)
+
         matched_idx_mu = muon_indices[mask_triggerID_mu]
         matched_triggerID_mu = triggerID_mu[mask_triggerID_mu]
         
@@ -202,9 +210,15 @@ def match_trigobj(
     sel_tau_indices = ak.values_astype(tau_indices, np.int32)
 
 
-    events = set_ak_column(events, "matched_triggerID_e", matched_triggerID_e)
-    events = set_ak_column(events, "matched_triggerID_mu", matched_triggerID_mu)
-    events = set_ak_column(events, "matched_triggerID_tau", matched_triggerID_tau)
+    #events = set_ak_column(events, "matched_triggerID_e", matched_triggerID_e)
+    #events = set_ak_column(events, "matched_triggerID_mu", matched_triggerID_mu)
+    #events = set_ak_column(events, "matched_triggerID_tau", matched_triggerID_tau)
+
+    #from IPython import embed; embed()
+    
+    #events = set_ak_column(events, "Electron.matched_triggerID", matched_triggerID_e)
+    #events = set_ak_column(events, "Muon.matched_triggerID", matched_triggerID_mu)
+    #events = set_ak_column(events, "Tau.matched_triggerID", matched_triggerID_tau)
 
     events = set_ak_column(events, "single_electron_triggered", single_electron_triggered)
     events = set_ak_column(events, "cross_electron_triggered", cross_electron_triggered)
@@ -213,4 +227,6 @@ def match_trigobj(
     events = set_ak_column(events, "cross_tau_triggered", cross_tau_triggered)
                 
     
-    return events, sel_electron_indices, sel_muon_indices, sel_tau_indices 
+    return events, \
+        sel_electron_indices, sel_muon_indices, sel_tau_indices, \
+        matched_triggerID_e, matched_triggerID_mu, matched_triggerID_tau

@@ -1,0 +1,115 @@
+# cmd config
+
+run     : 2
+era     : 2018
+postfix : None
+wrapper : true
+limited : true
+workers : 1
+
+args:
+  config    : run2_2018UL_nano_cp_tau_v09
+  workflow  : local
+  branch    : -1
+  version   : dummy
+
+  datasets  :
+    # == data ==
+    - data_tau_A
+    #- data_tau_B
+    #- data_tau_C
+    #- data_tau_D
+    - data_mu_A
+    #- data_mu_B
+    #- data_mu_C
+    #- data_mu_D
+    #- data_e_A
+    #- data_e_B
+    - data_e_C
+    #- data_e_D
+    # == wj ==
+    - w_lnu_madgraph
+    # == dy ==
+    #- dy_lep_m10to50_madgraph
+    - dy_lep_m50_madgraph
+    #- dy_lep_m50_madgraph_ext1
+    # == tt ==
+    #- tt_dl
+    #- tt_sl
+    #- tt_fh
+    # == st ==
+    #- st_tchannel_t
+    #- st_tchannel_tbar
+    - st_tw_t
+    #- st_tw_tb
+    # == vv ==
+    #- ww_incl
+    #- wz_incl
+    #- zz_incl
+    # == signal ==
+    - h_ggf_tautau_prod_cp_even_sm
+    #- h_ggf_tautau_prod_cp_odd_flat
+    #- h_ggf_tautau_prod_cp_even_flat
+    #- h_ggf_tautau_prod_max_mix_flat
+
+  processes :
+    - data
+    - w_lnu
+    #- dy_lep_m10to50
+    - dy_lep_m50
+    #- tt
+    #- st_tchannel
+    - st_twchannel
+    #- vv
+    #- h_ggf_tautau
+
+  categories:
+    - incl
+    - etau
+    #- etau_pion
+    #- etau_rho
+    #- etau_a1
+    - mutau
+    #- mutau_pion
+    #- mutau_rho
+    #- mutau_a1
+    - tautau
+    #- tautau_pionpion
+    #- tautau_rhorho
+    #- tautau_a1a1
+    #- tautau_a1pion
+    #- tautau_a1rho
+
+  variables:
+    #- electron_1_pt
+    #- electron_1_eta
+    #- electron_1_phi
+    #- muon_1_pt
+    #- muon_1_eta
+    #- muon_1_phi
+    #- tau_1_pt
+    #- tau_1_eta
+    #- tau_1_phi
+    #- tau_2_pt
+    #- tau_2_eta
+    #- tau_2_phi
+    - hcand_1_pt
+    - hcand_1_eta
+    - hcand_1_phi
+    - hcand_2_pt
+    - hcand_2_eta
+    - hcand_2_phi
+    - hcand_dr
+    - hcand_invm
+    - jet_1_pt
+    - jet_2_pt
+    - puppi_met_pt
+    - puppi_met_phi
+    #- PhiCP_IPIP
+    #- PhiCP_DPDP
+    #- PhiCP_PVPV
+    #- PhiCP_IPPV
+    #- PhiCP_IPDP
+
+  extras:
+    - process-settings "h_ggf_tautau,unstack"

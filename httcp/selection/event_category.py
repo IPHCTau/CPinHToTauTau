@@ -6,14 +6,14 @@ from columnflow.selection import Selector, SelectionResult, selector
 from columnflow.columnar_util import EMPTY_FLOAT, Route, set_ak_column
 from columnflow.util import maybe_import
 
+from httcp.util import transverse_mass
+from httcp.util import IF_RUN2, IF_RUN3
+
 np = maybe_import("numpy")
 ak = maybe_import("awkward")
 
 
 @selector(
-    #uses={#
-    #
-    #   },
     produces={
         "channel_id",
     },
@@ -22,7 +22,7 @@ ak = maybe_import("awkward")
 def get_categories(
         self: Selector,
         events: ak.Array,
-        trigger_results: SelectionResult,
+        results: SelectionResult,
         etau_pair_indices: ak.Array,
         mutau_pair_indices: ak.Array,
         tautau_pair_indices: ak.Array,
@@ -34,9 +34,6 @@ def get_categories(
     ch_tautau = self.config_inst.get_channel("tautau")
 
     false_mask       = (abs(events.event) < 0)
-    single_triggered = false_mask
-    cross_triggered  = false_mask
-    empty_indices    = ak.zeros_like(1 * events.event, dtype=np.uint16)[..., None][..., :0]
 
     channel_selections = {
         "cat_is_etau"           : [ch_etau.id, 
@@ -75,4 +72,8 @@ def get_categories(
     channel_id = ak.values_astype(channel_id, np.uint8)
     events = set_ak_column(events, "channel_id", channel_id)
 
-    return events, SelectionResult(aux=selection_steps)
+    return events, SelectionResult(
+        #steps={
+        #    "category_et_mt_or_tt": ((channel_id == ch_etau.id) | (channel_id == ch_mutau.id) | (channel_id == ch_tautau.id)),
+        #},
+        aux=selection_steps)

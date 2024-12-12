@@ -1,11 +1,6 @@
 [submodule "modules/columnflow"]
 	path = modules/columnflow
-	url = https://github.com/DesyTau/columnflow.git
-    	branch = production
+	url = https://github.com/IPHCTau/columnflow.git
 [submodule "modules/cmsdb"]
 	path = modules/cmsdb
-	url = https://github.com/DesyTau/cmsdb.git
-    	branch = desy_dev
-[submodule "modules/jsonpog-integration"]
-	path = modules/jsonpog-integration
-	url = https://gitlab.cern.ch/cms-nanoAOD/jsonpog-integration.git
+	url = https://github.com/IPHCTau/cmsdb.git

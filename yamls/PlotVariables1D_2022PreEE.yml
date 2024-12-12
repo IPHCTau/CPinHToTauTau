@@ -1,0 +1,103 @@
+# Produce columns config
+
+main    : PlotVariables1D
+run     : 3
+era     : 2022
+postfix : PreEE
+wrapper : true
+limited : false
+workers : 3
+
+args:
+  config    : run3_2022_preEE_nano_cp_tau_v12
+  datasets  :
+    # == data ==
+    - data_tau_C
+    - data_tau_D
+    - data_mu_C
+    - data_mu_D
+    - data_single_mu_C
+    - data_e_C
+    - data_e_D
+    # == wj ==
+    - wj_incl
+    # == dy ==
+    - dy_lep_m50
+    # == tt ==
+    - tt_dl
+    - tt_sl
+    - tt_fh
+    # == st ==
+    - st_tchannel_t
+    - st_tchannel_tbar
+    - st_tw_t_sl
+    - st_tw_t_dl
+    - st_tw_t_fh
+    - st_tw_tb_sl
+    - st_tw_tb_dl
+    - st_tw_tb_fh
+    # == vv ==
+    - ww
+    - wz
+    - zz
+    # == signal ==
+    - h_ggf_tautau_prod_cp_even_sm
+  processes :
+    - data
+    - w_lnu
+    - dy_lep_m50
+    - tt
+    - st
+    - vv
+    - h_ggf_tautau
+  workflow  : htcondor
+  branch    : -1
+  version   : dummy 
+  categories:
+    - etau
+    - etau_pion
+    - etau_rho
+    - etau_a1
+    - mutau
+    - mutau_pion
+    - mutau_rho
+    - mutau_a1
+    - tautau
+    - tautau_pionpion
+    - tautau_rhorho
+    - tautau_a1a1
+    - tautau_a1pion
+    - tautau_a1rho
+  variables:
+    - electron_1_pt
+    - electron_1_eta
+    - electron_1_phi
+    - muon_1_pt
+    - muon_1_eta
+    - muon_1_phi
+    - tau_1_pt
+    - tau_1_eta
+    - tau_1_phi
+    - tau_2_pt
+    - tau_2_eta
+    - tau_2_phi
+    - hcand_1_pt
+    - hcand_1_eta
+    - hcand_1_phi
+    - hcand_2_pt
+    - hcand_2_eta
+    - hcand_2_phi
+    - hcand_dr
+    - hcand_invm
+    - jet_1_pt
+    - jet_2_pt
+    - puppi_met_pt
+    - puppi_met_phi
+    - PhiCP_IPIP
+    - PhiCP_DPDP
+    - PhiCP_PVPV
+    - PhiCP_IPPV
+    - PhiCP_IPDP
+
+  extras:
+    - process-settings "h_ggf_tautau,unstack,10"

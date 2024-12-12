@@ -6,7 +6,12 @@ ak     = maybe_import("awkward")
 coffea = maybe_import("coffea")
 
 from httcp.production.TComplex import TComplex
-from IPython import embed
+#from IPython import embed
+
+
+def multiplyLorentz(a: ak.Array, b: ak.Array) -> ak.Array:
+    result = a.t * b.t - a.x * b.x - a.y * b.y - a.z * b.z
+    return result
 
 
 class PolarimetricA1:
@@ -58,16 +63,18 @@ class PolarimetricA1:
         q2 = self.p4_ss2_pi
         q3 = self.p4_os_pi
 
-        a1 = q1+q2+q3
-
+        #a1 = q1.add(q2.add(q3))
+        a1 = q1 + q2 + q3
+        
         N = P.subtract(a1)
 
-        s1 = (q2+q3).mass2
-        s2 = (q1+q3).mass2
-        s3 = (q1+q2).mass2
+        s1 = (q2.add(q3)).mass2
+        s2 = (q1.add(q3)).mass2
+        s3 = (q1.add(q2)).mass2
 
         # Three Lorentzvector: Why??? : No idea!!!
-        getvec = lambda a,b,c: b - c - a*(a.dot((b - c))*(1/a.mass2))
+        #getvec = lambda a,b,c: b - c - a*(a.dot((b - c))*(1/a.mass2))
+        getvec = lambda a,b,c: b - c - a.multiply((multiplyLorentz(a,(b-c))/a.mass2))
 
         vec1 = getvec(a1, q2, q3)
         vec2 = getvec(a1, q3, q1)
@@ -89,14 +96,17 @@ class PolarimetricA1:
         CLV = self.CLVEC(HADCUR, HADCURC, N)
         CLA = self.CLAXI(HADCUR, HADCURC, N)
 
-        pclv    = P.dot(CLV)
-        pcla    = P.dot(CLA)
-        omega   = pclv - pcla
-        A       = (P.mass)**2
-        CLAmCLV = CLA.subtract(CLV)
+        #pclv    = P.dot(CLV)
+        #pcla    = P.dot(CLA)
+        #omega   = pclv - pcla
+        #A       = (P.mass)**2
+        #CLAmCLV = CLA.subtract(CLV)
         
-        out = ((P.mass)*(P.mass)*(CLA-CLV) - P*(P.dot(CLA) - P.dot(CLV)))*(1/omega/P.mass)
+        #out = ((P.mass)*(P.mass)*(CLA-CLV) - P*(P.dot(CLA) - P.dot(CLV)))*(1/omega/P.mass)
 
+        omega   = multiplyLorentz(P,CLV) - multiplyLorentz(P,CLA)
+        out = (P.mass**2 * (CLA-CLV) - P*(multiplyLorentz(P,CLA) - multiplyLorentz(P,CLV)))*(1/omega/P.mass)
+        
         return out
 
     

@@ -21,7 +21,7 @@ set_ak_column_f32 = functools.partial(set_ak_column, value_type=np.float32)
     },
 )
 def hcand_mass_(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
-    print("Producing dilepton mass...")
+    #print("Producing dilepton mass...")
     from coffea.nanoevents.methods import vector
     events = self[attach_coffea_behavior](events, **kwargs)
     lep = []
@@ -53,7 +53,7 @@ def hcand_mass_(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     },
 )
 def rel_charge(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
-    print("Producing  pair relative charge...")
+    #print("Producing  pair relative charge...")
     rel_ch = ak.prod(events.hcand.charge, axis = 1)
     events = set_ak_column_f32(events, "hcand_obj.rel_charge", rel_ch) 
     return events
@@ -70,7 +70,7 @@ def rel_charge(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     },
 )
 def mT(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
-    print("producing mT...")
+    #print("producing mT...")
     events = self[attach_coffea_behavior](events, **kwargs)
     cos_dphi = np.cos(events.Muon.delta_phi(events.PuppiMET))
     mT_values = np.sqrt(2 * events.Muon.pt * events.PuppiMET.pt * (1 - cos_dphi))
@@ -95,7 +95,7 @@ def mT(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     },
 )
 def hcand_mass(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
-    print("Producing dilepton mass...")
+    #print("Producing dilepton mass...")
     from coffea.nanoevents.methods import vector
     events = self[attach_coffea_behavior](events, **kwargs)
     lep = []

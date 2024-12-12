@@ -1,0 +1,106 @@
+# cmd config
+
+run     : 3
+era     : 2022
+postfix : PreEE
+wrapper : true
+limited : true
+workers : 3
+
+args:
+  config    : run3_2022_preEE_nano_cp_tau_v12_limited
+  workflow  : local
+  branch    : -1
+  version   : dummy 
+
+  datasets  :
+    #- data_e_C
+    #- data_mu_C
+    - data_tau_C
+    - dy_lep_m50_madgraph
+    - wj_incl_madgraph
+    - tt_sl
+    - tt_fh
+    #- h_ggf_tautau_prod_cp_even_sm
+
+  processes :
+    - data
+    - dy_m50toinf
+    - w_lnu
+    - tt
+    #- h_ggf_tautau
+
+  categories:
+    #- etau
+    #- etau__lepA
+    #- etau__lepB
+    #- etau__lepA0
+    #- etau__lepB0
+    #- etau__lepA1
+    #- etau__lepB1
+    #- etau__lepC
+    #- etau__lepD
+    #- mutau
+    #- mutau_lepA
+    #- mutau__lepB
+    #- mutau__lepA0
+    #- mutau__lepB0
+    #- mutau__lepA1
+    #- mutau__lepB1
+    #- mutau__lepC
+    #- mutau__lepD
+    - tautau*
+    #- tautau__hadA
+    #- tautau__hadB
+    #- tautau__hadA0
+    #- tautau__hadB0
+    #- tautau__hadC
+    #- tautau__hadD
+    #- tautau__hadC0
+    #- tautau__hadD0
+
+  variables:
+    #- electron_1_pt
+    #- electron_1_eta
+    #- electron_1_phi
+    #- muon_1_pt
+    #- muon_1_eta
+    #- muon_1_phi
+    #- tau_1_pt
+    #- tau_1_eta
+    #- tau_1_phi
+    #- tau_2_pt
+    #- tau_2_eta
+    #- tau_2_phi
+    - hcand_1_pt
+    #- hcand_1_eta
+    #- hcand_2_pt
+    #- hcand_2_eta
+    #- hcand_dr
+    #- hcand_invm
+    #- puppi_met_pt
+    #- puppi_met_phi
+    #- PhiCP_IPIP
+    #- PhiCP_DPDP
+    #- PhiCP_IPDP
+    #- pu_weight
+    #- pu_weight_log
+    #- muon_id_weight
+    #- muon_id_weight_log
+    #- muon_iso_weight
+    #- muon_iso_weight_log
+    #- muon_IsoMu24_trigger_weight
+    #- muon_IsoMu24_trigger_weight_log
+    #- electron_idiso
+    #- electron_idiso_log
+    #- electron_Ele30_WPTight_trigger
+    #- electron_Ele30_WPTight_trigger_log
+    #- electron_xtrig
+    #- electron_xtrig_log
+    #- tau
+    #- tau_log
+    #- tau_trigger
+    #- tau_trigger_log
+
+  #extras:
+  #  - process-settings "h_ggf_tautau,unstack,10000"

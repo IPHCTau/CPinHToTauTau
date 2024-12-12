@@ -1,0 +1,321 @@
+# coding: utf-8
+
+"""
+Prepare h-Candidate from SelectionResult: selected lepton indices & channel_id [trigger matched] 
+"""
+
+from typing import Optional
+from columnflow.selection import Selector, SelectionResult, selector
+from columnflow.selection.util import create_collections_from_masks
+from columnflow.util import maybe_import
+from columnflow.columnar_util import EMPTY_FLOAT, Route, set_ak_column
+from columnflow.columnar_util import optional_column as optional
+
+np = maybe_import("numpy")
+ak = maybe_import("awkward")
+coffea = maybe_import("coffea")
+maybe_import("coffea.nanoevents.methods.nanoaod")
+
+
+
+def sort_pairs(dtrpairs: ak.Array)->ak.Array:
+
+    sorted_idx = ak.argsort(dtrpairs["0"].rawDeepTau2018v2p5VSjet, ascending=False)
+    dtrpairs = dtrpairs[sorted_idx]
+
+    # if the deep tau val of tau-0 is the same for the first two pair
+    where_same_iso_1 = (
+        ak.firsts(dtrpairs["0"].rawDeepTau2018v2p5VSjet[:,:1], axis=1)
+        ==
+        ak.firsts(dtrpairs["0"].rawDeepTau2018v2p5VSjet[:,1:2], axis=1)
+    )
+
+    # if so, sort the pairs according to the deep tau of the 2nd tau
+    sorted_idx = ak.where(where_same_iso_1,
+                          ak.argsort(dtrpairs["1"].rawDeepTau2018v2p5VSjet, ascending=False),
+                          sorted_idx)
+    dtrpairs = dtrpairs[sorted_idx]
+
+    # if the deep tau val of tau-1 is the same for the first two pair 
+    where_same_iso_2 = (
+        ak.firsts(dtrpairs["1"].rawDeepTau2018v2p5VSjet[:,:1], axis=1)
+        ==
+        ak.firsts(dtrpairs["1"].rawDeepTau2018v2p5VSjet[:,1:2], axis=1)
+    )
+
+    # sort them with the pt of the 1st tau
+    sorted_idx = ak.where(where_same_iso_2,
+                          ak.argsort(dtrpairs["0"].pt, ascending=False),
+                          sorted_idx)
+    dtrpairs = dtrpairs[sorted_idx]
+
+    # check if the first two pairs have the second tau with same rawDeepTau2017v2p1VSjet
+    where_same_pt_1 = (
+        ak.firsts(dtrpairs["0"].pt[:,:1], axis=1)
+        ==
+        ak.firsts(dtrpairs["0"].pt[:,1:2], axis=1)
+    )
+
+    # if so, sort the taus with their pt
+    sorted_idx = ak.where(where_same_pt_1,
+                          ak.argsort(dtrpairs["1"].pt, ascending=False),
+                          sorted_idx)
+
+    # finally, the pairs are sorted
+    dtrpairs = dtrpairs[sorted_idx]
+
+    lep1 = ak.singletons(ak.firsts(dtrpairs["0"], axis=1))
+    lep2 = ak.singletons(ak.firsts(dtrpairs["1"], axis=1))
+
+    dtrpair    = ak.concatenate([lep1, lep2], axis=1) 
+
+    return dtrpair
+
+
+
+@selector(
+    uses={
+        optional("Tau.pt"),
+        optional("Tau.pt_tautau"),
+        optional("Tau.mass"),
+        optional("Tau.mass_tautau"),
+        "Tau.eta", "Tau.phi",
+        "Tau.rawIdx",
+        "Tau.charge", "Tau.rawDeepTau2018v2p5VSjet",
+        "Tau.idDeepTau2018v2p5VSjet", "Tau.idDeepTau2018v2p5VSe", "Tau.idDeepTau2018v2p5VSmu",
+    },
+    #produces={
+    #    "is_OS_tautau",
+    #    "is_ISO1_tautau",
+    #    "is_ISO2_tautau",
+    #    #"is_SR_tautau",
+    #    #"is_OSantiIso_tautau",
+    #    #"is_SSiso_tautau",
+    #    #"is_SSantiIso_tautau",
+    #},
+    exposed=False,
+)
+def tautau_selection(
+        self: Selector,
+        events: ak.Array,
+        lep_indices: ak.Array,
+        **kwargs,
+) -> tuple[SelectionResult, ak.Array]:
+
+    taus            = events.Tau[lep_indices]
+    # Extra channel specific selections on tau
+    # -------------------- #
+    tau_tagger      = self.config_inst.x.deep_tau_tagger
+    tau_tagger_wps  = self.config_inst.x.deep_tau_info[tau_tagger].wp
+    vs_e_wp         = self.config_inst.x.deep_tau_info[tau_tagger].vs_e["tautau"]
+    vs_mu_wp        = self.config_inst.x.deep_tau_info[tau_tagger].vs_m["tautau"]
+    vs_jet_wp       = self.config_inst.x.deep_tau_info[tau_tagger].vs_j["tautau"]
+
+    is_good_tau     = (
+        #(taus.idDeepTau2018v2p5VSjet   >= tau_tagger_wps.vs_j[vs_jet_wp])
+        (taus.idDeepTau2018v2p5VSe   >= tau_tagger_wps.vs_e[vs_e_wp])
+        & (taus.idDeepTau2018v2p5VSmu  >= tau_tagger_wps.vs_m[vs_mu_wp])
+    )
+
+    taus = taus[is_good_tau]
+
+    if self.dataset_inst.is_mc:
+        taus = ak.without_field(taus, "pt")
+        taus = ak.with_field(taus, taus.pt_tautau, "pt")
+        taus = ak.without_field(taus, "mass")
+        taus = ak.with_field(taus, taus.mass_tautau, "mass")
+    
+    # -------------------- # 
+
+    #from IPython import embed; embed()
+    
+    # Sorting leps [Tau] by deeptau [descending]
+    taus_sort_idx = ak.argsort(taus.rawDeepTau2018v2p5VSjet, axis=-1, ascending=False)
+    taus = taus[taus_sort_idx]
+
+    leps_pair        = ak.combinations(taus, 2, axis=1)
+    
+    # pair of leptons: probable higgs candidate -> leps_pair
+    # and their indices                         -> lep_indices_pair 
+    lep1, lep2 = ak.unzip(leps_pair)
+
+    preselection = {
+        #"tautau_tau1_iso"      : (lep1.idDeepTau2018v2p5VSjet >= tau_tagger_wps.vs_j[vs_jet_wp]),
+        "tautau_is_pt_40"      : (lep1.pt > 40) & (lep2.pt > 40),
+        "tautau_is_eta_2p1"    : (np.abs(lep1.eta) < 2.1) & (np.abs(lep2.eta) < 2.1),
+        #"tautau_is_os"         : (lep1.charge * lep2.charge) < 0,
+        "tautau_dr_0p5"        : (1*lep1).delta_r(1*lep2) > 0.5,  #deltaR(lep1, lep2) > 0.5,
+        "tautau_invmass_40"    : (1*lep1 + 1*lep2).mass > 40, # invariant_mass(lep1, lep2) > 40
+    }
+
+    good_pair_mask = lep1.rawIdx >= 0
+    pair_selection_steps = {}
+    pair_selection_steps["tautau_starts_with"] = good_pair_mask
+    for cut in preselection.keys():
+        good_pair_mask = good_pair_mask & preselection[cut]
+        pair_selection_steps[cut] = good_pair_mask
+
+
+    leps_pair = leps_pair[good_pair_mask]
+    npair = ak.num(leps_pair["0"], axis=1)
+
+    leps_pair_single = ak.concatenate([leps_pair["0"], leps_pair["1"]], axis=1)
+
+    leps_pair = ak.where(npair > 1, sort_pairs(leps_pair), leps_pair_single)
+    #leps_pair = ak.concatenate([leps_pair["0"][:,:1], leps_pair["1"][:,:1]], axis=1)
+
+    #sort_indices = ak.argsort(leps_pair.pt, ascending=False)
+    #leps_pair = leps_pair[sort_indices]
+
+    #print("selecting one pair to make life like heaven")
+    #from IPython import embed; embed()
+    
+    #leps_pair = leps_pair[:,:1]
+    _lep1 = leps_pair[:,0:1]
+    _lep2 = leps_pair[:,1:2]
+    #_lep1, _lep2 = ak.unzip(leps_pair)
+
+    find_leading_pt = (_lep1.pt >= _lep2.pt)    
+    lep1 = ak.where(find_leading_pt, _lep1, _lep2)
+    lep2 = ak.where(find_leading_pt, _lep2, _lep1)
+    
+
+    # masks
+    mask_isOS          = (lep1.charge * lep2.charge) < 0
+    mask_isSS          = ~mask_isOS
+    mask_isTau1Iso     = (lep1.idDeepTau2018v2p5VSjet >= tau_tagger_wps.vs_j["Medium"])
+    mask_isTau1AntiIso = ~mask_isTau1Iso
+    mask_isTau2AntiIso = (lep2.idDeepTau2018v2p5VSjet < tau_tagger_wps.vs_j["VVLoose"])
+    mask_isTau2Iso     = (lep2.idDeepTau2018v2p5VSjet >= tau_tagger_wps.vs_j["Medium"])
+
+    pair_selection_steps["tautau_is_os"]           = mask_isOS
+    pair_selection_steps["tautau_is_ss"]           = mask_isSS
+    pair_selection_steps["tautau_is_tau1_antiIso"] = mask_isTau1AntiIso
+    pair_selection_steps["tautau_is_tau1_iso"]     = mask_isTau1Iso
+    pair_selection_steps["tautau_is_tau2_antiIso"] = mask_isTau2AntiIso
+    pair_selection_steps["tautau_is_tau2_iso"]     = mask_isTau2Iso
+
+
+    #print("creating evt masks")
+    #from IPython import embed; embed()
+
+    
+    is_OS   = ak.fill_none(ak.any(mask_isOS, axis=1), False)
+    is_ISO1 = ak.fill_none(ak.any(mask_isTau1Iso, axis=1), False)
+    is_ISO2 = ak.fill_none(ak.any(mask_isTau2Iso, axis=1), False)
+
+    #events = set_ak_column(events, "is_OS_tautau",   is_OS)
+    #events = set_ak_column(events, "is_ISO1_tautau", is_ISO1)
+    #events = set_ak_column(events, "is_ISO2_tautau", is_ISO2)
+
+    
+
+    # ------ ABCD ------- #
+    # --------- <---|--------> tau-2 iso
+    #          ^    |      | 
+    #     A    | D0 |  D   | 
+    #          |    | [SR] | 
+    # ---------------------| 
+    #          |    |       | 
+    #     B    | C0 |  C    | 
+    #          |    | [AR]  | 
+    # ---------|-----------| 
+    #     SS   |     OS      
+    #          v             
+    #       tau-1 iso        
+
+    in_region_D  = mask_isOS & mask_isTau1Iso & mask_isTau2Iso
+    pair_selection_steps["tautau_region_D"]  = in_region_D
+
+    in_region_C  = mask_isOS & mask_isTau1AntiIso & mask_isTau2Iso
+    pair_selection_steps["tautau_region_C"]  = in_region_C
+
+    in_region_C0 = mask_isOS & mask_isTau1AntiIso & mask_isTau2AntiIso
+    pair_selection_steps["tautau_region_C0"] = in_region_C0
+    
+    in_region_D0 = mask_isOS & mask_isTau1Iso & mask_isTau2AntiIso
+    pair_selection_steps["tautau_region_D0"] = in_region_D0
+
+    in_region_B  = mask_isSS & mask_isTau1AntiIso
+    pair_selection_steps["tautau_region_B"]  = in_region_B
+
+    in_region_A  = mask_isSS & mask_isTau1Iso
+    pair_selection_steps["tautau_region_A"]  = in_region_A
+
+
+    
+    """
+    # combination of masks
+    # OS
+    in_region_D  = mask_isOS & mask_isTau1Iso & mask_isTau2Iso
+    pair_selection_steps["tautau_region_D"]  = in_region_D
+    leps_pair_in_D = leps_pair[in_region_D]
+    leps_pair_in_D = ak.concatenate([leps_pair_in_D["0"][:,:1], leps_pair_in_D["1"][:,:1]], axis=1) # keeping the 1st one
+    is_D  = ak.fill_none(ak.any(in_region_D, axis=1), False) # to event level
+
+
+    in_region_C  = mask_isOS & mask_isTau1AntiIso & mask_isTau2Iso
+    pair_selection_steps["tautau_region_C"]  = in_region_C
+    leps_pair_in_C = leps_pair[in_region_C]
+    leps_pair_in_C = ak.concatenate([leps_pair_in_C["0"][:,:1], leps_pair_in_C["1"][:,:1]], axis=1) # keeping the 1st one
+    is_C  = ak.fill_none(ak.any(in_region_C, axis=1) & ~is_D, False) 
+
+    
+    #in_region_C0 = mask_isOS & mask_isTau1AntiIso & mask_isTau2AntiIso
+    #pair_selection_steps["tautau_region_C0"] = in_region_C0
+    #leps_pair_in_C0 = leps_pair[in_region_C0]
+    #leps_pair_in_C0 = ak.concatenate([leps_pair_in_C0["0"][:,:1], leps_pair_in_C0["1"][:,:1]], axis=1) # keeping the 1st one 
+    #is_C0 = ak.fill_none(ak.any(in_region_C0, axis=1) & ~is_D & ~is_C, False)
+
+    #print("g")
+    #from IPython import embed; embed()
+
+    #in_region_D0 = mask_isOS & mask_isTau1Iso & mask_isTau2AntiIso
+    #pair_selection_steps["tautau_region_D0"] = in_region_D0
+    #leps_pair_in_D0 = leps_pair[in_region_D0]
+    #leps_pair_in_D0 = ak.concatenate([leps_pair_in_D0["0"][:,:1], leps_pair_in_D0["1"][:,:1]], axis=1) # keeping the 1st one 
+    #is_D0 = ak.fill_none(ak.any(in_region_D0, axis=1) & ~is_D & ~is_C & ~is_C0, False)
+
+    #print("h")
+    #from IPython import embed; embed()
+
+    print(f"SS")
+    # SS
+    in_region_B  = mask_isSS & mask_isTau1AntiIso
+    pair_selection_steps["tautau_region_B"]  = in_region_B
+    leps_pair_in_B = leps_pair[in_region_B]
+    leps_pair_in_B = ak.concatenate([leps_pair_in_B["0"][:,:1], leps_pair_in_B["1"][:,:1]], axis=1) # keeping the 1st one 
+    is_B = ak.fill_none(ak.any(in_region_B, axis=1) & ~(is_C | is_D), False) 
+
+    print("i")
+    from IPython import embed; embed()
+
+    in_region_A  = mask_isSS & mask_isTau1Iso
+    pair_selection_steps["tautau_region_A"]  = in_region_A
+    leps_pair_in_A = leps_pair[in_region_A]
+    leps_pair_in_A = ak.concatenate([leps_pair_in_A["0"][:,:1], leps_pair_in_A["1"][:,:1]], axis=1) # keeping the 1st one 
+    is_A = ak.fill_none(ak.any(in_region_A, axis=1) & ~(is_C | is_D) & ~is_B, False)
+
+    print("j")
+    from IPython import embed; embed()
+
+    leps_pair_dummy = ak.concatenate([leps_pair["0"][:,:1], leps_pair["1"][:,:1]], axis=1)
+
+    leps_pair = ak.where(is_D,  leps_pair_in_D,  leps_pair_dummy)
+    leps_pair = ak.where(is_C,  leps_pair_in_C,  leps_pair)
+    leps_pair = ak.where(is_D0, leps_pair_in_D0, leps_pair)
+    leps_pair = ak.where(is_C0, leps_pair_in_C0, leps_pair)
+    leps_pair = ak.where(is_B,  leps_pair_in_B,  leps_pair)
+    leps_pair = ak.where(is_A,  leps_pair_in_A,  leps_pair)
+    """
+
+    #leps_pair = ak.concatenate([lep1, lep2], axis=1)
+
+    print("done")
+    from IPython import embed; embed()
+
+    return SelectionResult(
+        aux = pair_selection_steps | {"cat_tautau_is_OS"   : is_OS,
+                                      "cat_tautau_is_ISO1" : is_ISO1,
+                                      "cat_tautau_is_ISO2" : is_ISO2}
+    ), leps_pair

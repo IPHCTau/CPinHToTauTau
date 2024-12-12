@@ -18,6 +18,7 @@ class TriggerLeg(object):
 
         - *pdg_id*: The id of the object that should have caused the trigger leg to fire.
         - *min_pt*: The minimum transverse momentum in GeV of the triggered object.
+        - *max_abseta*: The maximum abs eta of the triggered object.
         - *trigger_bits*: Integer bit mask or masks describing whether the last filter of a trigger fired.
           See https://github.com/cms-sw/cmssw/blob/master/PhysicsTools/NanoAOD/python/triggerObjects_cff.py.
           Per mask, any of the bits should match (*OR*). When multiple masks are configured, each of
@@ -27,27 +28,30 @@ class TriggerLeg(object):
     """
 
     def __init__(
-        self,
-        pdg_id: int | None = None,
-        min_pt: float | int | None = None,
-        trigger_bits: int | Sequence[int] | None = None,
+            self,
+            pdg_id: int | None = None,
+            min_pt: float | int | None = None,
+            max_abseta: float | int | None = None,
+            trigger_bits: int | Sequence[int] | None = None,
     ):
         super().__init__()
 
         # instance members
         self._pdg_id = None
         self._min_pt = None
+        self._max_abseta = None
         self._trigger_bits = None
 
         # set initial values
         self.pdg_id = pdg_id
         self.min_pt = min_pt
+        self.max_abseta = max_abseta
         self.trigger_bits = trigger_bits
 
     def __repr__(self):
         return (
             f"<{self.__class__.__name__} "
-            f"'pdg_id={self.pdg_id}, min_pt={self.min_pt}, trigger_bits={self.trigger_bits}' "
+            f"'pdg_id={self.pdg_id}, min_pt={self.min_pt}, max_abseta={self.max_abseta}, trigger_bits={self.trigger_bits}' "
             f"at {hex(id(self))}>"
         )
 
@@ -73,6 +77,18 @@ class TriggerLeg(object):
 
         return min_pt
 
+    @typed
+    def max_abseta(self, max_abseta: int | float | None) -> float | None:
+        if max_abseta is None:
+            return None
+
+        if isinstance(max_abseta, int):
+            max_abseta = float(max_abseta)
+        if not isinstance(max_abseta, float):
+            raise TypeError(f"invalid max_abseta: {max_abseta}")
+
+        return max_abseta
+    
     @typed
     def trigger_bits(
         self,
@@ -177,10 +193,10 @@ class Trigger(UniqueObject, TagMixin):
             raise TypeError(f"invalid run_range: {run_range}")
         if len(run_range) != 2:
             raise ValueError(f"invalid run_range length: {run_range}")
-        if not isinstance(run_range[0], int):
-            raise ValueError(f"invalid run_range start: {run_range[0]}")
-        if not isinstance(run_range[1], int):
-            raise ValueError(f"invalid run_range end: {run_range[1]}")
+        #if not isinstance(run_range[0], int):
+        #    raise ValueError(f"invalid run_range start: {run_range[0]}")
+        #if not isinstance(run_range[1], int):
+        #    raise ValueError(f"invalid run_range end: {run_range[1]}")
 
         return run_range
 
