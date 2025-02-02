@@ -169,7 +169,7 @@ def hcand_features(
         category_ids,
         build_abcd_masks,
         "channel_id",
-        ff_weight,
+        #ff_weight,
     },
     produces={
         make_column_valid,
@@ -200,7 +200,7 @@ def hcand_features(
         #"trigger_ids",
         category_ids,
         build_abcd_masks,
-        ff_weight,
+        #ff_weight,
     },
 )
 def main(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
@@ -283,7 +283,7 @@ def main(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
         #    logger.info("splitting (any) Drell-Yan dataset ... ")
         #    events = self[split_dy](events,**kwargs)
 
-    events = self[ff_weight](events, **kwargs)        
+    #events = self[ff_weight](events, **kwargs)        
 
     # features
     events = self[hcand_mass](events, **kwargs)
