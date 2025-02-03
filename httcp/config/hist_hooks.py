@@ -192,8 +192,10 @@ def add_hist_hooks(config: od.Config) -> None:
         - FF0 x C0 -> D0 : type_extrapolation = "C0D0"; also create ratio plot of DATA/MC oof D0 region for extrapolation correction
         '''
         # Choose the type of extrapolation
-        type_extrapolation = "CD" # "AB" or "CD" or "C0D0"
+        #type_extrapolation = "CD" # "AB" or "CD" or "C0D0"
+        type_extrapolation = config.x.regions_to_extrapolate_fake
 
+        
         # Check if histograms are available
         if not hists:
             print("no hists")
@@ -275,6 +277,13 @@ def add_hist_hooks(config: od.Config) -> None:
         data_hist_incl = data_hist.copy().reset()
         os_iso_mc_incl = None
         os_iso_data_incl = None
+        path = f"{law.wlcg.WLCGFileSystem().base[0].split('root://eosuser.cern.ch')[-1]}/analysis_httcp/cf.PlotVariables1D/{config.campaign.name}/QCD"
+        if not os.path.exists(path):
+            os.makedirs(path)
+        ratio_path = f"{path}/Ratio"
+        if not os.path.exists(ratio_path):
+            os.makedirs(ratio_path)
+                
         for gidx, group_name in enumerate(complete_groups):
             group = qcd_groups[group_name]
    
@@ -314,77 +323,78 @@ def add_hist_hooks(config: od.Config) -> None:
                     f"for category {group.os_iso}",
                 )
 
-            # Save tne qcd histogram in a pickle file
-            hname = qcd_hist.axes[2].name
-            path = "/eos/user/o/oponcet2/analysis/CP_dev/analysis_httcp/cf.PlotVariables1D/QCD"
-            # Ensure the folder exists
-            if not os.path.exists(path):
-                os.makedirs(path)
+            if type_extrapolation != "CD":
+                # Save tne qcd histogram in a pickle file
+                hname = qcd_hist.axes[2].name
+                #path = "/eos/user/o/oponcet2/analysis/CP_dev/analysis_httcp/cf.PlotVariables1D/QCD"
+                # Ensure the folder exists
+                #if not os.path.exists(path):
+                #    os.makedirs(path)
+                with open(f"{path}/qcd_{hname}_{group_name}.pkl", "wb") as f:
+                    pickle.dump(qcd_hist, f)
+
+                # create a hist clone of the data_hist
+                ratio_hist = data_hist.copy()
+
+                # calultate sum_mc_hist
+                mc_hists = [h for p, h in hists.items() if p.is_mc and not p.has_tag("signal")]
+                mc_hist_sum = sum(mc_hists[1:], mc_hists[0].copy())
+
+                # For inclusive region
+                mc_hist_incl = mc_hist_incl + mc_hist_sum.copy()
+                data_hist_incl = data_hist_incl + data_hist.copy()
+                
+                os_iso_mc  = hist_to_num(get_hist(mc_hist_sum, "os_iso"), "os_iso_mc")
+                os_iso_data = hist_to_num(get_hist(data_hist, "os_iso"), "os_iso_data")
+                
+                # Calucate the DATA/MC ratio
+                ratio = os_iso_data/os_iso_mc
+
+                # total MC
+                os_iso_mc_incl   = (os_iso_mc + os_iso_mc_incl) if gidx > 0 else os_iso_mc
+                os_iso_data_incl = (os_iso_data + os_iso_data_incl) if gidx > 0 else os_iso_data
+                
+                # combine uncertainties and store values in bare arrays
+                ratio_hist_values = ratio()
+                ratio_hist_variances = ratio(sn.UP, sn.ALL, unc=True)**2
+                
+                
+                # Guaranty positive values of fake_hist
+                neg_int_mask = ratio_hist_values <= 0
+                ratio_hist_values[neg_int_mask] = 1e-5
+                ratio_hist_variances[neg_int_mask] = 0
+
+                ## Use fake_hist as qcd histogram for category D (os_iso)
+                cat_axis = qcd_hist.axes["category"]
+                for cat_index in range(cat_axis.size):
+                    if cat_axis.value(cat_index) == group.os_iso.id:
+                        ratio_hist.view().value[cat_index, ...] = ratio_hist_values
+                        ratio_hist.view().variance[cat_index, ...] = ratio_hist_variances
+                        break
+                    else:
+                        raise RuntimeError(
+                            f"could not find index of bin on 'category' axis of qcd histogram {mc_hist} "
+                            f"for category {group.os_iso}",
+                        )
+            
+                #path = f"{path}/Ratio"
+                # save the ratio in a pickle file
+                with open(f"{ratio_path}/ratio_{hname}_{group_name}_{group.os_iso.id}.pkl", "wb") as f:
+                    pickle.dump(ratio_hist, f)
+                    
+        if type_extrapolation != "CD":
+            # Save the inclusive histograms
+            incl_ratio = os_iso_data_incl/os_iso_mc_incl
+
+            incl_ratio_hist_values = incl_ratio()
+            incl_ratio_hist_variances = incl_ratio(sn.UP, sn.ALL, unc=True)**2
+
+            incl_ratio_hist = mc_hist_incl.copy().reset()
+            incl_ratio_hist.view().value[0, ...] = incl_ratio_hist_values
+            incl_ratio_hist.view().variance[0, ...] = incl_ratio_hist_variances
         
-            with open(f"{path}/qcd_{hname}_{group_name}.pkl", "wb") as f:
-                pickle.dump(qcd_hist, f)
-
-            # create a hist clone of the data_hist
-            ratio_hist = data_hist.copy()
-
-            # calultate sum_mc_hist
-            mc_hists = [h for p, h in hists.items() if p.is_mc and not p.has_tag("signal")]
-            mc_hist_sum = sum(mc_hists[1:], mc_hists[0].copy())
-
-            # For inclusive region
-            mc_hist_incl = mc_hist_incl + mc_hist_sum.copy()
-            data_hist_incl = data_hist_incl + data_hist.copy()
-            
-            os_iso_mc  = hist_to_num(get_hist(mc_hist_sum, "os_iso"), "os_iso_mc")
-            os_iso_data = hist_to_num(get_hist(data_hist, "os_iso"), "os_iso_data")
-    
-            # Calucate the DATA/MC ratio
-            ratio = os_iso_data/os_iso_mc
-
-            # total MC
-            os_iso_mc_incl   = (os_iso_mc + os_iso_mc_incl) if gidx > 0 else os_iso_mc
-            os_iso_data_incl = (os_iso_data + os_iso_data_incl) if gidx > 0 else os_iso_data
-            
-            # combine uncertainties and store values in bare arrays
-            ratio_hist_values = ratio()
-            ratio_hist_variances = ratio(sn.UP, sn.ALL, unc=True)**2
-
-
-            # Guaranty positive values of fake_hist
-            neg_int_mask = ratio_hist_values <= 0
-            ratio_hist_values[neg_int_mask] = 1e-5
-            ratio_hist_variances[neg_int_mask] = 0
-
-            ## Use fake_hist as qcd histogram for category D (os_iso)
-            cat_axis = qcd_hist.axes["category"]
-            for cat_index in range(cat_axis.size):
-                if cat_axis.value(cat_index) == group.os_iso.id:
-                    ratio_hist.view().value[cat_index, ...] = ratio_hist_values
-                    ratio_hist.view().variance[cat_index, ...] = ratio_hist_variances
-                    break
-            else:
-                raise RuntimeError(
-                    f"could not find index of bin on 'category' axis of qcd histogram {mc_hist} "
-                    f"for category {group.os_iso}",
-                )
-            
-            path = f"{path}/Ratio"
-            # save the ratio in a pickle file
-            with open(f"{path}/ratio_{hname}_{group_name}_{group.os_iso.id}.pkl", "wb") as f:
-                pickle.dump(ratio_hist, f)
-
-        # Save the inclusive histograms
-        incl_ratio = os_iso_data_incl/os_iso_mc_incl
-
-        incl_ratio_hist_values = incl_ratio()
-        incl_ratio_hist_variances = incl_ratio(sn.UP, sn.ALL, unc=True)**2
-
-        incl_ratio_hist = mc_hist_incl.copy().reset()
-        incl_ratio_hist.view().value[0, ...] = incl_ratio_hist_values
-        incl_ratio_hist.view().variance[0, ...] = incl_ratio_hist_variances
-        
-        with open(f"{path}/RATIO_{hname}_inclusive.pkl", "wb") as f:
-            pickle.dump(incl_ratio_hist, f) #data_hist_incl, f)
+            with open(f"{ratio_path}/RATIO_{hname}_inclusive.pkl", "wb") as f:
+                pickle.dump(incl_ratio_hist, f) #data_hist_incl, f)
           
         return hists
     

@@ -208,7 +208,7 @@ def zpt_reweight_v2_setup(
     produces={
         "ff_weight",
         #"closure_weight",
-        "ff_ext_corr_weight",
+        #"ff_ext_corr_weight",
     },
     mc_only=False,
 )
@@ -265,30 +265,31 @@ def ff_weight(
     fake_factors_nom = self.ff_corrector.evaluate(
         pt1,
         dm,
-        njet
-    )
-    fake_0_factors_nom = self.ff0_corrector.evaluate(
-        pt1,
-        dm,
-        njet
-    )
-    ext_corr_nom = self.ext_corrector.evaluate(
-        metvarqcdh1,
+        njet,
         "nom",
     )
+    #fake_0_factors_nom = self.ff0_corrector.evaluate(
+    #    pt1,
+    #    dm,
+    #    njet
+    #)
+    #ext_corr_nom = self.ext_corrector.evaluate(
+    #    metvarqcdh1,
+    #    "nom",
+    #)
     
     # Apply the fake factor only for the C category
     ff_nom = np.where((is_C_category | is_B_category), fake_factors_nom, 1.0)
-    ff_nom = np.where(is_C0_category, fake_0_factors_nom, ff_nom)
+    #ff_nom = np.where(is_C0_category, fake_0_factors_nom, ff_nom)
 
-    ext_corr_nom = np.where((is_C_category | is_C0_category), ext_corr_nom, 1.0)
+    #ext_corr_nom = np.where((is_C_category | is_C0_category), ext_corr_nom, 1.0)
     
     #closure_nom = np.where(is_C_category, closure_nom, 1.0)
 
     # Add the column to the events
     events = set_ak_column(events, "ff_weight", ff_nom, value_type=np.float32)
     # events = set_ak_column(events, "closure_weight", closure_nom, value_type=np.float32)
-    events = set_ak_column(events, "ff_ext_corr_weight", ext_corr_nom, value_type=np.float32)
+    #events = set_ak_column(events, "ff_ext_corr_weight", ext_corr_nom, value_type=np.float32)
     
     return events
 
@@ -312,19 +313,20 @@ def ff_weight_setup(
     import correctionlib
     correctionlib.highlevel.Correction.__call__ = correctionlib.highlevel.Correction.evaluate
 
+    #from IPython import embed; embed()
     correction_set = correctionlib.CorrectionSet.from_file(
         bundle.files.tautau_ff.path,
     ) 
     self.ff_corrector = correction_set["fake_factors_fit"]
 
-    correction_set_0 = correctionlib.CorrectionSet.from_file(
-        bundle.files.tautau_ff0.path,
-    )
-    self.ff0_corrector = correction_set["fake_factors_fit"]
+    #correction_set_0 = correctionlib.CorrectionSet.from_file(
+    #    bundle.files.tautau_ff0.path,
+    #)
+    #self.ff0_corrector = correction_set["fake_factors_fit"]
 
-    # extrapolation correction on FF
-    ext_correction_set = correctionlib.CorrectionSet.from_file(
-        bundle.files.tautau_ext_corr.path,
-    )
-    self.ext_corrector = ext_correction_set["extrapolation_correction"]
+    ## extrapolation correction on FF
+    #ext_correction_set = correctionlib.CorrectionSet.from_file(
+    #    bundle.files.tautau_ext_corr.path,
+    #)
+    #self.ext_corrector = ext_correction_set["extrapolation_correction"]
     

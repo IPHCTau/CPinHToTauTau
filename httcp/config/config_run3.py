@@ -216,7 +216,7 @@ def add_config (ana: od.Analysis,
         "zzz",
 
         ##Signal
-        #"h_ggf_tautau_uncorrelated_filter",
+        "h_ggf_tautau_uncorrelated_filter",
         #"h_ggf_tautau_uncorrelatedDecay_CPodd_Filtered_ProdAndDecay",
         #"h_ggf_tautau_uncorrelatedDecay_CPodd_UnFiltered_ProdAndDecay",
         #"h_ggf_tautau_uncorrelatedDecay_MM_Filtered_ProdAndDecay",
@@ -571,7 +571,7 @@ def add_config (ana: od.Analysis,
         # https://indico.cern.ch/event/489921/contributions/2000259/attachments/1248156/1839106/Recoil_20160323.pdf
         # /afs/cern.ch/user/d/dmroy/public/DY_pTll_recoil_corrections.json.gz
         "zpt_rewt_v2_sf"    : (f"{external_path_parent}/Run3/Zpt/DY_pTll_recoil_corrections.json.gz",                  "v1"), # Zpt Rewt
-        "tautau_ff"         : (f"{external_path}/Fake_tautau/fake_factor_2022_preEE_max_120GeV.json",                  "v1"),
+        "tautau_ff"         : (f"{external_path}/Fake_tautau/fake_factor_2022_postEE.json",                            "v1"),
         "tautau_ff0"        : (f"{external_path}/Fake_tautau/fake_factor_2022_preEE_0cat_v2.json",                     "v1"),
         "tautau_ext_corr"   : (f"{external_path}/Fake_tautau/extrapolation_correction_inclusive.json",                 "v1"),
         #"btag_sf_corr": (f"{json_mirror}/POG/BTV/{year}_Summer{year2}{year_postfix}/btagging.json.gz",                "v1"),
@@ -1040,7 +1040,7 @@ def add_config (ana: od.Analysis,
         "muon_xtrig_weight"                     : [], #get_shifts("mu_xtrig"),
         "tau_weight"                            : [], #get_shifts("tau"),
         "tau_trigger_weight"                    : [], #get_shifts("tau_trig"),
-        #"ff_weight"                             : [],
+        "ff_weight"                             : [],
         #"ff_ext_corr_weight"                    : [],
         #"tes_weight"                           : [], #get_shifts("tes"),
         "tauspinner_weight"                     : get_shifts("tauspinner"),
@@ -1321,9 +1321,9 @@ def add_config (ana: od.Analysis,
             "is_ipsig_0to1_1",
             "has_0jet", "has_1jet", "has_2jet",
             "PuppiMET.*", "Jet.*",
-            "TauSpinner.*", "hcand.*", "hcandprod.*"
+            "TauSpinner.*", "hcand.*", "hcandprod.*", "TauProd.*",
             "GenTau.*", "GenTauProd.*",
-            "process_id", "category_ids"
+            "process_id", "category_ids",
         },
     })
 
@@ -1331,6 +1331,7 @@ def add_config (ana: od.Analysis,
     # Adding hist hooks
     # --------------------------------------------------------------------------------------------- #
 
+    config.x.regions_to_extrapolate_fake = "CD" # "AB" or "CD" or "C0D0"
     from httcp.config.hist_hooks import add_hist_hooks
     add_hist_hooks(cfg)
 
