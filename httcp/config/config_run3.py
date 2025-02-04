@@ -529,16 +529,19 @@ def add_config (ana: od.Analysis,
     #print(f"json_mirror          : {json_mirror}")
 
     normtagjson = None
+    goldenjson = None
     if year == 2022:
         normtagjson = "/cvmfs/cms-bril.cern.ch/cms-lumi-pog/Normtags/normtag_BRIL.json"
+        goldenjson = "/eos/user/c/cmsdqm/www/CAF/certification/Collisions22/Cert_Collisions2022_355100_362760_Golden.json"
     elif year == 2023:
         normtagjson = "/afs/cern.ch/user/l/lumipro/public/Normtags/normtag_PHYSICS.json"
+        goldenjson = "/eos/user/c/cmsdqm/www/CAF/certification/Collisions23/Cert_Collisions2023_366442_370790_Golden.json"
     elif year == 2024:
         raise RuntimeWarning("too early")
     else:
         raise RuntimeError(f"Check year : {year}")
 
-    goldenjson  = glob(f"{external_path}/Lumi/*.json")[0]
+    #goldenjson  = glob(f"{external_path}/Lumi/*.json")[0]
 
     #print(f"GoldenJSON           : {goldenjson}")
     #print(f"NormtagJSON          : {normtagjson}")
@@ -588,7 +591,7 @@ def add_config (ana: od.Analysis,
     if year == 2022:
         electron_sf_tag = "2022Re-recoE+PromptFG" if year_postfix else "2022Re-recoBCD"
     elif year == 2023:
-        electron_sf_tag = "2023PromptC" if year_postfix else "2023PromptD"
+        electron_sf_tag = "2023PromptD" if year_postfix else "2023PromptC"
     elif year == 2024:
         raise RuntimeWarning("too early")
     else:
