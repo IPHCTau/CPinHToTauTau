@@ -31,6 +31,7 @@ logger = law.logger.get_logger(__name__)
 
 ak = maybe_import("awkward")
 
+
 #thisdir = os.path.dirname(os.path.abspath(__file__))
 thisdir = "/afs/cern.ch/work/g/gsaha/public/IPHC/Work/ColumnFlowAnalyses/CPinHToTauTau/httcp/config"
 #print(f"thisdir: {thisdir}")
@@ -43,10 +44,6 @@ def add_config (ana: od.Analysis,
                 config_id             = None,
                 limit_dataset_files   = None
 ) -> od.Config :
-
-    logger.info(f"campaign    : {campaign.name}")
-    logger.info(f"config name : {config_name}")
-    logger.info(f"config id   : {config_id}")
 
     # gather campaign data
     year = campaign.x.year
@@ -367,11 +364,10 @@ def add_config (ana: od.Analysis,
     # (currently set to false because the number of files per dataset is truncated to 2)
     cfg.x.validate_dataset_lfns = False
 
-    cfg.x.allow_dy_stitching = False
-
     # define inclusive datasets for the stitched process identification with corresponding leaf processes
     # drell-yan [NLO]
-
+    cfg.x.allow_dy_stitching = True
+    cfg.x.allow_dy_stitching_for_plotting = False
     cfg.x.dy_stitching = {
         "dy": {
             "inclusive_dataset": cfg.datasets.n.dy_lep_m50_madgraph,
@@ -402,7 +398,7 @@ def add_config (ana: od.Analysis,
     }
     """
     cfg.x.allow_w_stitching = False
-        
+    cfg.x.allow_w_stitching_for_plotting = False
     # w+jets [NLO]
     cfg.x.w_stitching = {
         "wj": {
@@ -514,7 +510,7 @@ def add_config (ana: od.Analysis,
     # restructure the postfix names to build appropriate tags
     # --------------------------------------------------------------------------------------------- #
 
-    year2 = year%100
+    year2 = year%100 # 22, 23, 24
     #external_path_parent = os.path.join(os.environ.get('HTTCP_BASE'), f"httcp/data/corrections")
     external_path_parent = os.path.join(corrdir, "corrections")
     external_path_tail   = f"{year}{postfix}" if postfix else f"{year}"
@@ -574,9 +570,9 @@ def add_config (ana: od.Analysis,
         # https://indico.cern.ch/event/489921/contributions/2000259/attachments/1248156/1839106/Recoil_20160323.pdf
         # /afs/cern.ch/user/d/dmroy/public/DY_pTll_recoil_corrections.json.gz
         "zpt_rewt_v2_sf"    : (f"{external_path_parent}/Run3/Zpt/DY_pTll_recoil_corrections.json.gz",                  "v1"), # Zpt Rewt
-        "tautau_ff"         : (f"{external_path}/Fake_tautau/fake_factor_2022_postEE.json",                            "v1"),
-        "tautau_ff0"        : (f"{external_path}/Fake_tautau/fake_factor_2022_preEE_0cat_v2.json",                     "v1"),
-        "tautau_ext_corr"   : (f"{external_path}/Fake_tautau/extrapolation_correction_inclusive.json",                 "v1"),
+        #"tautau_ff"         : (f"{external_path}/Fake_tautau/fake_factor_{year}_{postfix}.json",                       "v1"),
+        #"tautau_ff0"        : (f"{external_path}/Fake_tautau/fake_factor_{year}_{postfix}_0cat_v2.json",               "v1"),
+        #"tautau_ext_corr"   : (f"{external_path}/Fake_tautau/extrapolation_correction_inclusive.json",                 "v1"),
         #"btag_sf_corr": (f"{json_mirror}/POG/BTV/{year}_Summer{year2}{year_postfix}/btagging.json.gz",                "v1"),
         #"met_phi_corr": (f"{json_mirror}/POG/JME/2018_UL/met.json.gz",                                                "v1"), #met phi, unavailable Run3
     })
@@ -653,6 +649,13 @@ def add_config (ana: od.Analysis,
         jec_version = {2022: "V2"}[year]
         jer_campaign = f"Summer{year2}{year_postfix}_22Sep2023"
         jer_version = "JR" + {2022: "V1"}[year]
+        jet_type = "AK4PFPuppi"
+    elif year == 2023:
+        jec_campaign = f"Summer{year2}{year_postfix}Prompt23" # Summer23Prompt23 
+        jec_version = {2023: "V1"}[year]
+        jer_campaign = f"Summer{year2}{year_postfix}Prompt23"
+        jer_campaign += f"_Run{'Cv123' if postfix == 'preBPix' else 'D'}" # Summer23Prompt23_RunCv1234 or Summer23Prompt23_RunD
+        jer_version = "JR" + {2023: "V1"}[year]
         jet_type = "AK4PFPuppi"
     else:
         assert False
@@ -1043,7 +1046,7 @@ def add_config (ana: od.Analysis,
         "muon_xtrig_weight"                     : [], #get_shifts("mu_xtrig"),
         "tau_weight"                            : [], #get_shifts("tau"),
         "tau_trigger_weight"                    : [], #get_shifts("tau_trig"),
-        "ff_weight"                             : [],
+        #"ff_weight"                             : [],
         #"ff_ext_corr_weight"                    : [],
         #"tes_weight"                           : [], #get_shifts("tes"),
         "tauspinner_weight"                     : get_shifts("tauspinner"),
@@ -1334,7 +1337,7 @@ def add_config (ana: od.Analysis,
     # Adding hist hooks
     # --------------------------------------------------------------------------------------------- #
 
-    config.x.regions_to_extrapolate_fake = "CD" # "AB" or "CD" or "C0D0"
+    cfg.x.regions_to_extrapolate_fake = "CD" # "AB" or "CD" or "C0D0"
     from httcp.config.hist_hooks import add_hist_hooks
     add_hist_hooks(cfg)
 
