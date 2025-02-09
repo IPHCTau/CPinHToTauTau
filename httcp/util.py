@@ -110,6 +110,21 @@ def IF_ALLOW_STITCHING(
     #return None if not (func.dataset_inst.has_tag("is_w") | func.dataset_inst.has_tag("is_dy")) else self.get()
     return None if not (allow_dy | allow_w) else self.get()
 
+@deferred_column
+def IF_GENMATCH_ON_FOR_SIGNAL(
+    self: ArrayFunction.DeferredColumn,
+    func: ArrayFunction,
+) -> Any | set[Any]:
+    if getattr(func, "dataset_inst", None) is None:
+        return self.get()
+    dogenmatch = False
+    if "is_signal" in list(func.dataset_inst.aux.keys()):
+        if func.config_inst.x.extra_tags.genmatch == True:
+            dogenmatch = True
+    return self.get() if dogenmatch else None
+
+
+
 def transverse_mass(lepton: ak.Array, met: ak.Array) -> ak.Array:
     dphi_lep_met = lepton.delta_phi(met)
     mt = np.sqrt(2 * lepton.pt * met.pt * (1 - np.cos(dphi_lep_met)))
