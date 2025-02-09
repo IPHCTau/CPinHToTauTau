@@ -23,7 +23,7 @@ from columnflow.production.util import attach_coffea_behavior
 from columnflow.selection.util import create_collections_from_masks
 from columnflow.util import maybe_import
 
-from columnflow.columnar_util import EMPTY_FLOAT, Route, set_ak_column
+from columnflow.columnar_util import EMPTY_FLOAT, Route, set_ak_column, remove_ak_column
 from columnflow.columnar_util import optional_column as optional
 
 from columnflow.config_util import get_events_from_categories
@@ -48,7 +48,9 @@ from httcp.production.columnvalid import make_column_valid
 #from httcp.production.angular_features import ProduceDetCosPsi, ProduceGenCosPsi
 
 from httcp.util import IF_DATASET_HAS_LHE_WEIGHTS, IF_DATASET_IS_DY, IF_DATASET_IS_W, IF_DATASET_IS_SIGNAL
-from httcp.util import IF_RUN2, IF_RUN3, IF_ALLOW_STITCHING
+from httcp.util import IF_RUN2, IF_RUN3, IF_ALLOW_STITCHING, IF_GENMATCH_ON_FOR_SIGNAL
+
+from httcp.production.applyFastMTT import apply_fastMTT
 
 np = maybe_import("numpy")
 ak = maybe_import("awkward")
@@ -68,18 +70,18 @@ logger = law.logger.get_logger(__name__)
         "hcand.*", optional("GenTau.*"), optional("GenTauProd.*"),
         "Jet.pt",
         "PuppiMET.pt", "PuppiMET.phi",
-        #reArrangeDecayProducts,
-        #reArrangeGenDecayProducts,
-        #ProduceGenPhiCP, ####ProduceGenCosPsi, 
-        #ProduceDetPhiCP, ####ProduceDetCosPsi,
+        reArrangeDecayProducts,
+        IF_GENMATCH_ON_FOR_SIGNAL(reArrangeGenDecayProducts),
+        IF_GENMATCH_ON_FOR_SIGNAL(ProduceGenPhiCP), ####ProduceGenCosPsi, 
+        ProduceDetPhiCP, ####ProduceDetCosPsi,
     },
     produces={
         # new columns
         "hcand_invm",
         "hcand_dr",
         "n_jet",
-        #ProduceGenPhiCP, ####ProduceGenCosPsi,
-        #ProduceDetPhiCP, ####ProduceDetCosPsi,
+        IF_GENMATCH_ON_FOR_SIGNAL(ProduceGenPhiCP), ####ProduceGenCosPsi,
+        ProduceDetPhiCP, ####ProduceDetCosPsi,
         "dphi_met_h1", "dphi_met_h2",
         "met_var_qcd_h1", "met_var_qcd_h2",
         "hT",
@@ -123,7 +125,6 @@ def hcand_features(
     # ########################### #
     # -------- For PhiCP -------- #
     # ########################### #
-    """
     events, P4_dict = self[reArrangeDecayProducts](events)
     events   = self[ProduceDetPhiCP](events, P4_dict)
     #events  = self[ProduceDetCosPsi](events, P4_dict) # for CosPsi only
@@ -133,7 +134,7 @@ def hcand_features(
             events, P4_gen_dict = self[reArrangeGenDecayProducts](events)
             events = self[ProduceGenPhiCP](events, P4_gen_dict) 
             #events = self[ProduceGenCosPsi](events, P4_gen_dict) # for CosPsi only
-    """
+
     # ########################### #
     
     return events
@@ -169,7 +170,9 @@ def hcand_features(
         category_ids,
         build_abcd_masks,
         "channel_id",
-        ff_weight,
+        #ff_weight,
+        "process_id",
+        apply_fastMTT,
     },
     produces={
         make_column_valid,
@@ -200,7 +203,9 @@ def hcand_features(
         #"trigger_ids",
         category_ids,
         build_abcd_masks,
-        ff_weight,
+        #ff_weight,
+        "process_id",
+        apply_fastMTT,
     },
 )
 def main(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
@@ -246,11 +251,16 @@ def main(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
         #from IPython import embed; embed()
         if allow_stitching:
             events = self[stitched_normalization_weights](events, **kwargs)
+            if self.dataset_inst.name in ["dy_lep_m50_madgraph", "dy_lep_m50_amcatnlo"]:
+                if not self.config_inst.x.allow_dy_stitching_for_plotting:
+                    logger.warning("stitched weights are going to be replaced by the inclsive normalization weight as plotting will use inclusive only")
+                    # removing the stitched normalization weight
+                    events = remove_ak_column(events, "normalization_weight")
+                    # renaming inclusive weight as default weight
+                    events = ak.with_field(events, events.normalization_weight_inclusive_only, "normalization_weight")
         else:
             events = self[normalization_weights](events, **kwargs)
-        #events = self[stitched_normalization_weights](events, allow_stitching=allow_stitching, **kwargs)
-
-
+        
         # TODO : pileup weight is constrained to max value 10
         # TODO : check columnflow production/pileup
         events = self[pu_weight](events, **kwargs)
@@ -280,10 +290,11 @@ def main(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
 
         #processes = self.dataset_inst.processes.names()
         #if ak.any(['dy_' in proc for proc in processes]):
-        #    logger.info("splitting (any) Drell-Yan dataset ... ")
+        #    logger.warning("splitting Drell-Yan dataset <{self.dataset_inst.name()}>")
         #    events = self[split_dy](events,**kwargs)
 
-    events = self[ff_weight](events, **kwargs)        
+    #from IPython import embed; embed()
+    #events = self[ff_weight](events, **kwargs)        
 
     # features
     events = self[hcand_mass](events, **kwargs)
@@ -292,5 +303,10 @@ def main(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     #from IPython import embed; embed()
     #events_cat = self[get_events_from_categories](events, ["tautau","real_1","hadD","has_1j","rho_1"], self.config_inst)
     
+    # apply FastMTT
+    logger.info(" >>>--- FastMTT --->>> [Not as fast as you can think of]")
+    events = self[apply_fastMTT](events, **kwargs)
+
+
     
     return events
