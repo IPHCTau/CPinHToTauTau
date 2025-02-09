@@ -6,11 +6,15 @@ main calibration script
 
 import functools
 
+import law
+
 from columnflow.calibration import Calibrator, calibrator
 from columnflow.calibration.cms.jets import jets, jec, jec_nominal, jer
 from columnflow.production.cms.seeds import deterministic_seeds
 from columnflow.util import maybe_import
 from columnflow.columnar_util import set_ak_column
+from columnflow.columnar_util import optional_column as optional
+from columnflow.production.util import attach_coffea_behavior
 
 from httcp.calibration.electron import electron_smearing_scaling
 from httcp.calibration.tau import tau_energy_scale
@@ -23,6 +27,8 @@ set_ak_column_f32 = functools.partial(set_ak_column, value_type=np.float32)
 
 # derive calibrators to add settings
 #jec_full = jec.derive("jec_full", cls_dict={"mc_only": True, "nominal_only": True})
+logger = law.logger.get_logger(__name__)
+
 
 @calibrator(
     uses={
@@ -33,10 +39,11 @@ set_ak_column_f32 = functools.partial(set_ak_column, value_type=np.float32)
         jets,
         electron_smearing_scaling,
         tau_energy_scale,
-    },
+    } | {optional("GenJet.*")} | {attach_coffea_behavior},
     produces={
         deterministic_seeds,
         "Jet.pt_no_corr", "Jet.phi_no_corr", "Jet.eta_no_corr", "Jet.mass_no_corr",
+        "Jet.isgenmatched",
         "PuppiMET.pt_no_corr", "PuppiMET.phi_no_corr",
         "Electron.pt_no_ss",
         jets,
@@ -56,13 +63,28 @@ def main(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array:
     events = set_ak_column_f32(events, "PuppiMET.pt_no_corr", events.PuppiMET.pt)
     events = set_ak_column_f32(events, "PuppiMET.phi_no_corr", events.PuppiMET.phi)
 
+    genjet_matched = ak.values_astype(ak.ones_like(events.Jet.pt), np.int32)
+    if self.dataset_inst.is_mc:
+        events = self[attach_coffea_behavior](events, collections=["Jet", "GenJet"], **kwargs)
+        #cfjets = self[attach_coffea_behavior](events.Jet, **kwargs)
+        #gencfjets = self[attach_coffea_behavior](events.GenJet, **kwargs)
+        #jet_is_matched_to_genjet = cfjets.matched_gen
+        jet_is_matched_to_genjet = events.Jet.matched_gen
+        temp_ = ak.fill_none(jet_is_matched_to_genjet.pt, -1.0)
+        genjet_matched = ak.values_astype(ak.where(temp_ < 0.0, 0, 1), np.int32)
+        #from IPython import embed; embed()
+
+    events = set_ak_column(events, "Jet.isgenmatched", genjet_matched)
+    
     if self.config_inst.campaign.x.run == 3:
         events = ak.with_field(events, events.RawPuppiMET, "RawMET")
         events = ak.with_field(events, events.PuppiMET, "MET")
         events = ak.without_field(events, "RawPuppiMET")
         events = ak.without_field(events, "PuppiMET")
 
-    events = self[jets](events, **kwargs)
+    if self.dataset_inst.is_mc:
+        logger.warning("JER is not going to be applied to jets with eta > 2.5 and has no genjet match : L716-L722 (columnflow.calibration.jets.py)")
+        events = self[jets](events, **kwargs)
 
     if self.config_inst.campaign.x.run == 3:
         events = ak.with_field(events, events.RawMET, "RawPuppiMET")
@@ -76,6 +98,7 @@ def main(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array:
 
     # electron scale and smearing correction
     events = set_ak_column_f32(events, "Electron.pt_no_ss", events.Electron.pt)
-    events = self[electron_smearing_scaling](events, **kwargs)
+    if self.config_inst.campaign.x.year < 2023:
+        events = self[electron_smearing_scaling](events, **kwargs)
         
     return events
