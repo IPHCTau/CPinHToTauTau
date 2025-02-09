@@ -5,20 +5,20 @@ FULL: &full_
   era     : 2022
   postfix : PreEE
   wrapper : true
-  workers : 6
-  tasks_per_job  : 2
+  workers : 1
+  tasks_per_job  : 1
 
   args: &args_
     config    : run3_2022_preEE_nano_cp_tau_v14
-    workflow  : htcondor
+    workflow  : local
     branch    : -1
     # if dummy, version will be set automatically 
-    version   : dummy #Run3_2022PreEE_full_20250118_215651
+    version   : Run3_2022PreEE_full_DY_LO_Stitching  #dummy #Run3_2022PreEE_full_20250118_215651
 
     datasets  : &datasets_
       ## == data ==
-      - data_tau_C
-      - data_tau_D
+      #- data_tau_C
+      #- data_tau_D
       #- data_mu_C
       #- data_mu_D
       #- data_single_mu_C
@@ -29,7 +29,7 @@ FULL: &full_
       #- wj_0j_amcatnlo
       #- wj_1j_amcatnlo
       #- wj_2j_amcatnlo
-      - wj_incl_madgraph
+      #- wj_incl_madgraph
       #- wj_1j_madgraph
       #- wj_2j_madgraph
       #- wj_3j_madgraph
@@ -57,29 +57,29 @@ FULL: &full_
       #- dy_lep_m50_1j_pt600toInf_amcatnlo
       #- dy_lep_m50_2j_pt600toInf_amcatnlo
       ## == tt ==
-      - tt_dl
-      - tt_sl
-      - tt_fh
+      #- tt_dl
+      #- tt_sl
+      #- tt_fh
       ## == st ==
-      - st_tchannel_t
-      - st_tchannel_tbar
-      - st_tw_t_sl
-      - st_tw_t_dl
-      - st_tw_t_fh
-      - st_tw_tb_sl
-      - st_tw_tb_dl
-      - st_tw_tb_fh
-      - st_schannel_t
-      - st_schannel_tbar
+      #- st_tchannel_t
+      #- st_tchannel_tbar
+      #- st_tw_t_sl
+      #- st_tw_t_dl
+      #- st_tw_t_fh
+      #- st_tw_tb_sl
+      #- st_tw_tb_dl
+      #- st_tw_tb_fh
+      #- st_schannel_t
+      #- st_schannel_tbar
       ## == vv ==
-      - ww
-      - wz
-      - zz
+      #- ww
+      #- wz
+      #- zz
       ## == vvv ==
-      - www
-      - wwz
-      - wzz
-      - zzz
+      #- www
+      #- wwz
+      #- wzz
+      #- zzz
       ## == signal ==
       #- h_ggf_tautau_uncorrelated_filter
       #- h_ggf_tautau_uncorrelatedDecay_CPodd_Filtered_ProdAndDecay
@@ -90,29 +90,29 @@ FULL: &full_
       #- wmh_tautau_uncorrelatedDecay_Filtered
 
     processes : &processes_
-      - data
+      #- data
       #- w
-      - w_lnu
+      #- w_lnu
       #- dy_m10to50
       #- dy_m50toinf_lep
       #- dy_m50toinf_tau
       #- dy_m50toinf_jet
       - dy
       #- tt
-      - top
+      #- top
       ##- st_tchannel
       ##- st_twchannel
       #- st
       #- vv
       #- vvv
-      - multiboson
+      #- multiboson
       #- h_ggf_htt
       #- zh_htt
       #- wh_htt
 
     categories: &categories_
-      - etau__real_2__*
-      - mutau__real_2__*
+      #- etau__real_2__*
+      #- mutau__real_2__*
       - tautau__real_1__*
 
     variables: &variables_
