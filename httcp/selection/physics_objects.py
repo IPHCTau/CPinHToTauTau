@@ -13,6 +13,7 @@ from columnflow.selection.util import sorted_indices_from_mask
 from columnflow.util import maybe_import, DotDict
 from columnflow.columnar_util import EMPTY_FLOAT, Route, set_ak_column
 from columnflow.columnar_util import optional_column as optional
+from columnflow.production.util import attach_coffea_behavior
 
 from httcp.util import IF_NANO_V9, IF_NANO_V11, IF_RUN2, IF_RUN3, getGenTauDecayMode
 
@@ -304,7 +305,7 @@ def electron_selection(
             "eta", "phi", "dz",
             "idDeepTau2018v2p5VSe", "idDeepTau2018v2p5VSmu", "idDeepTau2018v2p5VSjet",
             "decayMode", "decayModePNet",
-            "IPx","IPy","IPz", "ipLengthSig",
+            "IPx","IPy","IPz", "ipLengthSig","hasRefitSV",
         ]
     } | {optional("Tau.pt"), optional("Tau.pt_etau"), optional("Tau.pt_mutau"), optional("Tau.pt_tautau"), optional("genPartFlav")},
     produces={
@@ -362,8 +363,6 @@ def tau_selection(
     sorted_indices = ak.argsort(tau_pt, axis=-1, ascending=False)
     taus = events.Tau[sorted_indices]
 
-    IPsig_1p25 = ak.where(taus.decayMode ==  0, np.abs(taus.IPsig) >= 1.25, False)
-    
     good_selections = {
         "tau_pt_20"     : taus.pt > 20,
         "tau_eta_2p5"   : abs(taus.eta) < 2.5, # 2.3
@@ -378,17 +377,25 @@ def tau_selection(
         "tau_DeepTauVSmu"   : taus.idDeepTau2018v2p5VSmu  >= tau_tagger_wps.vs_m.VLoose,
         #"tau_DecayMode_IP" : (((taus.decayMode == 0) & (np.abs(taus.IPsig) >= 1.25)) 
         #                       | (taus.decayMode == 1)
+        #                       | (taus.decayMode == 2)
         #                       | (taus.decayMode == 10)
         #                       | (taus.decayMode == 11)),
         "tau_ipsig_safe"    : taus.IPsig > ipsig_dummy,
-        "tau_DecayMode_IP"  : (
-            (  ((taus.decayMode ==  0) & (np.abs(taus.IPsig) >= 1.25))
-               | (((taus.decayMode ==  1)
-                   | (taus.decayMode ==  2)
-                   | (taus.decayMode == 10)
-                   | (taus.decayMode == 11))
-                  & (taus.decayModeHPS != 0)))), # decayMode is now decayModePNet
+        "tau_DecayMode"  : (
+            (taus.decayMode ==  0)
+            | ((taus.decayMode ==  1) & (taus.decayModeHPS == 1))
+            | ((taus.decayMode ==  2) & (taus.decayModeHPS == 1))
+            | ((taus.decayMode ==  10) & taus.hasRefitSV)
+            | ((taus.decayMode ==  11) & taus.hasRefitSV)
+        ),
+        "tau_DM0_IPsig_1p25" : ak.where(taus.decayMode == 0, np.abs(taus.IPsig) >= 1.25, True),
     }
+    #(  ((taus.decayMode ==  0) & (np.abs(taus.IPsig) >= 1.25))
+    #   | (((taus.decayMode ==  1)
+    #       | (taus.decayMode ==  2)
+    #       | (taus.decayMode == 10)
+    #       | (taus.decayMode == 11))
+    #      & (taus.decayModeHPS != 0)))), # decayMode is now decayModePNet
     
     tau_mask = ak.local_index(taus) >= 0
     
@@ -450,8 +457,14 @@ def tau_selection_init(self: Selector) -> None:
         [
             "pt", "eta", "phi", "mass",
             "jetId", "btagDeepFlavB"
-        ]} | {optional("Jet.puId")} | {IF_RUN3(jet_veto_map)}
-    | {optional("hcand.pt"), optional("hcand.eta"), optional("hcand.phi"), optional("hcand.mass"), optional("hcand.decayMode")},
+        ]}
+    | {optional("Jet.puId")}
+    | {optional("Jet.genJetIdx")}
+    | {IF_RUN3(jet_veto_map)}
+    | {optional("hcand.pt"), optional("hcand.eta"), optional("hcand.phi"),
+       optional("hcand.mass"), optional("hcand.decayMode")}
+    | {optional("GenJet.*")}
+    | {attach_coffea_behavior},
     produces={"Jet.rawIdx"},
     exposed=False,
 )
@@ -467,15 +480,19 @@ def jet_selection(
     is_run3 = self.config_inst.campaign.x.run == 3
 
     jet_mask  = ak.local_index(events.Jet.pt) >= 0 #Create a mask filled with ones
-    jet_special_pu_mask = ak.where(((abs(events.Jet.eta) >= 2.5) & (abs(events.Jet.eta) < 3.0)),
-                                   events.Jet.pt > 50.0,
-                                   jet_mask)
+    #jet_special_pu_mask = ak.where(((abs(events.Jet.eta) >= 2.5) & (abs(events.Jet.eta) < 3.0)),
+    #                               events.Jet.pt > 50.0,
+    #                               jet_mask)
+    #jet_forward_mask = ak.where((abs(events.Jet.eta) >= 3.0),
+    #                               events.Jet.pt > 30.0,
+    #                               jet_mask)
         
     # nominal selection
     good_selections = {
         "jet_pt_20"               : events.Jet.pt > 20.0,
         "jet_eta_4p7"             : abs(events.Jet.eta) <= 4.7,  # 2.4
-        "jet_special_for_PU"      : jet_special_pu_mask,
+        "jet_special_for_PU"      : ak.where(((abs(events.Jet.eta) >= 2.5) & (abs(events.Jet.eta) < 3.0)), events.Jet.pt > 50.0, jet_mask),
+        "jet_forward"             : ak.where((abs(events.Jet.eta) >= 3.0), events.Jet.pt > 30.0, jet_mask),
         "jet_id"                  : events.Jet.jetId >= 2,  # Jet ID flag: bit2 is tight, bit3 is tightLepVeto            
                                                             # So, 0000010 : 2**1 = 2 : pass tight, fail lep-veto          
                                                             #     0000110 : 2**1 + 2**2 = 6 : pass both tight and lep-veto
