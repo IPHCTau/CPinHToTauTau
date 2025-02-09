@@ -35,6 +35,8 @@ ana.x.cmssw_sandboxes = [
 # (used in wrapper_factory)
 ana.x.config_groups = {}
 
+logger = law.logger.get_logger(__name__) 
+
 # ------------- #
 # setup configs #
 # ------------- #
@@ -64,74 +66,40 @@ add_config_run2_2018(
 #                               Run3                            #
 # ------------------------------------------------------------- #
 
-# ===>>> 2022 PreEE
+from httcp.config.config_run3 import add_config
 
-from httcp.config.config_run3 import add_config as add_config_run3_2022_preEE
 from cmsdb.campaigns.run3_2022_preEE_nano_cp_tau_v14 import campaign_run3_2022_preEE_nano_cp_tau_v14
-add_config_run3_2022_preEE(
-    analysis_httcp,
-    campaign_run3_2022_preEE_nano_cp_tau_v14.copy(),
-    config_name=campaign_run3_2022_preEE_nano_cp_tau_v14.name,
-    config_id=int(f"{campaign_run3_2022_preEE_nano_cp_tau_v14.id}{1}")
-)
-#add_config_run3_2022_preEE(
-#    analysis_httcp,
-#    campaign_run3_2022_preEE_nano_cp_tau_v14.copy(),
-#    config_name=f"{campaign_run3_2022_preEE_nano_cp_tau_v14.name}_limited",
-#    config_id=int(f"{campaign_run3_2022_preEE_nano_cp_tau_v14.id}{2}"),
-#    limit_dataset_files=1
-#)
-
-# ===>>> 2022 PostEE
-from httcp.config.config_run3 import add_config as add_config_run3_2022_postEE
 from cmsdb.campaigns.run3_2022_postEE_nano_cp_tau_v14 import campaign_run3_2022_postEE_nano_cp_tau_v14
-add_config_run3_2022_postEE(
-    analysis_httcp,
-    campaign_run3_2022_postEE_nano_cp_tau_v14.copy(),
-    config_name=campaign_run3_2022_postEE_nano_cp_tau_v14.name,
-    config_id=int(f"{campaign_run3_2022_postEE_nano_cp_tau_v14.id}{1}")
-)
-#add_config_run3_2022_postEE(
-#    analysis_httcp,
-#    campaign_run3_2022_postEE_nano_cp_tau_v14.copy(),
-#    config_name=f"{campaign_run3_2022_postEE_nano_cp_tau_v14.name}_limited",
-#    config_id=int(f"{campaign_run3_2022_postEE_nano_cp_tau_v14.id}{2}"),
-#    limit_dataset_files=1
-#)
-"""
-# ===>>> 2023 PreBPix
-from httcp.config.config_run3 import add_config as add_config_run3_2023_preBPix
-from cmsdb.campaigns.run3_2023_preBPix_nano_cp_tau_v12 import campaign_run3_2023_preBPix_nano_cp_tau_v12
-add_config_run3_2023_preBPix(
-    analysis_httcp,
-    campaign_run3_2023_preBPix_nano_cp_tau_v12.copy(),
-    config_name=campaign_run3_2023_preBPix_nano_cp_tau_v12.name,
-    config_id=int(f"{campaign_run3_2023_preBPix_nano_cp_tau_v12.id}{1}")
-)
-add_config_run3_2023_preBPix(
-    analysis_httcp,
-    campaign_run3_2023_preBPix_nano_cp_tau_v12.copy(),
-    config_name=f"{campaign_run3_2023_preBPix_nano_cp_tau_v12.name}_limited",
-    config_id=int(f"{campaign_run3_2023_preBPix_nano_cp_tau_v12.id}{2}"),
-    limit_dataset_files=1
-)
+from cmsdb.campaigns.run3_2023_preBPix_nano_cp_tau_v14 import campaign_run3_2023_preBPix_nano_cp_tau_v14
+from cmsdb.campaigns.run3_2023_postBPix_nano_cp_tau_v14 import campaign_run3_2023_postBPix_nano_cp_tau_v14
 
-# ===>>> 2023 PostBPix
-from httcp.config.config_run3 import add_config as add_config_run3_2023_postBPix
-from cmsdb.campaigns.run3_2023_postBPix_nano_cp_tau_v12 import campaign_run3_2023_postBPix_nano_cp_tau_v12
-add_config_run3_2023_postBPix(
-    analysis_httcp,
-    campaign_run3_2023_postBPix_nano_cp_tau_v12.copy(),
-    config_name="campaign_run3_2023_postBPix_nano_cp_tau_v12.name",
-    config_id=int(f"{campaign_run3_2023_postBPix_nano_cp_tau_v12.id}{1}")
-)
-add_config_run3_2023_postBPix(
-    analysis_httcp,
-    campaign_run3_2023_postBPix_nano_cp_tau_v12.copy(),
-    config_name=f"{campaign_run3_2023_postBPix_nano_cp_tau_v12.name}_limited",
-    config_id=int(f"{campaign_run3_2023_postBPix_nano_cp_tau_v12.id}{2}"),
-    limit_dataset_files=1
-)
+# better to modify this dictionary to choose campaigns
+# (un)comment desired keys
+# if islimited is True, full campaign wont be added to the analysis
+campaign_dict = {
+    #"2022preEE"    : {"campaign" : campaign_run3_2022_preEE_nano_cp_tau_v14,    "islimited": True},
+    #"2022postEE"   : {"campaign" : campaign_run3_2022_postEE_nano_cp_tau_v14,   "islimited": True},
+    #"2023preBPix"  : {"campaign" : campaign_run3_2023_preBPix_nano_cp_tau_v14,  "islimited": True},
+    "2023postBPix" : {"campaign" : campaign_run3_2023_postBPix_nano_cp_tau_v14, "islimited": True},
+}
 
-# ------------------------------------------------------------- #
-"""
+for key,val in campaign_dict.items():
+    _campaign  = val["campaign"]
+    _islimited = val["islimited"]
+    _name = _campaign.name
+    _id   = _campaign.id
+    if not _islimited:
+        logger.warning(f"Full Campaign for {key} : <{_name}> - <{_id}>")
+        add_config(
+            analysis_httcp,
+            _campaign.copy(),
+            config_name=_name,
+            config_id=int(_id))
+    else:
+        logger.warning(f"Limited Campaign for {key} : <{_name}> - <{_id+10}> - % only 1 root file per dataset will be considered %")
+        add_config(
+            analysis_httcp,
+            _campaign.copy(),
+            config_name=f"{_name}_limited",
+            config_id=int(_id)+10,
+            limit_dataset_files=1)
