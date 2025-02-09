@@ -109,5 +109,12 @@ def electron_smearing_scaling_setup(
     correction_set = correctionlib.CorrectionSet.from_string(
         bundle.files.electron_ss.load(formatter="gzip").decode("utf-8"),
     )
-    self.electron_scaling_corrector = correction_set["Scale"] #self.config_inst.x.electron_sf.scale.corrector]
-    self.electron_smearing_corrector = correction_set["Smearing"] #self.config_inst.x.electron_sf.smearing.corrector]
+    scale_tag = "Scale"
+    smear_tag = "Smearing"
+    if self.config_inst.campaign.x.year == 2023:
+        era = 'C' if self.config_inst.campaign.x.postfix == "preBPix" else 'D'
+        scale_tag = f"{self.config_inst.campaign.x.year}Prompt{era}_{scale_tag}JSON"
+        smear_tag = f"{self.config_inst.campaign.x.year}Prompt{era}_{smear_tag}JSON"
+    
+    self.electron_scaling_corrector = correction_set[scale_tag]  #self.config_inst.x.electron_sf.scale.corrector]
+    self.electron_smearing_corrector = correction_set[smear_tag] #self.config_inst.x.electron_sf.smearing.corrector]
