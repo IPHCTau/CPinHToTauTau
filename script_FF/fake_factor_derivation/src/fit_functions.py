@@ -114,9 +114,11 @@ def fit_fake_factor(h, xmin, xmax, usePol1=False, polOnly=None):
         # uncerts, fit_up, fit_down = DecomposeUncerts(fitresult, fit)
         # print(f"Final fit function: {fit.GetExpFormula('P')}")
         fit_up, fit_down, fit_nom = get_variated_fitfunction(fit, fitresult, h_uncert)
-        # print(f"Final fit up: {fit_up.GetExpFormula('P')}")
-        # print(f"Final fit down: {fit_down.GetExpFormula('P')}")
-        # print(f"Final fit nom: {fit_nom.GetExpFormula('P')}")
+        fit_up, fit_down = get_fit_variations(fitresult, fit)
+        # get_variated_fitfunction_paramater(fit, fitresult, h_uncert)
+        print(f"Final fit up: {fit_up.GetExpFormula('P')}")
+        print(f"Final fit down: {fit_down.GetExpFormula('P')}")
+        print(f"Final fit nom: {fit_nom.GetExpFormula('P')}")
         fitresult = h.Fit("f2", 'SIR')
 
 
@@ -130,6 +132,34 @@ def fit_fake_factor(h, xmin, xmax, usePol1=False, polOnly=None):
     
     # Name and return the fit
     fit.SetName(h.GetName() + '_fit')
+
+    # draw fit up and fit down 
+    # create root file
+    # file name fit_x where n is a number
+    output_file = ROOT.TFile("fit.root", "RECREATE")
+    fit.Write()
+    fit_up.Write()
+    fit_down.Write()
+    h_uncert.Write()
+
+    # create canvas
+    c = ROOT.TCanvas("c", "c", 800, 600)
+    h_uncert.Draw("E3")
+
+    fit.Draw("SAME")
+    fit_up.Draw("SAME")
+    fit_down.Draw("SAME")
+
+
+    # 
+    c.SaveAs("fit.png")
+    c.Write()
+
+    
+    output_file.Close()
+
+
+
     return fit, h_uncert, h, fit_up, fit_down
 
 
@@ -165,25 +195,25 @@ def DecomposeUncerts(fitresult, fit):
     shifted_functions = []
     # Decompose the covariance matrix into eigenvectors
     cov = ROOT.TMatrixD(fitresult.GetCovarianceMatrix())
-    eig = ROOT.TMatrixDEigen(cov)
-    eigenvectors = eig.GetEigenVectors()
-
+    eig = ROOT.TMatrixDEigen(cov) # D matrix
+    eigenvectors = eig.GetEigenVectors() # U matrix
+ 
     # Estimate uncertainty variations based on the eigenvectors
     pars = ROOT.TVectorD(fit.GetNpar())
     for i in range(fit.GetNpar()):
         pars[i] = fit.GetParameter(i)
-    variances = eig.GetEigenValues()
-    transposed_eigenvectors = eigenvectors.Clone().T()
+    variances = eig.GetEigenValues() # diagonal matrix of the eigenvalues = lambda_i
+    transposed_eigenvectors = eigenvectors.Clone().T() # transpose the U matrix
 
     # Loop over the parameters
     for i in range(fit.GetNpar()):
 
         temp = ROOT.TVectorD(fit.GetNpar())
         for j in range(fit.GetNpar()):
-            temp[j] = transposed_eigenvectors(i, j)
+            temp[j] = transposed_eigenvectors(i, j) #  U_ij
 
 
-        temp*=variances(i,i)**0.5
+        temp*=variances(i,i)**0.5 # sqrt(λ_i)
         fit_up=fit.Clone()  
         fit_down=fit.Clone() 
 
@@ -240,41 +270,102 @@ def get_variated_fitfunction(fit, fitresult, h_uncert):
         h_down.SetBinContent(i, envelop_value - envelop_error)  # Lower bound
 
         # Set error of upper and lower bounds to 0
-        h_up.SetBinError(i, 0)
-        h_down.SetBinError(i, 0)
-    
+        h_up.SetBinError(i, 1.0e-15)
+        h_down.SetBinError(i,1.0e-15)
+
+
     # Fit the upper and lower bounds with the same fit function (same functional form as the original fit)
-    fit_up_result = h_up.Fit(fit_up.GetName(), "S")  # S for 'Save' fit result
-    fit_down_result = h_down.Fit(fit_down.GetName(), "S")  # S for 'Save' fit result
+    print("fit the nominal value")
+    fit_nom_result = h_uncert.Fit(fit_nom, 'S')  # S for 'Save' fit result
+    
 
-    fit_nom_result = h_uncert.Fit(fit.GetName(), "S")  # S for 'Save' fit result
+    print("fit the upper bound")
+    fit_up_result = h_up.Fit(fit_up, 'S')  # S for 'Save' fit result
+    print(f"fit up = {fit_up.GetExpFormula('P')}")
 
-    # # write in a root file
-    # output_file = ROOT.TFile("fit.root", "RECREATE")
-    # fit_nom.Write()
-    # fit_up.Write()
-    # fit_down.Write()
+    print("fit the lower bound")
+    fit_down_result = h_down.Fit(fit_down, 'S')  # S for 'Save' fit result
+    print(f"fit down = {fit_down.GetExpFormula('P')}")
 
-    # # plot theme on the same canvas
-    # canvas = ROOT.TCanvas("canvas", "canvas", 800, 600)
 
-    # h_uncert.Draw("E3") 
-    # h_uncert.SetFillColorAlpha(ROOT.kAzure + 7, 0.3)
+    print(f"fit nom = {fit_nom.GetExpFormula('P')}")
 
-    # fit_nom.Draw("SAME")
-    # fit_up.Draw("SAME")
-    # fit_down.Draw("SAME")
+    print("fit_up_result = ", fit_up_result)
+    print("fit_down_result = ", fit_down_result)
+    print("fit_nom_result = ", fit_nom_result)
+    # write in a root file
+    output_file = ROOT.TFile("fit.root", "RECREATE")
+    fit_nom.Write()
+    fit_up.Write()
+    fit_down.Write()
 
-    # h_up.Draw("P SAME")
-    # h_down.Draw("P SAME")
 
-    # canvas.Write()
+    # plot theme on the same canvas
+    canvas = ROOT.TCanvas("canvas", "canvas", 800, 600)
 
-    # canvas.SaveAs("fit.png")
+    h_uncert.Draw("E3") 
+    h_uncert.SetFillColorAlpha(ROOT.kAzure + 7, 0.3)
 
-    # output_file.Close()
+    fit_nom.Draw("SAME")
+    fit_up.Draw("SAME")
+    fit_down.Draw("SAME")
+
+    h_up.Draw("P SAME")  
+    h_down.Draw("P SAME")
+
+    # Do not display fit box 
+    ROOT.gStyle.SetOptFit(0)
+
+    canvas.Write()
+
+    canvas.SaveAs("fit.png")
+
+    output_file.Close()
     
     return fit_up, fit_down, fit_nom
 
 
-    
+
+def get_fit_variations(fitresult, fit):
+    """
+    Decompose the uncertainties of the fit for each fit parameter and return only one fit_up and fit_down
+    """
+    # Decompose the covariance matrix into eigenvectors
+    cov = ROOT.TMatrixD(fitresult.GetCovarianceMatrix())
+    eig = ROOT.TMatrixDEigen(cov)  # Diagonalize the covariance matrix
+    eigenvectors = eig.GetEigenVectors()  # U matrix (eigenvectors)
+    variances = eig.GetEigenValues()    # Diagonal matrix Lambda (eigenvalues)
+    transposed_eigenvectors = eigenvectors.Clone().T()  # Transposed U matrix
+
+    # Get the nominal parameter values from the fit
+    pars = ROOT.TVectorD(fit.GetNpar())
+    for i in range(fit.GetNpar()):
+        pars[i] = fit.GetParameter(i)
+
+    # Initialize vectors for shifts
+    param_shifts_up = ROOT.TVectorD(fit.GetNpar())  # To store the up shifts
+    param_shifts_down = ROOT.TVectorD(fit.GetNpar())  # To store the down shifts
+
+    # Loop over the eigenvalues/eigenvectors
+    for i in range(fit.GetNpar()):
+        # Calculate the uncertainty shift using the eigenvectors and eigenvalues
+        shift = (variances[i][i]) ** 0.5  # sqrt(λ_i) for the i-th eigenvalue
+        for j in range(fit.GetNpar()):
+            # Add the contribution of each eigenvector
+            param_shifts_up[j] += transposed_eigenvectors[i][j] * shift
+            param_shifts_down[j] += transposed_eigenvectors[i][j] * -shift  # For down shift
+
+    # Create copies of the original fit for up and down shifts
+    fit_up = fit.Clone(fit.GetName() + "_up")
+    fit_down = fit.Clone(fit.GetName() + "_down")
+
+    # Apply the shifts to the parameters
+    for i in range(fit.GetNpar()):
+        fit_up.SetParameter(i, pars[i] + param_shifts_up[i])  # Apply the up shifts
+        fit_down.SetParameter(i, pars[i] + param_shifts_down[i])  # Apply the down shifts
+
+    # Return the final fit_up and fit_down functions
+    print(f"Final fit up = {fit_up.GetExpFormula('P')}")
+    print(f"Final fit down = {fit_down.GetExpFormula('P')}")
+
+    return fit_up, fit_down
