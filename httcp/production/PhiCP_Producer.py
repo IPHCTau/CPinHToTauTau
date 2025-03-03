@@ -24,7 +24,9 @@ logger = law.logger.get_logger(__name__)
 @producer(
     uses={
         "channel_id",
-        "hcand.pt","hcand.eta", "hcand.phi", "hcand.mass", "hcand.decayMode", "hcand.charge",
+        "hcand.pt","hcand.eta", "hcand.phi", "hcand.mass",
+        optional("hcand.pt_fastMTT"), optional("hcand.eta_fastMTT"), optional("hcand.phi_fastMTT"), optional("hcand.mass_fastMTT"),
+        "hcand.decayMode", "hcand.charge",
         "hcand.IPx", "hcand.IPy", "hcand.IPz",
         "hcandprod.pt","hcandprod.eta", "hcandprod.phi", "hcandprod.mass", "hcandprod.pdgId",
         optional("GenTau.pt"), optional("GenTau.eta"), optional("GenTau.phi"), optional("GenTau.mass"),
@@ -165,6 +167,21 @@ def ProducePhiCP(
     #                         Only possible for tau-tau channel                      #
     ##################################################################################
     logger.info("PV-PV")
+
+    # ########## #
+    
+    p4hcandinfo_h1 = p4hcandinfo["p4h1"]
+    p4hcandinfo_h2 = p4hcandinfo["p4h2"]
+    # p4hcandinfo_h1.fields
+    # drop pt
+    # rename pt_fastMTT as pt
+    # create new dict e.g. p4hcandinfo_fastMTT
+    # p4hcandinfo_fastMTT["p4h1"] = p4hcandinfo_h1
+    # p4hcandinfo_fastMTT["p4h1_pi"] = p4hcandinfo["p4h1_pi"]
+    # Use this new dict for PVPV and IPPV only
+    # refs : calibration/main (rawMET/puppiMET)
+    # https://awkward-array.org/doc/main/reference/generated/ak.with_field.html
+    
     
     # -- pi-pi
     PhiCP_PVPV = ak.where(mask_pi_pi,   GetPhiCP(PrepareP4(p4hcandinfo, mask_pi_pi  ), "PV", "PV", "pi",  "pi" ), dummyPhiCP)
@@ -224,10 +241,14 @@ def ProducePhiCP(
     PhiCP_IPDP = ak.where(mask_mu_a1DM11,GetPhiCP(PrepareP4(p4hcandinfo, mask_mu_a1DM11), "IP", "DP", "mu",  "a1" ), PhiCP_IPDP) # treat DM11 as a1
     # -- pi-rho
     PhiCP_IPDP = ak.where(mask_pi_rho,   GetPhiCP(PrepareP4(p4hcandinfo, mask_pi_rho   ), "IP", "DP", "pi",  "rho"), PhiCP_IPDP)
+    PhiCP_IPDP = ak.where(mask_rho_pi,   GetPhiCP(PrepareP4(p4hcandinfo, mask_rho_pi   ), "DP", "IP", "rho",  "pi"), PhiCP_IPDP) # new
     # -- pi-a1
-    PhiCP_IPDP = ak.where(mask_pi_a1DM2, GetPhiCP(PrepareP4(p4hcandinfo, mask_pi_a1DM2 ), "IP", "DP", "pi",  "rho"), PhiCP_IPDP) # treat DM2 as rho  
+    PhiCP_IPDP = ak.where(mask_pi_a1DM2, GetPhiCP(PrepareP4(p4hcandinfo, mask_pi_a1DM2 ), "IP", "DP", "pi",  "rho"), PhiCP_IPDP) # treat DM2 as rho
+    PhiCP_IPDP = ak.where(mask_a1DM2_pi, GetPhiCP(PrepareP4(p4hcandinfo, mask_a1DM2_pi ), "DP", "IP", "rho",  "pi"), PhiCP_IPDP) # new
     PhiCP_IPDP = ak.where(mask_pi_a1DM10,GetPhiCP(PrepareP4(p4hcandinfo, mask_pi_a1DM10), "IP", "DP", "pi",  "a1" ), PhiCP_IPDP)
-    PhiCP_IPDP = ak.where(mask_pi_a1DM11,GetPhiCP(PrepareP4(p4hcandinfo, mask_pi_a1DM11), "IP", "DP", "pi",  "a1" ), PhiCP_IPDP) # treat DM11 as a1 
+    PhiCP_IPDP = ak.where(mask_a1DM10_pi,GetPhiCP(PrepareP4(p4hcandinfo, mask_a1DM10_pi), "DP", "IP", "a1",  "pi" ), PhiCP_IPDP) # new
+    PhiCP_IPDP = ak.where(mask_pi_a1DM11,GetPhiCP(PrepareP4(p4hcandinfo, mask_pi_a1DM11), "IP", "DP", "pi",  "a1" ), PhiCP_IPDP) # treat DM11 as a1
+    PhiCP_IPDP = ak.where(mask_a1DM11_pi,GetPhiCP(PrepareP4(p4hcandinfo, mask_a1DM11_pi), "DP", "IP", "a1",  "pi" ), PhiCP_IPDP) # new
 
 
 
@@ -258,10 +279,14 @@ def ProducePhiCP(
     PhiCP_IPPV = ak.where(mask_pi_pi,    GetPhiCP(PrepareP4(p4hcandinfo, mask_pi_pi ), "IP", "PV", "pi",  "pi"), PhiCP_IPPV)        
     # -- pi-rho
     PhiCP_IPPV = ak.where(mask_pi_rho,  GetPhiCP(PrepareP4(p4hcandinfo, mask_pi_rho ), "IP", "PV", "pi",  "rho"), PhiCP_IPPV)
+    PhiCP_IPPV = ak.where(mask_rho_pi,  GetPhiCP(PrepareP4(p4hcandinfo, mask_rho_pi ), "PV", "IP", "rho",  "pi"), PhiCP_IPPV) # new
     # -- pi-a1
     PhiCP_IPPV = ak.where(mask_pi_a1DM2,GetPhiCP(PrepareP4(p4hcandinfo, mask_pi_a1DM2  ), "IP", "PV", "pi",  "rho" ), PhiCP_IPPV) # treat DM2 as rho
+    PhiCP_IPPV = ak.where(mask_a1DM2_pi,GetPhiCP(PrepareP4(p4hcandinfo, mask_a1DM2_pi  ), "PV", "IP", "rho",  "pi" ), PhiCP_IPPV) # new
     PhiCP_IPPV = ak.where(mask_pi_a1DM10,GetPhiCP(PrepareP4(p4hcandinfo, mask_pi_a1DM10), "IP", "PV", "pi",  "a1" ),  PhiCP_IPPV)
+    PhiCP_IPPV = ak.where(mask_a1DM10_pi,GetPhiCP(PrepareP4(p4hcandinfo, mask_a1DM10_pi), "PV", "IP", "a1",  "pi" ),  PhiCP_IPPV) # new
     PhiCP_IPPV = ak.where(mask_pi_a1DM11,GetPhiCP(PrepareP4(p4hcandinfo, mask_pi_a1DM11), "IP", "PV", "pi",  "a1" ),  PhiCP_IPPV) # treat DM11 as a1
+    PhiCP_IPPV = ak.where(mask_a1DM11_pi,GetPhiCP(PrepareP4(p4hcandinfo, mask_a1DM11_pi), "PV", "IP", "a1",  "pi" ),  PhiCP_IPPV) # new
 
     
     

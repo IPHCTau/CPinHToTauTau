@@ -74,6 +74,7 @@ logger = law.logger.get_logger(__name__)
         IF_GENMATCH_ON_FOR_SIGNAL(reArrangeGenDecayProducts),
         IF_GENMATCH_ON_FOR_SIGNAL(ProduceGenPhiCP), ####ProduceGenCosPsi, 
         ProduceDetPhiCP, ####ProduceDetCosPsi,
+        #apply_fastMTT,
     },
     produces={
         # new columns
@@ -85,6 +86,7 @@ logger = law.logger.get_logger(__name__)
         "dphi_met_h1", "dphi_met_h2",
         "met_var_qcd_h1", "met_var_qcd_h2",
         "hT",
+        #apply_fastMTT,
     },
 )
 def hcand_features(
@@ -122,6 +124,12 @@ def hcand_features(
     
     events = set_ak_column_i32(events, "n_jet", ak.num(events.Jet.pt, axis=1))
 
+    # ################## #
+    #     Run FastMTT    #
+    # ################## #
+    #logger.warning(" >>>--- FastMTT-Wiktors --->>> [Not as fast as you think]")
+    #events = self[apply_fastMTT](events, **kwargs)
+    
     # ########################### #
     # -------- For PhiCP -------- #
     # ########################### #
@@ -170,9 +178,8 @@ def hcand_features(
         category_ids,
         build_abcd_masks,
         "channel_id",
-        #ff_weight,
+        ff_weight,
         "process_id",
-        apply_fastMTT,
     },
     produces={
         make_column_valid,
@@ -203,9 +210,8 @@ def hcand_features(
         #"trigger_ids",
         category_ids,
         build_abcd_masks,
-        #ff_weight,
+        ff_weight,
         "process_id",
-        apply_fastMTT,
     },
 )
 def main(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
@@ -251,6 +257,7 @@ def main(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
         #from IPython import embed; embed()
         if allow_stitching:
             events = self[stitched_normalization_weights](events, **kwargs)
+            """
             if self.dataset_inst.name in ["dy_lep_m50_madgraph", "dy_lep_m50_amcatnlo"]:
                 if not self.config_inst.x.allow_dy_stitching_for_plotting:
                     logger.warning("stitched weights are going to be replaced by the inclsive normalization weight as plotting will use inclusive only")
@@ -258,6 +265,7 @@ def main(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
                     events = remove_ak_column(events, "normalization_weight")
                     # renaming inclusive weight as default weight
                     events = ak.with_field(events, events.normalization_weight_inclusive_only, "normalization_weight")
+            """
         else:
             events = self[normalization_weights](events, **kwargs)
         
@@ -293,8 +301,7 @@ def main(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
         #    logger.warning("splitting Drell-Yan dataset <{self.dataset_inst.name()}>")
         #    events = self[split_dy](events,**kwargs)
 
-    #from IPython import embed; embed()
-    #events = self[ff_weight](events, **kwargs)        
+    events = self[ff_weight](events, **kwargs)        
 
     # features
     events = self[hcand_mass](events, **kwargs)
@@ -302,11 +309,5 @@ def main(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
 
     #from IPython import embed; embed()
     #events_cat = self[get_events_from_categories](events, ["tautau","real_1","hadD","has_1j","rho_1"], self.config_inst)
-    
-    # apply FastMTT
-    logger.info(" >>>--- FastMTT --->>> [Not as fast as you can think of]")
-    events = self[apply_fastMTT](events, **kwargs)
-
-
-    
+        
     return events

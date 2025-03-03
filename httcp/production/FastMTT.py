@@ -1,7 +1,7 @@
-# https://github.com/mathilde-t/ClassicSVfit/blob/fastMTT_2024/python/FastMTT.py
-
 """
-
+  FastMTT : WiktorMat
+  # https://github.com/WiktorMat/ClassicSVfit/blob/fastMTT_2024/python/FastMTT.py
+  ### Main reference: https://github.com/SVfit/ClassicSVfit/blob/fastMTT_2024/src/FastMTT.cc
 """
 
 import os
@@ -21,15 +21,10 @@ maybe_import("coffea.nanoevents.methods.nanoaod")
 #physical_constants = sc.constants.physical_constants
 
 logger = law.logger.get_logger(__name__)
-###Main reference: https://github.com/SVfit/ClassicSVfit/blob/fastMTT_2024/src/FastMTT.cc ###
 
 ElectronMass = 0.51099895/1000  #MeV -> GeV 
 MuonMass     = 105.6583755/1000 #MeV -> GeV 
 ChargedPionMass = 139.5/1000 #MeV -> GeV 
-#ElectronMass = physical_constants['electron mass energy equivalent in MeV'][0]/1000 #MeV -> GeV
-#MuonMass = physical_constants['muon mass energy equivalent in MeV'][0]/1000 #MeV -> GeV
-#ChargedPionMass = 139.5/1000 #MeV -> GeV
-
 
 #Invariant mass calculation
 def InvariantMass(aP4):
@@ -38,7 +33,16 @@ def InvariantMass(aP4):
     return np.sqrt(energy_squared - momentum_squared)
 
 class Likelihood:
-    def __init__(self, enable_MET = True, enable_mass = True, enable_BW = False, enable_px = False, enable_py = False):
+    def __init__(self,
+                 enable_MET = True,
+                 enable_mass = True,
+                 enable_BW = True,
+                 enable_px = False,
+                 enable_py = False,
+                 enable_window=False,
+                 constrain_window=[123.0, 127.0],
+                 enable_gauss=False):
+
         #METinputs
         self.recoMET = np.array([0.0, 0.0, 0.0, 0.0])
         self.covMET = np.ones((2, 2))
@@ -61,7 +65,6 @@ class Likelihood:
         self.mVisOverTauSquare1 = np.array([0.0])
         self.mVisOverTauSquare2 = np.array([0.0])
          
-        #self.mTau = physical_constants['tau energy equivalent'][0]/1000 #MeV -> GeV
         self.mTau = 1776.86/1000 #MeV -> GeV
         
         self.leg1DecayType = np.array([0.0])
@@ -78,6 +81,10 @@ class Likelihood:
         self.enable_BW = enable_BW
         self.enable_px = enable_px
         self.enable_py = enable_py
+        self.enable_window = enable_window
+        self.enable_gauss = enable_gauss
+
+        self.window = constrain_window
 
         return
 
@@ -144,13 +151,25 @@ class Likelihood:
 
         def normalization_constant(mass, gamma):
             x = mass*np.sqrt(mass**2+gamma**2)
-
             return 2*np.sqrt(2)*mass*gamma*x/np.pi/np.sqrt(mass**2 + x)
 
         H_denominator = (invariant_mass**2 - Higgs_mass**2)**2 + (Higgs_mass**2)*(Higgs_gamma**2)
-        Z_denominator = (invariant_mass**2 - Z_mass**2)**2 + (Z_mass**2)*(Z_gamma**2)
-        return normalization_constant(Z_mass, Z_gamma)/Z_denominator + normalization_constant(Higgs_mass, Higgs_gamma)/H_denominator
+        #Z_denominator = (invariant_mass**2 - Z_mass**2)**2 + (Z_mass**2)*(Z_gamma**2)
+        #return normalization_constant(Z_mass, Z_gamma)/Z_denominator + normalization_constant(Higgs_mass, Higgs_gamma)/H_denominator
+        return normalization_constant(Higgs_mass, Higgs_gamma)/H_denominator
+
     
+    def Gauss(self, invariant_mass):
+        Higgs_mass = 125
+        Higgs_gamma = Higgs_mass*0.01 #value set in original SVfit paper, however we will play with it yet
+
+        Higgs_gauss_factor = np.exp(-0.5*(invariant_mass - Higgs_mass)**2/(Higgs_gamma**2))
+        return Higgs_gauss_factor    
+    
+
+    def Window(self, invariant_mass):
+        mask = (invariant_mass >= self.window[0]) & (invariant_mass <= self.window[1])
+        return mask
 
     #This is experimental part and by default not used by main code
 
@@ -283,7 +302,11 @@ class Likelihood:
             value *= self.ptLikelihood(testP4[:, :, 1], 1)
         if self.enable_BW:
             value *= self.BreitWigner(InvariantMass(testP4))
-        
+        if self.enable_gauss:
+            value *= self.Gauss(InvariantMass(testP4))
+        if self.enable_window:
+            value *= self.Window(InvariantMass(testP4))
+            
         value[mask] = 0.000001
 
         return value
@@ -355,8 +378,11 @@ class FastMTT(Likelihood):
         self.bestP4 = self.tau1P4 + self.tau2P4
         self.mass = InvariantMass(self.bestP4)
 
-        #if self.CalculateUncertainties == True:
-        #    self.propagate_uncertainties()
+        #if self.myLikelihood.enable_window:
+        #    self.mass = self.mass[(self.mass >= self.myLikelihood.window[0]) & (self.mass <= self.myLikelihood.window[1])]
+
+        ##if self.CalculateUncertainties == True:
+        ##    self.propagate_uncertainties()
 
         ##############################################
 

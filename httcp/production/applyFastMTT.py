@@ -156,7 +156,8 @@ def apply_fastMTT(
     hcand_eta_fastMTT = ak.concatenate([p4_h1_reg.eta, p4_h2_reg.eta], axis=1)
     hcand_phi_fastMTT = ak.concatenate([p4_h1_reg.phi, p4_h2_reg.phi], axis=1)
     h1_mass = p4_h1_reg.mass
-    logger.critical("check regressed mass for leptonic channel, many nan values found for etau channel")
+    #from IPython import embed; embed()
+    logger.critical("check regressed mass for leptonic channel, many nan values found for etau channel with ww dataset though")
     h1_mass = ak.where(events.channel_id == etau_id,
                        ak.nan_to_num(h1_mass, nan=0.00051),
                        ak.where(events.channel_id == mutau_id,
