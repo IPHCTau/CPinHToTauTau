@@ -1,3 +1,4 @@
+import law
 import functools
 
 from columnflow.production import Producer, producer
@@ -17,6 +18,9 @@ warn   = maybe_import("warnings")
 
 # helper
 set_ak_column_f32 = functools.partial(set_ak_column, value_type=np.float32)
+
+logger = law.logger.get_logger(__name__)
+
 
 
 @producer(
@@ -568,12 +572,17 @@ def tauspinner_weights(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
             _name = f"_{wt_name}"
             weight = events.TauSpinner[branch]
 
-        buf = ak.to_numpy(weight)
-        if any(np.isnan(buf)):
-            warn.warn("tauspinner_weight contains NaNs. Imputing them with zeros.")
-            buf[np.isnan(buf)] = 0
-            weight = buf
-        
+        #buf = ak.to_numpy(weight)
+        #if any(np.isnan(buf)):
+        #    warn.warn("tauspinner_weight contains NaNs. Imputing them with zeros.")
+        #    buf[np.isnan(buf)] = 0
+        #    weight = buf
+
+        weight = ak.nan_to_num(weight, nan=0.0)
+        nan_wts = ak.sum((weight == 0.0))
+        if nan_wts > 0:
+            logger.critical(f"{nan_wts} events with NaN values of {wt_name} out of {len(events)} events, and those NaNs are replaced by 0.0")
+            
         events = set_ak_column_f32(events, f"tauspinner_weight{_name}", weight)
         if _name == "_cpeven": # redundant, needs to be resolved later
             events = set_ak_column_f32(events, f"tauspinner_weight_up", weight)

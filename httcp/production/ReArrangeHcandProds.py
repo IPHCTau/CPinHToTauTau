@@ -6,6 +6,7 @@ from columnflow.production import Producer, producer
 #from httcp.production.ReconstructPi0 import reconstructPi0
 
 from httcp.util import getGenTauDecayMode
+from columnflow.columnar_util import EMPTY_FLOAT, Route, set_ak_column, optional_column as optional
 
 np = maybe_import("numpy")
 ak = maybe_import("awkward")
@@ -246,6 +247,10 @@ def presel_decay_pi0s(hcand, hcand_pi0):
         "hcand.pt", "hcand.eta", "hcand.phi", "hcand.mass", "hcand.decayMode",
         "hcand.charge", "hcand.IPx", "hcand.IPy", "hcand.IPz",
         "hcandprod.pt", "hcandprod.eta", "hcandprod.phi", "hcandprod.mass","hcandprod.pdgId",
+        optional("hcand.pt_fastMTT"),
+        optional("hcand.eta_fastMTT"),
+        optional("hcand.phi_fastMTT"),
+        optional("hcand.mass_fastMTT"),
     },
 )
 def reArrangeDecayProducts(
