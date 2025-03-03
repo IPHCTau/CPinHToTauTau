@@ -5,7 +5,7 @@ FULL: &full_
   era     : 2023
   postfix : PostBPix
   wrapper : true
-  workers : 6
+  workers : 12
   tasks_per_job  : 2
 
   args: &args_
@@ -13,15 +13,15 @@ FULL: &full_
     workflow  : htcondor
     branch    : -1
     # if dummy, version will be set automatically 
-    version   : dummy #Run3_2022PreEE_full_20250118_215651
+    version   : Run3_2023PostBPix_full_20250209_204130  #dummy #Run3_2022PreEE_full_20250118_215651
 
     datasets  : &datasets_
       ## == data ==
       - data_tau_D
-      - data_mu0_D
-      - data_mu1_D
-      - data_e0_D
-      - data_e1_D
+      #- data_mu0_D
+      #- data_mu1_D
+      #- data_e0_D
+      #- data_e1_D
       ## == wj ==
       #- wj_incl_amcatnlo
       #- wj_0j_amcatnlo
@@ -35,10 +35,10 @@ FULL: &full_
       ## == dy ==
       - dy_lep_m10to50_madgraph
       - dy_lep_m50_madgraph
-      #- dy_lep_m50_1j_madgraph
-      #- dy_lep_m50_2j_madgraph
-      #- dy_lep_m50_3j_madgraph
-      #- dy_lep_m50_4j_madgraph    
+      - dy_lep_m50_1j_madgraph
+      - dy_lep_m50_2j_madgraph
+      - dy_lep_m50_3j_madgraph
+      - dy_lep_m50_4j_madgraph    
       #- dy_lep_m10to50_amcatnlo
       #- dy_lep_m50_amcatnlo
       #- dy_lep_m50_0j_amcatnlo
@@ -79,7 +79,7 @@ FULL: &full_
       - wzz
       - zzz
       ## == signal ==
-      #- h_ggf_tautau_uncorrelated_filter
+      - h_ggf_tautau_uncorrelated_filter
       #- h_ggf_tautau_uncorrelatedDecay_CPodd_Filtered_ProdAndDecay
       #- h_ggf_tautau_uncorrelatedDecay_MM_Filtered_ProdAndDecay
       #- h_ggf_tautau_uncorrelatedDecay_SM_Filtered_ProdAndDecay
@@ -139,18 +139,20 @@ FULL: &full_
       #- hcand_1_pt_binvar
       - hcand_1_eta
       - hcand_1_phi
-      - hcand_1_IPx
-      - hcand_1_IPy
-      - hcand_1_IPz
+      - hcand_1_mass
+      #- hcand_1_IPx
+      #- hcand_1_IPy
+      #- hcand_1_IPz
       - hcand_1_IPsig
       - hcand_1_decayMode
       - hcand_2_pt
       #- hcand_2_pt_binvar
       - hcand_2_eta
       - hcand_2_phi
-      - hcand_2_IPx
-      - hcand_2_IPy
-      - hcand_2_IPz
+      - hcand_2_mass
+      #- hcand_2_IPx
+      #- hcand_2_IPy
+      #- hcand_2_IPz
       - hcand_2_IPsig
       - hcand_2_decayMode
       - hcand_dr
@@ -167,7 +169,7 @@ FULL: &full_
       - jet_2_pt
       - jet_2_eta
       - jet_2_phi
-      - hT
+      #- hT
       ## -- met -- #
       - puppi_met_pt
       - puppi_met_phi
@@ -184,14 +186,14 @@ FULL: &full_
       #- PhiCP_IPDP_alpha_gt_piby4
       ## -- Y vs. pT -- ##
       #- dphi_met_h1-hcand_1_pt
-      - met_var_qcd_h1-hcand_1_pt
-      - hcand_dr-hcand_1_pt
-      - hcand_2_pt-hcand_1_pt
-      - n_jet-hcand_1_pt
-      - hT-hcand_1_pt
-      - hcand_invm-hcand_1_pt
-      - jet_1_pt-hcand_1_pt
-      - jet_2_pt-hcand_1_pt
+      #- met_var_qcd_h1-hcand_1_pt
+      #- hcand_dr-hcand_1_pt
+      #- hcand_2_pt-hcand_1_pt
+      #- n_jet-hcand_1_pt
+      #- hT-hcand_1_pt
+      #- hcand_invm-hcand_1_pt
+      #- jet_1_pt-hcand_1_pt
+      #- jet_2_pt-hcand_1_pt
       ## -- Y vs metvarqcd -- ##
       #- hcand_dr-met_var_qcd_h1
       #- hcand_1_pt-met_var_qcd_h1

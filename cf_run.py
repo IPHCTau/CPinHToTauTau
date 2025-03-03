@@ -194,7 +194,8 @@ if wrapper:
             cmd_list.append(f"--cf.{main_func}-variables")
             cmd_list.append(variables)
     else:
-        _variables = variables1D if main_func == "PlotVraibles1D" else variables2D
+        _variables = variables1D if main_func == "PlotVariables1D" else variables2D
+        logger.info(f"variables : {_variables}")
         cmd_list = [
             "law", "run", f"cf.{main_func}",
             "--config", config,

@@ -42,6 +42,55 @@ logger = law.logger.get_logger(__name__)
 # ------------- #
 
 # ------------------------------------------------------------- #
+#                               Run3                            #
+# ------------------------------------------------------------- #
+
+from httcp.config.config_run3 import add_config as add_config_run3
+
+from cmsdb.campaigns.run3_2022_preEE_nano_cp_tau_v14 import campaign_run3_2022_preEE_nano_cp_tau_v14
+from cmsdb.campaigns.run3_2022_postEE_nano_cp_tau_v14 import campaign_run3_2022_postEE_nano_cp_tau_v14
+from cmsdb.campaigns.run3_2023_preBPix_nano_cp_tau_v14 import campaign_run3_2023_preBPix_nano_cp_tau_v14
+from cmsdb.campaigns.run3_2023_postBPix_nano_cp_tau_v14 import campaign_run3_2023_postBPix_nano_cp_tau_v14
+
+# ################################################################## #
+# TO-DO --->>>                                                       #
+# Modify this dictionary to choose campaigns                         #
+# comment out or uncomment keys according to the requirements        #
+# islimited to load the limited config, i.e. with one ROOT file      #
+# and isfull for the full real config                                #
+# ################################################################## #
+campaign_dict = {
+    "2022preEE"    : {"campaign" : campaign_run3_2022_preEE_nano_cp_tau_v14,    "islimited": False, "isfull": True},
+    "2022postEE"   : {"campaign" : campaign_run3_2022_postEE_nano_cp_tau_v14,   "islimited": False, "isfull": True},
+    "2023preBPix"  : {"campaign" : campaign_run3_2023_preBPix_nano_cp_tau_v14,  "islimited": False, "isfull": True},
+    "2023postBPix" : {"campaign" : campaign_run3_2023_postBPix_nano_cp_tau_v14, "islimited": False, "isfull": True},
+}
+
+for key,val in campaign_dict.items():
+    _campaign  = val["campaign"]
+    _islimited = val["islimited"]
+    _isfull    = val["isfull"]
+    _name = _campaign.name
+    _id   = _campaign.id
+    if _isfull:
+        logger.warning(f"Full Campaign for {key} : <{_name}> - <{_id}>")
+        add_config_run3(
+            analysis_httcp,
+            _campaign.copy(),
+            config_name=_name,
+            config_id=int(_id))
+    if _islimited:
+        logger.warning(f"Limited Campaign for {key} : <{_name}> - <{_id+10}> - % only 1 root file per dataset will be considered %")
+        add_config_run3(
+            analysis_httcp,
+            _campaign.copy(),
+            config_name=f"{_name}_limited",
+            config_id=int(_id)+10,
+            limit_dataset_files=1)
+        
+        
+
+# ------------------------------------------------------------- #
 #                               Run2                            #
 # ------------------------------------------------------------- #
 """
@@ -62,44 +111,3 @@ add_config_run2_2018(
     limit_dataset_files=1
 )
 """
-# ------------------------------------------------------------- #
-#                               Run3                            #
-# ------------------------------------------------------------- #
-
-from httcp.config.config_run3 import add_config
-
-from cmsdb.campaigns.run3_2022_preEE_nano_cp_tau_v14 import campaign_run3_2022_preEE_nano_cp_tau_v14
-from cmsdb.campaigns.run3_2022_postEE_nano_cp_tau_v14 import campaign_run3_2022_postEE_nano_cp_tau_v14
-from cmsdb.campaigns.run3_2023_preBPix_nano_cp_tau_v14 import campaign_run3_2023_preBPix_nano_cp_tau_v14
-from cmsdb.campaigns.run3_2023_postBPix_nano_cp_tau_v14 import campaign_run3_2023_postBPix_nano_cp_tau_v14
-
-# better to modify this dictionary to choose campaigns
-# (un)comment desired keys
-# if islimited is True, full campaign wont be added to the analysis
-campaign_dict = {
-    #"2022preEE"    : {"campaign" : campaign_run3_2022_preEE_nano_cp_tau_v14,    "islimited": True},
-    #"2022postEE"   : {"campaign" : campaign_run3_2022_postEE_nano_cp_tau_v14,   "islimited": True},
-    #"2023preBPix"  : {"campaign" : campaign_run3_2023_preBPix_nano_cp_tau_v14,  "islimited": True},
-    "2023postBPix" : {"campaign" : campaign_run3_2023_postBPix_nano_cp_tau_v14, "islimited": True},
-}
-
-for key,val in campaign_dict.items():
-    _campaign  = val["campaign"]
-    _islimited = val["islimited"]
-    _name = _campaign.name
-    _id   = _campaign.id
-    if not _islimited:
-        logger.warning(f"Full Campaign for {key} : <{_name}> - <{_id}>")
-        add_config(
-            analysis_httcp,
-            _campaign.copy(),
-            config_name=_name,
-            config_id=int(_id))
-    else:
-        logger.warning(f"Limited Campaign for {key} : <{_name}> - <{_id+10}> - % only 1 root file per dataset will be considered %")
-        add_config(
-            analysis_httcp,
-            _campaign.copy(),
-            config_name=f"{_name}_limited",
-            config_id=int(_id)+10,
-            limit_dataset_files=1)

@@ -60,8 +60,7 @@ def add_hist_hooks(config: od.Config) -> None:
         The resulting fake factors histograms are stroe in a pickle file.
 
         *** N.B. 
-        * This will give : TypeError: 'NoneType' object is not iterable : Error at the end
-        as this finction does not return hist. But the FF pkl files will be saved. 
+        * This will not save the distribution of the varaible in pdf format, but the FF pkl files will be saved. 
         * One can use one histogram only, e.g. hcand_1_pt
         '''
         # Define if we are calculating the fake factor for A0B0C0D0 or ABCD categories
@@ -134,6 +133,7 @@ def add_hist_hooks(config: od.Config) -> None:
         data_hist = sum(data_hists[1:], data_hists[0].copy()) # sum all data histograms, the hist object here contains all categories
 
         for gidx, group_name in enumerate(complete_groups):
+
             group = qcd_groups[group_name]
             # Get the corresponding histograms of the id, if not present, create a zeroed histogram
             get_hist = lambda h, region_name: (
@@ -142,12 +142,60 @@ def add_hist_hooks(config: od.Config) -> None:
                 else hist.Hist(*[axis for axis in (h[{"category": [0]}] * 0).axes if axis.name != 'category'])
             )
 
-            # Get the corresponding histograms and convert them to number objects,
+            # # Get the corresponding histograms and convert them to number objects,
             ss_iso_mc = hist_to_num(get_hist(mc_hist, "ss_iso"), "ss_iso_mc") # MC in region A
             ss_iso_data = hist_to_num(get_hist(data_hist, "ss_iso"), "ss_iso_data") # Data in region A
             ss_noniso_mc  = hist_to_num(get_hist(mc_hist, "ss_noniso"), "ss_noniso_mc") # MC in region B
             ss_noniso_data = hist_to_num(get_hist(data_hist, "ss_noniso"), "ss_noniso_data") # Data in region B
 
+
+            ss_iso_data_minus_mc = (ss_iso_data - ss_iso_mc)[:, None] # Data - MC in region A
+            ss_noniso_data_minus_mc = (ss_noniso_data - ss_noniso_mc)[:, None] # Data - MC in region B
+
+            # create histo for them
+            ss_iso_data_minus_mc_values = np.squeeze(np.nan_to_num(ss_iso_data_minus_mc()), axis=0) # get the values of the cat A
+            ss_iso_data_minus_mc_variances = ss_iso_data_minus_mc(sn.UP, sn.ALL, unc=True)**2
+            ss_iso_data_minus_mc_variances = ss_iso_data_minus_mc_variances[0]
+
+            ss_noniso_data_minus_mc_values = np.squeeze(np.nan_to_num(ss_noniso_data_minus_mc()), axis=0) # get the values of the cat B
+            ss_noniso_data_minus_mc_variances = ss_noniso_data_minus_mc(sn.UP, sn.ALL, unc=True)**2
+            ss_noniso_data_minus_mc_variances = ss_noniso_data_minus_mc_variances[0]
+
+            # guranty positive values 
+            neg_int_mask = ss_iso_data_minus_mc_values <= 0
+            ss_iso_data_minus_mc_values[neg_int_mask] = 1e-5
+            ss_iso_data_minus_mc_variances[neg_int_mask] = 0
+
+            neg_int_mask = ss_noniso_data_minus_mc_values <= 0
+            ss_noniso_data_minus_mc_values[neg_int_mask] = 1e-5
+            ss_noniso_data_minus_mc_variances[neg_int_mask] = 0
+
+            # create a hist clone of the data_hist
+            ss_noniso_data_minus_mc_hist = data_hist.copy()
+            ss_iso_data_minus_mc_hist = data_hist.copy()
+
+            # fill the ratio histogram with the values 
+            ss_noniso_data_minus_mc_hist.view().value[0, ...] = ss_noniso_data_minus_mc_values
+            ss_noniso_data_minus_mc_hist.view().variance[0, ...] = ss_noniso_data_minus_mc_variances
+            ss_iso_data_minus_mc_hist.view().value[0, ...] = ss_iso_data_minus_mc_values
+            ss_iso_data_minus_mc_hist.view().variance[0, ...] = ss_iso_data_minus_mc_variances
+
+            # Save the fake factor histogram in a pickle file
+            #path = "/eos/user/o/oponcet2/analysis/CP_dev/analysis_httcp/cf.PlotVariables1D/FF"
+            path = f"{law.wlcg.WLCGFileSystem().base[0].split('root://eosuser.cern.ch')[-1]}/analysis_httcp/cf.PlotVariables1D/{config.campaign.name}/FF"
+
+            hname_noniso = "ss_noniso_data_minus_mc_hist"
+            hname_iso = "ss_iso_data_minus_mc_hist"
+            # Ensure the folder exists
+            if not os.path.exists(path):
+                os.makedirs(path)
+
+            with open(f"{path}/fake_factors_{hname_noniso}_{group_name}.pkl", "wb") as f:
+                pickle.dump(ss_noniso_data_minus_mc_hist, f)
+            
+            with open(f"{path}/fake_factors_{hname_iso}_{group_name}.pkl", "wb") as f:
+                pickle.dump(ss_iso_data_minus_mc_hist, f)
+            
 
             # calculate the pt-dependent fake factor
             fake_factor = ((ss_iso_data - ss_iso_mc) / (ss_noniso_data - ss_noniso_mc))[:, None] # FF = (data-mc)A/(data-mc)B
@@ -171,14 +219,185 @@ def add_hist_hooks(config: od.Config) -> None:
 
             # Save the fake factor histogram in a pickle file
             #path = "/eos/user/o/oponcet2/analysis/CP_dev/analysis_httcp/cf.PlotVariables1D/FF"
-            path = f"{law.wlcg.WLCGFileSystem().base[0].split('root://eosuser.cern.ch')[-1]}/analysis_httcp/cf.PlotVariables1D/{config.campaign.name}/FF"
-            hname = ratio_hist.axes[2].name
+            #path = f"{law.wlcg.WLCGFileSystem().base[0].split('root://eosuser.cern.ch')[-1]}/analysis_httcp/cf.PlotVariables1D/{config.campaign.name}/FF"
+            #hname = ratio_hist.axes[2].name
             
             # Ensure the folder exists
-            if not os.path.exists(path):
-                os.makedirs(path)
-            with open(f"{path}/fake_factors_{hname}_{group_name}.pkl", "wb") as f:
-                pickle.dump(ratio_hist, f)
+            #if not os.path.exists(path):
+            #    os.makedirs(path)
+            #with open(f"{path}/fake_factors_{hname}_{group_name}.pkl", "wb") as f:
+            #    pickle.dump(ratio_hist, f)
+        
+        return hists
+
+    def produce_fake_factor_DM0(task, hists):
+        '''
+        Produce fake factor histograms for ABCD or A0B0C0D0 categories
+        FF = (data-mc)A/(data-mc)B
+        FF0 = (data-mc)A0/(data-mc)B0
+        The resulting fake factors histograms are stroe in a pickle file.
+
+        *** N.B. 
+        * This will not save the distribution of the varaible in pdf format, but the FF pkl files will be saved. 
+        * One can use one histogram only, e.g. hcand_1_pt
+        '''
+        # Define if we are calculating the fake factor for A0B0C0D0 or ABCD categories
+        iszero_category = False # True for A0B0C0D0 categories
+
+        # Check if histograms are available
+        if not hists:
+            print("no hists")
+            return hists
+
+        # Get the qcd process, it will be used to store the fake factor histograms
+        qcd_proc = config.get_process("qcd", default=None)
+        if not qcd_proc:
+            print("no qcd process")
+            return hists
+
+
+        # extract all unique category ids and verify that the axis order is exactly
+        # "category -> shift -> variable" which is needed to insert values at the end
+        CAT_AXIS, SHIFT_AXIS, VAR_AXIS = range(3)
+        category_ids = set()
+        for proc, h in hists.items():
+            # validate axes
+            assert len(h.axes) == 3
+            assert h.axes[CAT_AXIS].name == "category"
+            assert h.axes[SHIFT_AXIS].name == "shift"
+            # get the category axis
+            cat_ax = h.axes["category"]
+            for cat_index in range(cat_ax.size):
+                category_ids.add(cat_ax.value(cat_index))
+
+        # create qcd groups: A, B, C, D of A0, B0, C0, D0 for each DM and Njet category
+        qcd_groups: dict[str, dict[str, od.Category]] = defaultdict(DotDict)
+
+
+        dms = ["tau1a1DM11", "tau1a1DM10", "tau1a1DM2", "tau1pi", "tau1rho"]  # Decay modes
+        njets = ["has0j", "has1j", "has2j"]  # Jet multiplicity
+
+        # Loop over all categories and create a QCD group for each DM and Njet category
+        for dm in dms:
+            for njet in njets:
+                for cat_id in category_ids:
+                    cat_inst = config.get_category(cat_id)
+
+                    if iszero_category: # A0B0C0D0 categories
+                        if cat_inst.has_tag({"ss", "iso1", "noniso2", njet, dm}, mode=all): # cat A0
+                            qcd_groups[f"dm_{dm}_njet_{njet}"].ss_iso = cat_inst
+                        elif cat_inst.has_tag({"ss", "noniso1", "noniso2", njet, dm}, mode=all): # cat BB
+                            qcd_groups[f"dm_{dm}_njet_{njet}"].ss_noniso = cat_inst
+                    else: # ABCD categories
+                        if cat_inst.has_tag({"ss", "iso1", njet, dm}, mode=all) and not cat_inst.has_tag("noniso2"): # cat A 
+                            qcd_groups[f"dm_{dm}_njet_{njet}"].ss_iso = cat_inst
+                        elif cat_inst.has_tag({"ss", "noniso1", njet, dm}, mode=all) and not cat_inst.has_tag("noniso2"): # cat B
+                            qcd_groups[f"dm_{dm}_njet_{njet}"].ss_noniso = cat_inst
+
+        # Get complete qcd groups
+        complete_groups = [name for name, cats in qcd_groups.items() if len(cats) == 2]
+
+        # Nothing to do if there are no complete groups, you need A and B to estimate FF
+        if not complete_groups:
+            print("no complete groups")
+            return hists
+        
+        # Sum up mc and data histograms, stop early when empty, this is done for all categories
+        mc_hists = [h for p, h in hists.items() if p.is_mc and not p.has_tag("signal")]
+        data_hists = [h for p, h in hists.items() if p.is_data]
+        if not mc_hists or not data_hists:
+            return hists
+        mc_hist = sum(mc_hists[1:], mc_hists[0].copy()) # sum all MC histograms, the hist object here contains all categories
+        data_hist = sum(data_hists[1:], data_hists[0].copy()) # sum all data histograms, the hist object here contains all categories
+
+        ss_iso_mc_inclusif_njet = None
+        ss_iso_data_inclusif_njet = None
+        ss_noniso_mc_inclusif_njet = None
+        ss_noniso_data_inclusif_njet = None
+
+
+        for gidx, group_name in enumerate(complete_groups):
+
+            group = qcd_groups[group_name]
+            # Get the corresponding histograms of the id, if not present, create a zeroed histogram
+            get_hist = lambda h, region_name: (
+                h[{"category": hist.loc(group[region_name].id)}]
+                if group[region_name].id in h.axes["category"]
+                else hist.Hist(*[axis for axis in (h[{"category": [0]}] * 0).axes if axis.name != 'category'])
+            )
+
+            # # Get the corresponding histograms and convert them to number objects,
+            ss_iso_mc = hist_to_num(get_hist(mc_hist, "ss_iso"), "ss_iso_mc") # MC in region A
+            ss_iso_data = hist_to_num(get_hist(data_hist, "ss_iso"), "ss_iso_data") # Data in region A
+            ss_noniso_mc  = hist_to_num(get_hist(mc_hist, "ss_noniso"), "ss_noniso_mc") # MC in region B
+            ss_noniso_data = hist_to_num(get_hist(data_hist, "ss_noniso"), "ss_noniso_data") # Data in region B
+
+            print("group_name", group_name)
+            ## Add ss_iso_mc if dm is tau1pi
+            if group_name.split("_")[1] == "tau1pi":
+                print("choosen group", group_name)
+                # if no already found one category, initialize the sum
+                if ss_iso_mc_inclusif_njet is None:
+                    ss_iso_mc_inclusif_njet = ss_iso_mc
+                    ss_noniso_mc_inclusif_njet = ss_noniso_mc
+                    ss_iso_data_inclusif_njet = ss_iso_data
+                    ss_noniso_data_inclusif_njet = ss_noniso_data
+                    print("ss_iso_data_inclusif_njet", ss_iso_data_inclusif_njet)
+                else:
+                    # add the current category to the sum
+                    ss_iso_mc_inclusif_njet += ss_iso_mc
+                    ss_noniso_mc_inclusif_njet += ss_noniso_mc
+                    ss_iso_data_inclusif_njet += ss_iso_data
+                    ss_noniso_data_inclusif_njet += ss_noniso_data
+
+
+                print("ss_iso_data_inclusif_njet", ss_iso_data_inclusif_njet)
+
+
+
+            else:
+                # skip the category if it is not tau1pi
+                continue
+
+        
+
+
+        # calculate the pt-dependent fake factor
+        fake_factor = ((ss_iso_data_inclusif_njet - ss_iso_mc_inclusif_njet) / (ss_noniso_data_inclusif_njet - ss_noniso_mc_inclusif_njet))[:, None] # FF = (data-mc)A/(data-mc)B
+        fake_factor_values = np.squeeze(np.nan_to_num(fake_factor()), axis=0) # get the values of the fake factor
+        fake_factor_variances = fake_factor(sn.UP, sn.ALL, unc=True)**2 # get the uncertainties of the fake factor
+
+        fake_factor_variances = fake_factor_variances[0]
+
+        # Guaranty positive values of fake_factor
+        neg_int_mask = fake_factor_values <= 0
+        fake_factor_values[neg_int_mask] = 1e-5
+        fake_factor_variances[neg_int_mask] = 0
+    
+
+        # create a hist clone of the data_hist
+        ratio_hist = data_hist.copy()
+
+        # fill the ratio histogram with the fake factor values in the first category
+        ratio_hist.view().value[0, ...] = fake_factor_values
+        ratio_hist.view().variance[0, ...] = fake_factor_variances
+
+        # Save the fake factor histogram in a pickle file
+        #path = "/eos/user/o/oponcet2/analysis/CP_dev/analysis_httcp/cf.PlotVariables1D/FF"
+        path = f"{law.wlcg.WLCGFileSystem().base[0].split('root://eosuser.cern.ch')[-1]}/analysis_httcp/cf.PlotVariables1D/{config.campaign.name}/FF"
+        hname = ratio_hist.axes[2].name
+        
+        # Ensure the folder exists
+        if not os.path.exists(path):
+            os.makedirs(path)
+        # with open(f"{path}/fake_factors_{hname}_{group_name}.pkl", "wb") as f:
+        #     pickle.dump(ratio_hist, f)
+
+        with open(f"{path}/fake_factors_{hname}_DM0.pkl", "wb") as f:
+            pickle.dump(ratio_hist, f)
+        
+        return hists
+
 
  
     ######################################################
@@ -365,7 +584,7 @@ def add_hist_hooks(config: od.Config) -> None:
                 ratio_hist_variances[neg_int_mask] = 0
 
                 ## Use fake_hist as qcd histogram for category D (os_iso)
-                cat_axis = qcd_hist.axes["category"]
+                cat_axis = ratio_hist.axes["category"]
                 for cat_index in range(cat_axis.size):
                     if cat_axis.value(cat_index) == group.os_iso.id:
                         ratio_hist.view().value[cat_index, ...] = ratio_hist_values
@@ -402,5 +621,6 @@ def add_hist_hooks(config: od.Config) -> None:
 
     config.x.hist_hooks = {
         "produce_fake_factor": produce_fake_factor,
+        "produce_fake_factor_DM0": produce_fake_factor_DM0,
         "extrapolate_fake": extrapolate_fake
     }

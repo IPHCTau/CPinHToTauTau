@@ -213,12 +213,12 @@ def add_config (ana: od.Analysis,
         "zzz",
 
         ##Signal
-        "h_ggf_tautau_uncorrelated_filter",
-        #"h_ggf_tautau_uncorrelatedDecay_CPodd_Filtered_ProdAndDecay",
+        #"h_ggf_tautau_uncorrelated_filter",
+        "h_ggf_tautau_uncorrelatedDecay_CPodd_Filtered_ProdAndDecay",
         #"h_ggf_tautau_uncorrelatedDecay_CPodd_UnFiltered_ProdAndDecay",
-        #"h_ggf_tautau_uncorrelatedDecay_MM_Filtered_ProdAndDecay",
+        "h_ggf_tautau_uncorrelatedDecay_MM_Filtered_ProdAndDecay",
         #"h_ggf_tautau_uncorrelatedDecay_MM_UnFiltered_ProdAndDecay",
-        #"h_ggf_tautau_uncorrelatedDecay_SM_Filtered_ProdAndDecay",
+        "h_ggf_tautau_uncorrelatedDecay_SM_Filtered_ProdAndDecay",
         #"h_ggf_tautau_uncorrelatedDecay_SM_UnFiltered_ProdAndDecay",
         #"h_ggf_tautau_M125_amcatnloFXFX",
         #"h_ggf_tautau_prod_cp_even_sm",
@@ -364,6 +364,11 @@ def add_config (ana: od.Analysis,
     # (currently set to false because the number of files per dataset is truncated to 2)
     cfg.x.validate_dataset_lfns = False
 
+    # fastMTT helper
+    cfg.x.enable_fastMTT = True
+    cfg.x.enable_fastMTT_for_phiCP = True # PV only + should be False automatically if not cfg.x.enable_fastMTT
+
+    
     # define inclusive datasets for the stitched process identification with corresponding leaf processes
     # drell-yan [NLO]
     cfg.x.allow_dy_stitching = True
@@ -571,6 +576,7 @@ def add_config (ana: od.Analysis,
         # /afs/cern.ch/user/d/dmroy/public/DY_pTll_recoil_corrections.json.gz
         "zpt_rewt_v2_sf"    : (f"{external_path_parent}/Run3/Zpt/DY_pTll_recoil_corrections.json.gz",                  "v1"), # Zpt Rewt
         #"tautau_ff"         : (f"{external_path}/Fake_tautau/fake_factor_{year}_{postfix}.json",                       "v1"),
+        "tautau_ff"         : (f"{external_path_parent}/FF_TauTau_combined/fake_factor_20222023.json",                 "v1"),
         #"tautau_ff0"        : (f"{external_path}/Fake_tautau/fake_factor_{year}_{postfix}_0cat_v2.json",               "v1"),
         #"tautau_ext_corr"   : (f"{external_path}/Fake_tautau/extrapolation_correction_inclusive.json",                 "v1"),
         #"btag_sf_corr": (f"{json_mirror}/POG/BTV/{year}_Summer{year2}{year_postfix}/btagging.json.gz",                "v1"),
@@ -1046,7 +1052,7 @@ def add_config (ana: od.Analysis,
         "muon_xtrig_weight"                     : [], #get_shifts("mu_xtrig"),
         "tau_weight"                            : [], #get_shifts("tau"),
         "tau_trigger_weight"                    : [], #get_shifts("tau_trig"),
-        #"ff_weight"                             : [],
+        "ff_weight"                             : [],
         #"ff_ext_corr_weight"                    : [],
         #"tes_weight"                           : [], #get_shifts("tes"),
         "tauspinner_weight"                     : get_shifts("tauspinner"),
@@ -1327,7 +1333,19 @@ def add_config (ana: od.Analysis,
             "is_ipsig_0to1_1",
             "has_0jet", "has_1jet", "has_2jet",
             "PuppiMET.*", "Jet.*",
-            "TauSpinner.*", "hcand.*", "hcandprod.*", "TauProd.*",
+            #"TauSpinner.*",
+            "tauspinner_weight",
+            "tauspinner_weight_cpeven",    # 0
+            "tauspinner_weight_cpeven_alt",# 0
+            "tauspinner_weight_cpmix",     # 0.25
+            "tauspinner_weight_cpmix_alt", # 0.25_alt
+            "tauspinner_weight_cpmixm",    # -0.25
+            "tauspinner_weight_cpmixm_alt",# -0.25_alt
+            "tauspinner_weight_cpalpha0p375",     # 0.375
+            "tauspinner_weight_cpalpha0p375_alt", # 0.375_alt
+            "tauspinner_weight_cpodd",     # 0.5
+            "tauspinner_weight_cpodd_alt", # 0.5
+            "hcand.*", "hcandprod.*", "TauProd.*",
             "GenTau.*", "GenTauProd.*",
             "process_id", "category_ids",
         },
