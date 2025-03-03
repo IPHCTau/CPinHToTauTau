@@ -23,6 +23,10 @@ logger = law.logger.get_logger(__name__)
 
 
 def get_energy_split(h, pions, pizeros):
+    """
+      energy split has appropriate values for DM 1 and 2
+      for rest of the DMs, it would be empty
+    """
     pi  = pions[:,:1]
     pi0 = pizeros[:,:1]
 
@@ -332,8 +336,6 @@ def higgscandprod(
                                        )
                               )
 
-    #from IPython import embed; embed()
-    
     result = SelectionResult(
         steps={
             "has_proper_tau_decay_products" : ak.sum(hcand_prod_mask, axis=1) == 2,

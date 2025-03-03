@@ -76,7 +76,7 @@ def muon_selection(
         "muon_iso_0p15"       : muons.pfRelIso04_all < 0.15,
         "muon_ipsig_safe"     : muons.IPsig > ipsig_dummy,
         # not before applying correction from IPsig calibration
-        "muon_ipsig_1p0"      : np.abs(muons.IPsig) > 1.0,
+        #"muon_ipsig_1p0"      : np.abs(muons.IPsig) > 1.0,
     }
     single_veto_selections = {
         "muon_pt_10"          : muons.pt > 10,
@@ -215,7 +215,7 @@ def electron_selection(
         "electron_ipsig_safe"     : electrons.IPsig > ipsig_dummy,
         "electron_iso_0p15"       : electrons.pfRelIso03_all < 0.15,
         # not before applying correction from IPsig calibration        
-        "electron_ipsig_1p0"      : np.abs(electrons.IPsig) > 1.0,
+        #"electron_ipsig_1p0"      : np.abs(electrons.IPsig) > 1.0,
     }
     single_veto_selections = {
         "electron_pt_10"          : electrons.pt > 10,

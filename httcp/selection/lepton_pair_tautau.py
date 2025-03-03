@@ -84,20 +84,6 @@ def match_trigobjs(
     # final mask may look like this:
     # [[True, True], [True, True], [False, True]]
 
-    """
-    dr_taus1_leg1 = taus1.metric_table(tautau_leg_1_matched_trigobjs)
-    pass_1_1_triglevel = ak.fill_none(ak.any(dr_taus1_leg1 < 0.5, axis=-1), False)
-    dr_taus1_leg2 = taus1.metric_table(tautau_leg_2_matched_trigobjs)
-    pass_1_2_triglevel = ak.fill_none(ak.any(dr_taus1_leg2 < 0.5, axis=-1), False)
-    pass_taus1_legs = pass_1_1_triglevel | pass_1_2_triglevel
-
-    dr_taus2_leg1 = taus2.metric_table(tautau_leg_1_matched_trigobjs)
-    pass_2_1_triglevel = ak.fill_none(ak.any(dr_taus2_leg1 < 0.5, axis=-1), False)
-    dr_taus2_leg2 = taus2.metric_table(tautau_leg_2_matched_trigobjs)
-    pass_2_2_triglevel = ak.fill_none(ak.any(dr_taus2_leg2 < 0.5, axis=-1), False)
-    pass_taus2_legs = pass_2_1_triglevel | pass_2_2_triglevel
-    """
-
     # is tau1 matched to leg1?
     pass_tau1_leg1_triglevel = trigger_object_matching_deep(taus1,
                                                             tautau_leg_1_matched_trigobjs,

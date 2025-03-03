@@ -96,7 +96,6 @@ def trigger_selection(
 
         
         # get trigger objects for fired events per leg
-        #leg_matched_trigobj_idxs_shallow = []
         leg_matched_trigobj_idxs         = []
         leg_matched_trigobjs             = []
         leg_min_pt                       = []
@@ -128,7 +127,6 @@ def trigger_selection(
                     # https://github.com/uhh-cms/hh2bbww/blob/master/hbw/selection/trigger.py#L94
                     leg_mask = leg_mask & ((events.TrigObj.filterBits & bits) == bits)
 
-            #leg_matched_trigobj_idxs_shallow.append(index[leg_mask])         # O L D
             leg_matched_trigobj_idxs.append(index[leg_mask][:,None])         # N E W
             leg_matched_trigobjs.append(get_objs_p4(events.TrigObj[index[leg_mask]])[:,None])
 
@@ -138,9 +136,6 @@ def trigger_selection(
         # final trigger decision
         fired_and_all_legs_match = fired & all_legs_match
         fired_and_all_legs_match_concat.append(fired_and_all_legs_match[:,None])
-
-        # store all intermediate results for subsequent selectors
-        #trigger_data.append((trigger, fired_and_all_legs_match, leg_matched_trigobj_idxs_shallow))
 
         # store the trigger id
         #ids = ak.where(fired_and_all_legs_match, np.float32(trigger.id), np.float32(np.nan))

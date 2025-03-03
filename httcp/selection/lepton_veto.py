@@ -81,11 +81,6 @@ def extra_lepton_veto(
     has_extra_lepton = ak.where(has_single_pair, 
                                 ak.any(dr_mask, axis=-1),
                                 dummy)
-    #has_extra_lepton = ak.where(has_single_pair, 
-    #                            ak.all(dr_mask, axis=-1),
-    #                            dummy)
-
-
     has_no_extra_lepton = ak.sum(has_extra_lepton, axis=1) == 0
 
     # For the purpose of debugging
