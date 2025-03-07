@@ -407,6 +407,10 @@ def main(args):
         
         results = process_category(input_files, ss_noniso_data_minus_mc_files, ss_iso_data_minus_mc_files, output_dirs, categories)
         
+        if era == "2022_preEE":
+            ss_noniso_data_minus_mc_th1d_rebin_dm0 = []
+            ss_iso_data_minus_mc_th1d_rebin_dm0 = []
+
         for dm, njet, ss_noniso_data_minus_mc_th1d, ss_iso_data_minus_mc_th1d, OUTPUT_DIR, CATEGORY in results :
             print(f"Processing category: {dm}, {njet}")
 
@@ -418,6 +422,28 @@ def main(args):
             custom_bins = [35, 40, 45, 50, 55, 60, 65, 70, 80, 120, 200]
             ss_noniso_data_minus_mc_th1d_rebin, ss_iso_data_minus_mc_th1d_rebin = rebin_and_plot(ss_noniso_data_minus_mc_th1d, ss_iso_data_minus_mc_th1d, OUTPUT_DIR, custom_bins)
 
+
+            # if dm == 0 merge the njet categories
+            if dm == "tau1pi" and era == "2022_preEE":
+                print("dm = 0")
+                ss_noniso_data_minus_mc_th1d_rebin_dm0.append(ss_noniso_data_minus_mc_th1d_rebin)
+                ss_iso_data_minus_mc_th1d_rebin_dm0.append(ss_iso_data_minus_mc_th1d_rebin)
+
+                # if all njet have been added to list then merge by summin them them else continue 
+                if len(ss_noniso_data_minus_mc_th1d_rebin_dm0) == 3:
+                    ss_noniso_data_minus_mc_th1d_rebin = ss_noniso_data_minus_mc_th1d_rebin_dm0[0].Clone()
+                    ss_iso_data_minus_mc_th1d_rebin = ss_iso_data_minus_mc_th1d_rebin_dm0[0].Clone()
+                    # take care of error
+                    ss_noniso_data_minus_mc_th1d_rebin.Sumw2()
+                    ss_iso_data_minus_mc_th1d_rebin.Sumw2()
+                    for i in range(1, 3):
+                        ss_noniso_data_minus_mc_th1d_rebin.Add(ss_noniso_data_minus_mc_th1d_rebin_dm0[i])
+                        ss_iso_data_minus_mc_th1d_rebin.Add(ss_iso_data_minus_mc_th1d_rebin_dm0[i])
+                else: 
+                    print("skip for loop on dm = 0")
+                    continue
+
+            
             # in the case several config files are used, we need to combine the histograms
             if nb_files > 1:
                 # Store results for merging
