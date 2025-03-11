@@ -234,7 +234,7 @@ def presel_decay_pis(hcand, hcand_pi):
 
 def presel_decay_pi0s(hcand, hcand_pi0):
     dummy = hcand_pi0[:,:0]
-    mask12 = ak.fill_none(ak.firsts(((hcand.decayMode == 1) | (hcand.decayMode == 2)), axis=1), False)
+    mask12 = ak.fill_none(ak.firsts(((hcand.decayMode == 1) | (hcand.decayMode == 2) | (hcand.decayMode == 11)), axis=1), False)
     hcand_pi0 = ak.where(mask12,
                          hcand_pi0[:,0:1],
                          dummy)
