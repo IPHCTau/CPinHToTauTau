@@ -1,0 +1,719 @@
+{
+    "schema_version": 2,
+    "description": "Fake factors for the httcp analysis",
+    "corrections": [
+        {
+            "name": "fake_factors_fit",
+            "description": "Fit fake factors for all decay modes and jet categories",
+            "version": 1,
+            "inputs": [
+                {
+                    "name": "pt",
+                    "type": "real",
+                    "description": "Transverse momentum of the tau"
+                },
+                {
+                    "name": "dm",
+                    "type": "int",
+                    "description": "Reconstructed tau decay mode of leading tau: pi_1, rho_1, a1dm11_1, a1dm10_1, a1dm2_1"
+                },
+                {
+                    "name": "njets",
+                    "type": "int",
+                    "description": "Number of jets in the event (has_0j, has_1j, has_2j)"
+                },
+                {
+                    "name": "syst",
+                    "type": "string",
+                    "description": "Systematic variations: 'nom', 'up', 'down'"
+                }
+            ],
+            "output": {
+                "name": "fake_factor",
+                "type": "real",
+                "description": "Fake factor to apply to data-MC"
+            },
+            "data": {
+                "nodetype": "category",
+                "input": "dm",
+                "content": [
+                    {
+                        "key": 10,
+                        "value": {
+                            "nodetype": "category",
+                            "input": "njets",
+                            "content": [
+                                {
+                                    "key": 0,
+                                    "value": {
+                                        "nodetype": "category",
+                                        "input": "syst",
+                                        "content": [
+                                            {
+                                                "key": "nom",
+                                                "value": {
+                                                    "nodetype": "formula",
+                                                    "expression": "(-0.192705+0.0114727*min(max(x,35),100)+-0.000142368*min(max(x,35),100)*min(max(x,35),100)+5.74767e-07*pow(min(max(x,35),100),3))",
+                                                    "parser": "TFormula",
+                                                    "variables": [
+                                                        "pt"
+                                                    ]
+                                                }
+                                            },
+                                            {
+                                                "key": "up",
+                                                "value": {
+                                                    "nodetype": "formula",
+                                                    "expression": "(-0.192705+0.0114727*min(max(x,35),100)+-0.000142368*min(max(x,35),100)*min(max(x,35),100)+5.74767e-07*pow(min(max(x,35),100),3))",
+                                                    "parser": "TFormula",
+                                                    "variables": [
+                                                        "pt"
+                                                    ]
+                                                }
+                                            },
+                                            {
+                                                "key": "down",
+                                                "value": {
+                                                    "nodetype": "formula",
+                                                    "expression": "(-0.192705+0.0114727*min(max(x,35),100)+-0.000142368*min(max(x,35),100)*min(max(x,35),100)+5.74767e-07*pow(min(max(x,35),100),3))",
+                                                    "parser": "TFormula",
+                                                    "variables": [
+                                                        "pt"
+                                                    ]
+                                                }
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "key": 1,
+                                    "value": {
+                                        "nodetype": "category",
+                                        "input": "syst",
+                                        "content": [
+                                            {
+                                                "key": "nom",
+                                                "value": {
+                                                    "nodetype": "formula",
+                                                    "expression": "(0.0157978+0.00174633*min(max(x,35),100)+-1.72733e-05*min(max(x,35),100)*min(max(x,35),100)+6.34474e-08*pow(min(max(x,35),100),3))",
+                                                    "parser": "TFormula",
+                                                    "variables": [
+                                                        "pt"
+                                                    ]
+                                                }
+                                            },
+                                            {
+                                                "key": "up",
+                                                "value": {
+                                                    "nodetype": "formula",
+                                                    "expression": "(0.0157978+0.00174633*min(max(x,35),100)+-1.72733e-05*min(max(x,35),100)*min(max(x,35),100)+6.34474e-08*pow(min(max(x,35),100),3))",
+                                                    "parser": "TFormula",
+                                                    "variables": [
+                                                        "pt"
+                                                    ]
+                                                }
+                                            },
+                                            {
+                                                "key": "down",
+                                                "value": {
+                                                    "nodetype": "formula",
+                                                    "expression": "(0.0157978+0.00174633*min(max(x,35),100)+-1.72733e-05*min(max(x,35),100)*min(max(x,35),100)+6.34474e-08*pow(min(max(x,35),100),3))",
+                                                    "parser": "TFormula",
+                                                    "variables": [
+                                                        "pt"
+                                                    ]
+                                                }
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "key": 2,
+                                    "value": {
+                                        "nodetype": "category",
+                                        "input": "syst",
+                                        "content": [
+                                            {
+                                                "key": "nom",
+                                                "value": {
+                                                    "nodetype": "formula",
+                                                    "expression": "(0.094853+-0.00209961*min(max(x,35),100)+3.07964e-05*min(max(x,35),100)*min(max(x,35),100)+-9.006e-08*pow(min(max(x,35),100),3))",
+                                                    "parser": "TFormula",
+                                                    "variables": [
+                                                        "pt"
+                                                    ]
+                                                }
+                                            },
+                                            {
+                                                "key": "up",
+                                                "value": {
+                                                    "nodetype": "formula",
+                                                    "expression": "(0.094853+-0.00209961*min(max(x,35),100)+3.07964e-05*min(max(x,35),100)*min(max(x,35),100)+-9.006e-08*pow(min(max(x,35),100),3))",
+                                                    "parser": "TFormula",
+                                                    "variables": [
+                                                        "pt"
+                                                    ]
+                                                }
+                                            },
+                                            {
+                                                "key": "down",
+                                                "value": {
+                                                    "nodetype": "formula",
+                                                    "expression": "(0.094853+-0.00209961*min(max(x,35),100)+3.07964e-05*min(max(x,35),100)*min(max(x,35),100)+-9.006e-08*pow(min(max(x,35),100),3))",
+                                                    "parser": "TFormula",
+                                                    "variables": [
+                                                        "pt"
+                                                    ]
+                                                }
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "key": 11,
+                        "value": {
+                            "nodetype": "category",
+                            "input": "njets",
+                            "content": [
+                                {
+                                    "key": 0,
+                                    "value": {
+                                        "nodetype": "category",
+                                        "input": "syst",
+                                        "content": [
+                                            {
+                                                "key": "nom",
+                                                "value": {
+                                                    "nodetype": "formula",
+                                                    "expression": "(0.0280844+0.000929559*min(max(x,35),100)+-1.86315e-05*min(max(x,35),100)*min(max(x,35),100)+1.12703e-07*pow(min(max(x,35),100),3))",
+                                                    "parser": "TFormula",
+                                                    "variables": [
+                                                        "pt"
+                                                    ]
+                                                }
+                                            },
+                                            {
+                                                "key": "up",
+                                                "value": {
+                                                    "nodetype": "formula",
+                                                    "expression": "(0.0280844+0.000929559*min(max(x,35),100)+-1.86315e-05*min(max(x,35),100)*min(max(x,35),100)+1.12703e-07*pow(min(max(x,35),100),3))",
+                                                    "parser": "TFormula",
+                                                    "variables": [
+                                                        "pt"
+                                                    ]
+                                                }
+                                            },
+                                            {
+                                                "key": "down",
+                                                "value": {
+                                                    "nodetype": "formula",
+                                                    "expression": "(0.0280844+0.000929559*min(max(x,35),100)+-1.86315e-05*min(max(x,35),100)*min(max(x,35),100)+1.12703e-07*pow(min(max(x,35),100),3))",
+                                                    "parser": "TFormula",
+                                                    "variables": [
+                                                        "pt"
+                                                    ]
+                                                }
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "key": 1,
+                                    "value": {
+                                        "nodetype": "category",
+                                        "input": "syst",
+                                        "content": [
+                                            {
+                                                "key": "nom",
+                                                "value": {
+                                                    "nodetype": "formula",
+                                                    "expression": "(-0.0528194+0.00305975*min(max(x,35),100)+-3.73523e-05*min(max(x,35),100)*min(max(x,35),100)+1.71763e-07*pow(min(max(x,35),100),3))",
+                                                    "parser": "TFormula",
+                                                    "variables": [
+                                                        "pt"
+                                                    ]
+                                                }
+                                            },
+                                            {
+                                                "key": "up",
+                                                "value": {
+                                                    "nodetype": "formula",
+                                                    "expression": "(-0.0528194+0.00305975*min(max(x,35),100)+-3.73523e-05*min(max(x,35),100)*min(max(x,35),100)+1.71763e-07*pow(min(max(x,35),100),3))",
+                                                    "parser": "TFormula",
+                                                    "variables": [
+                                                        "pt"
+                                                    ]
+                                                }
+                                            },
+                                            {
+                                                "key": "down",
+                                                "value": {
+                                                    "nodetype": "formula",
+                                                    "expression": "(-0.0528194+0.00305975*min(max(x,35),100)+-3.73523e-05*min(max(x,35),100)*min(max(x,35),100)+1.71763e-07*pow(min(max(x,35),100),3))",
+                                                    "parser": "TFormula",
+                                                    "variables": [
+                                                        "pt"
+                                                    ]
+                                                }
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "key": 2,
+                                    "value": {
+                                        "nodetype": "category",
+                                        "input": "syst",
+                                        "content": [
+                                            {
+                                                "key": "nom",
+                                                "value": {
+                                                    "nodetype": "formula",
+                                                    "expression": "(0.187465+-0.0052839*min(max(x,35),100)+4.80141e-05*min(max(x,35),100)*min(max(x,35),100)+-8.55255e-08*pow(min(max(x,35),100),3))",
+                                                    "parser": "TFormula",
+                                                    "variables": [
+                                                        "pt"
+                                                    ]
+                                                }
+                                            },
+                                            {
+                                                "key": "up",
+                                                "value": {
+                                                    "nodetype": "formula",
+                                                    "expression": "(0.187465+-0.0052839*min(max(x,35),100)+4.80141e-05*min(max(x,35),100)*min(max(x,35),100)+-8.55255e-08*pow(min(max(x,35),100),3))",
+                                                    "parser": "TFormula",
+                                                    "variables": [
+                                                        "pt"
+                                                    ]
+                                                }
+                                            },
+                                            {
+                                                "key": "down",
+                                                "value": {
+                                                    "nodetype": "formula",
+                                                    "expression": "(0.187465+-0.0052839*min(max(x,35),100)+4.80141e-05*min(max(x,35),100)*min(max(x,35),100)+-8.55255e-08*pow(min(max(x,35),100),3))",
+                                                    "parser": "TFormula",
+                                                    "variables": [
+                                                        "pt"
+                                                    ]
+                                                }
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "key": 2,
+                        "value": {
+                            "nodetype": "category",
+                            "input": "njets",
+                            "content": [
+                                {
+                                    "key": 0,
+                                    "value": {
+                                        "nodetype": "category",
+                                        "input": "syst",
+                                        "content": [
+                                            {
+                                                "key": "nom",
+                                                "value": {
+                                                    "nodetype": "formula",
+                                                    "expression": "(0.0778037+0.000266087*min(max(x,35),100)+-6.0701e-06*min(max(x,35),100)*min(max(x,35),100)+7.08742e-08*pow(min(max(x,35),100),3))",
+                                                    "parser": "TFormula",
+                                                    "variables": [
+                                                        "pt"
+                                                    ]
+                                                }
+                                            },
+                                            {
+                                                "key": "up",
+                                                "value": {
+                                                    "nodetype": "formula",
+                                                    "expression": "(0.0778037+0.000266087*min(max(x,35),100)+-6.0701e-06*min(max(x,35),100)*min(max(x,35),100)+7.08742e-08*pow(min(max(x,35),100),3))",
+                                                    "parser": "TFormula",
+                                                    "variables": [
+                                                        "pt"
+                                                    ]
+                                                }
+                                            },
+                                            {
+                                                "key": "down",
+                                                "value": {
+                                                    "nodetype": "formula",
+                                                    "expression": "(0.0778037+0.000266087*min(max(x,35),100)+-6.0701e-06*min(max(x,35),100)*min(max(x,35),100)+7.08742e-08*pow(min(max(x,35),100),3))",
+                                                    "parser": "TFormula",
+                                                    "variables": [
+                                                        "pt"
+                                                    ]
+                                                }
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "key": 1,
+                                    "value": {
+                                        "nodetype": "category",
+                                        "input": "syst",
+                                        "content": [
+                                            {
+                                                "key": "nom",
+                                                "value": {
+                                                    "nodetype": "formula",
+                                                    "expression": "(0.207754+-0.00601126*min(max(x,35),100)+8.03447e-05*min(max(x,35),100)*min(max(x,35),100)+-2.87173e-07*pow(min(max(x,35),100),3))",
+                                                    "parser": "TFormula",
+                                                    "variables": [
+                                                        "pt"
+                                                    ]
+                                                }
+                                            },
+                                            {
+                                                "key": "up",
+                                                "value": {
+                                                    "nodetype": "formula",
+                                                    "expression": "(0.207754+-0.00601126*min(max(x,35),100)+8.03447e-05*min(max(x,35),100)*min(max(x,35),100)+-2.87173e-07*pow(min(max(x,35),100),3))",
+                                                    "parser": "TFormula",
+                                                    "variables": [
+                                                        "pt"
+                                                    ]
+                                                }
+                                            },
+                                            {
+                                                "key": "down",
+                                                "value": {
+                                                    "nodetype": "formula",
+                                                    "expression": "(0.207754+-0.00601126*min(max(x,35),100)+8.03447e-05*min(max(x,35),100)*min(max(x,35),100)+-2.87173e-07*pow(min(max(x,35),100),3))",
+                                                    "parser": "TFormula",
+                                                    "variables": [
+                                                        "pt"
+                                                    ]
+                                                }
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "key": 2,
+                                    "value": {
+                                        "nodetype": "category",
+                                        "input": "syst",
+                                        "content": [
+                                            {
+                                                "key": "nom",
+                                                "value": {
+                                                    "nodetype": "formula",
+                                                    "expression": "(0.0423678+0.000469777*min(max(x,35),100)+-9.44095e-06*min(max(x,35),100)*min(max(x,35),100)+8.18603e-08*pow(min(max(x,35),100),3))",
+                                                    "parser": "TFormula",
+                                                    "variables": [
+                                                        "pt"
+                                                    ]
+                                                }
+                                            },
+                                            {
+                                                "key": "up",
+                                                "value": {
+                                                    "nodetype": "formula",
+                                                    "expression": "(0.0423678+0.000469777*min(max(x,35),100)+-9.44095e-06*min(max(x,35),100)*min(max(x,35),100)+8.18603e-08*pow(min(max(x,35),100),3))",
+                                                    "parser": "TFormula",
+                                                    "variables": [
+                                                        "pt"
+                                                    ]
+                                                }
+                                            },
+                                            {
+                                                "key": "down",
+                                                "value": {
+                                                    "nodetype": "formula",
+                                                    "expression": "(0.0423678+0.000469777*min(max(x,35),100)+-9.44095e-06*min(max(x,35),100)*min(max(x,35),100)+8.18603e-08*pow(min(max(x,35),100),3))",
+                                                    "parser": "TFormula",
+                                                    "variables": [
+                                                        "pt"
+                                                    ]
+                                                }
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "key": 0,
+                        "value": {
+                            "nodetype": "category",
+                            "input": "njets",
+                            "content": [
+                                {
+                                    "key": 0,
+                                    "value": {
+                                        "nodetype": "category",
+                                        "input": "syst",
+                                        "content": [
+                                            {
+                                                "key": "nom",
+                                                "value": {
+                                                    "nodetype": "formula",
+                                                    "expression": "(-1.7705+0.0894808*min(max(x,35),100)+-0.00125815*min(max(x,35),100)*min(max(x,35),100)+5.56759e-06*pow(min(max(x,35),100),3))",
+                                                    "parser": "TFormula",
+                                                    "variables": [
+                                                        "pt"
+                                                    ]
+                                                }
+                                            },
+                                            {
+                                                "key": "up",
+                                                "value": {
+                                                    "nodetype": "formula",
+                                                    "expression": "(-1.7705+0.0894808*min(max(x,35),100)+-0.00125815*min(max(x,35),100)*min(max(x,35),100)+5.56759e-06*pow(min(max(x,35),100),3))",
+                                                    "parser": "TFormula",
+                                                    "variables": [
+                                                        "pt"
+                                                    ]
+                                                }
+                                            },
+                                            {
+                                                "key": "down",
+                                                "value": {
+                                                    "nodetype": "formula",
+                                                    "expression": "(-1.7705+0.0894808*min(max(x,35),100)+-0.00125815*min(max(x,35),100)*min(max(x,35),100)+5.56759e-06*pow(min(max(x,35),100),3))",
+                                                    "parser": "TFormula",
+                                                    "variables": [
+                                                        "pt"
+                                                    ]
+                                                }
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "key": 1,
+                                    "value": {
+                                        "nodetype": "category",
+                                        "input": "syst",
+                                        "content": [
+                                            {
+                                                "key": "nom",
+                                                "value": {
+                                                    "nodetype": "formula",
+                                                    "expression": "(-0.837498+0.0483348*min(max(x,35),100)+-0.000743537*min(max(x,35),100)*min(max(x,35),100)+3.53344e-06*pow(min(max(x,35),100),3))",
+                                                    "parser": "TFormula",
+                                                    "variables": [
+                                                        "pt"
+                                                    ]
+                                                }
+                                            },
+                                            {
+                                                "key": "up",
+                                                "value": {
+                                                    "nodetype": "formula",
+                                                    "expression": "(-0.837498+0.0483348*min(max(x,35),100)+-0.000743537*min(max(x,35),100)*min(max(x,35),100)+3.53344e-06*pow(min(max(x,35),100),3))",
+                                                    "parser": "TFormula",
+                                                    "variables": [
+                                                        "pt"
+                                                    ]
+                                                }
+                                            },
+                                            {
+                                                "key": "down",
+                                                "value": {
+                                                    "nodetype": "formula",
+                                                    "expression": "(-0.837498+0.0483348*min(max(x,35),100)+-0.000743537*min(max(x,35),100)*min(max(x,35),100)+3.53344e-06*pow(min(max(x,35),100),3))",
+                                                    "parser": "TFormula",
+                                                    "variables": [
+                                                        "pt"
+                                                    ]
+                                                }
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "key": 2,
+                                    "value": {
+                                        "nodetype": "category",
+                                        "input": "syst",
+                                        "content": [
+                                            {
+                                                "key": "nom",
+                                                "value": {
+                                                    "nodetype": "formula",
+                                                    "expression": "(0.761282+-0.0240448*min(max(x,35),100)+0.000269585*min(max(x,35),100)*min(max(x,35),100)+-8.4854e-07*pow(min(max(x,35),100),3))",
+                                                    "parser": "TFormula",
+                                                    "variables": [
+                                                        "pt"
+                                                    ]
+                                                }
+                                            },
+                                            {
+                                                "key": "up",
+                                                "value": {
+                                                    "nodetype": "formula",
+                                                    "expression": "(0.761282+-0.0240448*min(max(x,35),100)+0.000269585*min(max(x,35),100)*min(max(x,35),100)+-8.4854e-07*pow(min(max(x,35),100),3))",
+                                                    "parser": "TFormula",
+                                                    "variables": [
+                                                        "pt"
+                                                    ]
+                                                }
+                                            },
+                                            {
+                                                "key": "down",
+                                                "value": {
+                                                    "nodetype": "formula",
+                                                    "expression": "(0.761282+-0.0240448*min(max(x,35),100)+0.000269585*min(max(x,35),100)*min(max(x,35),100)+-8.4854e-07*pow(min(max(x,35),100),3))",
+                                                    "parser": "TFormula",
+                                                    "variables": [
+                                                        "pt"
+                                                    ]
+                                                }
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    {
+                        "key": 1,
+                        "value": {
+                            "nodetype": "category",
+                            "input": "njets",
+                            "content": [
+                                {
+                                    "key": 0,
+                                    "value": {
+                                        "nodetype": "category",
+                                        "input": "syst",
+                                        "content": [
+                                            {
+                                                "key": "nom",
+                                                "value": {
+                                                    "nodetype": "formula",
+                                                    "expression": "(-0.176877+0.0118325*min(max(x,35),100)+-0.000139111*min(max(x,35),100)*min(max(x,35),100)+4.84313e-07*pow(min(max(x,35),100),3))",
+                                                    "parser": "TFormula",
+                                                    "variables": [
+                                                        "pt"
+                                                    ]
+                                                }
+                                            },
+                                            {
+                                                "key": "up",
+                                                "value": {
+                                                    "nodetype": "formula",
+                                                    "expression": "(-0.176877+0.0118325*min(max(x,35),100)+-0.000139111*min(max(x,35),100)*min(max(x,35),100)+4.84313e-07*pow(min(max(x,35),100),3))",
+                                                    "parser": "TFormula",
+                                                    "variables": [
+                                                        "pt"
+                                                    ]
+                                                }
+                                            },
+                                            {
+                                                "key": "down",
+                                                "value": {
+                                                    "nodetype": "formula",
+                                                    "expression": "(-0.176877+0.0118325*min(max(x,35),100)+-0.000139111*min(max(x,35),100)*min(max(x,35),100)+4.84313e-07*pow(min(max(x,35),100),3))",
+                                                    "parser": "TFormula",
+                                                    "variables": [
+                                                        "pt"
+                                                    ]
+                                                }
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "key": 1,
+                                    "value": {
+                                        "nodetype": "category",
+                                        "input": "syst",
+                                        "content": [
+                                            {
+                                                "key": "nom",
+                                                "value": {
+                                                    "nodetype": "formula",
+                                                    "expression": "(-0.211128+0.0122609*min(max(x,35),100)+-0.000145423*min(max(x,35),100)*min(max(x,35),100)+5.34444e-07*pow(min(max(x,35),100),3))",
+                                                    "parser": "TFormula",
+                                                    "variables": [
+                                                        "pt"
+                                                    ]
+                                                }
+                                            },
+                                            {
+                                                "key": "up",
+                                                "value": {
+                                                    "nodetype": "formula",
+                                                    "expression": "(-0.211128+0.0122609*min(max(x,35),100)+-0.000145423*min(max(x,35),100)*min(max(x,35),100)+5.34444e-07*pow(min(max(x,35),100),3))",
+                                                    "parser": "TFormula",
+                                                    "variables": [
+                                                        "pt"
+                                                    ]
+                                                }
+                                            },
+                                            {
+                                                "key": "down",
+                                                "value": {
+                                                    "nodetype": "formula",
+                                                    "expression": "(-0.211128+0.0122609*min(max(x,35),100)+-0.000145423*min(max(x,35),100)*min(max(x,35),100)+5.34444e-07*pow(min(max(x,35),100),3))",
+                                                    "parser": "TFormula",
+                                                    "variables": [
+                                                        "pt"
+                                                    ]
+                                                }
+                                            }
+                                        ]
+                                    }
+                                },
+                                {
+                                    "key": 2,
+                                    "value": {
+                                        "nodetype": "category",
+                                        "input": "syst",
+                                        "content": [
+                                            {
+                                                "key": "nom",
+                                                "value": {
+                                                    "nodetype": "formula",
+                                                    "expression": "(-0.114335+0.00827958*min(max(x,35),100)+-0.000102139*min(max(x,35),100)*min(max(x,35),100)+3.76593e-07*pow(min(max(x,35),100),3))",
+                                                    "parser": "TFormula",
+                                                    "variables": [
+                                                        "pt"
+                                                    ]
+                                                }
+                                            },
+                                            {
+                                                "key": "up",
+                                                "value": {
+                                                    "nodetype": "formula",
+                                                    "expression": "(-0.114335+0.00827958*min(max(x,35),100)+-0.000102139*min(max(x,35),100)*min(max(x,35),100)+3.76593e-07*pow(min(max(x,35),100),3))",
+                                                    "parser": "TFormula",
+                                                    "variables": [
+                                                        "pt"
+                                                    ]
+                                                }
+                                            },
+                                            {
+                                                "key": "down",
+                                                "value": {
+                                                    "nodetype": "formula",
+                                                    "expression": "(-0.114335+0.00827958*min(max(x,35),100)+-0.000102139*min(max(x,35),100)*min(max(x,35),100)+3.76593e-07*pow(min(max(x,35),100),3))",
+                                                    "parser": "TFormula",
+                                                    "variables": [
+                                                        "pt"
+                                                    ]
+                                                }
+                                            }
+                                        ]
+                                    }
+                                }
+                            ]
+                        }
+                    }
+                ]
+            }
+        }
+    ]
+}
