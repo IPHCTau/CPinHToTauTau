@@ -39,6 +39,7 @@ coffea = maybe_import("coffea")
     produces={
         f"Muon.{var}" for var in [
             "rawIdx", "decayMode", "IPsig", "idVsJet",
+            "decayModeHPS",
         ]
     },
     exposed=False,
@@ -58,8 +59,9 @@ def muon_selection(
     # Adding new columns to the muon collection for convenience
     events = set_ak_column(events, "Muon.rawIdx",    ak.local_index(events.Muon))
     events = set_ak_column(events, "Muon.decayMode", -2)
+    events = set_ak_column(events, "Muon.decayModeHPS", -2)
     # make sure that there is no nan sip3d
-    ipsig_dummy = -999.9
+    ipsig_dummy = 0.0 #-999.9
     events = set_ak_column(events, "Muon.IPsig", ak.nan_to_num(events.Muon.sip3d, nan=ipsig_dummy))
     events = set_ak_column(events, "Muon.idVsJet", -2.0)
     
@@ -74,7 +76,7 @@ def muon_selection(
         "muon_dxy_0p045"      : abs(muons.dxy) < 0.045,
         "muon_dz_0p2"         : abs(muons.dz) < 0.2,
         "muon_iso_0p15"       : muons.pfRelIso04_all < 0.15,
-        "muon_ipsig_safe"     : muons.IPsig > ipsig_dummy,
+        #"muon_ipsig_safe"     : muons.IPsig > ipsig_dummy,
         # not before applying correction from IPsig calibration
         #"muon_ipsig_1p0"      : np.abs(muons.IPsig) > 1.0,
     }
@@ -174,6 +176,7 @@ def muon_selection(
     produces={
         f"Electron.{var}" for var in [
             "rawIdx", "decayMode", "IPsig", "idVsJet",
+            "decayModeHPS",
         ]
     },
     exposed=False,
@@ -192,8 +195,9 @@ def electron_selection(
     # Adding new columns to the ele collection for convenience
     events = set_ak_column(events, "Electron.rawIdx",    ak.local_index(events.Electron))
     events = set_ak_column(events, "Electron.decayMode", -1)
+    events = set_ak_column(events, "Electron.decayModeHPS", -1)
     # make sure that there is no nan sip3d
-    ipsig_dummy = -999.9
+    ipsig_dummy = 0.0 #-999.9
     events = set_ak_column(events, "Electron.IPsig", ak.nan_to_num(events.Electron.sip3d, nan=ipsig_dummy))
     events = set_ak_column(events, "Electron.idVsJet", -1.0)
     
@@ -212,7 +216,7 @@ def electron_selection(
         "electron_dxy_0p045"      : abs(electrons.dxy) < 0.045,
         "electron_dz_0p2"         : abs(electrons.dz) < 0.2,
         "electron_mva_iso_wp80"   : mva_iso_wp80 == 1,
-        "electron_ipsig_safe"     : electrons.IPsig > ipsig_dummy,
+        #"electron_ipsig_safe"     : electrons.IPsig > ipsig_dummy,
         "electron_iso_0p15"       : electrons.pfRelIso03_all < 0.15,
         # not before applying correction from IPsig calibration        
         #"electron_ipsig_1p0"      : np.abs(electrons.IPsig) > 1.0,
@@ -332,7 +336,9 @@ def tau_selection(
 
     events = set_ak_column(events, "Tau.rawIdx", tau_local_indices)
     # to get rid of any nan values
-    ipsig_dummy = -999.9
+    #from IPython import embed; embed()
+    #ipsig_dummy = ak.max(events.Tau.ipLengthSig) + np.abs(ak.min(events.Tau.ipLengthSig))
+    ipsig_dummy = 0.0
     events = set_ak_column(events, "Tau.IPsig",  ak.nan_to_num(events.Tau.ipLengthSig, nan=ipsig_dummy))
     events = set_ak_column(events, "Tau.idVsJet", events.Tau.idDeepTau2018v2p5VSjet)
     
@@ -380,7 +386,9 @@ def tau_selection(
         #                       | (taus.decayMode == 2)
         #                       | (taus.decayMode == 10)
         #                       | (taus.decayMode == 11)),
-        "tau_ipsig_safe"    : taus.IPsig > ipsig_dummy,
+        #"tau_ipsig_safe"    : taus.IPsig > ipsig_dummy,
+        "tau_HPSDMveto_5or6" : ((taus.decayModeHPS != 5) & (taus.decayModeHPS != 6)),
+        "tau_no_undefinedPNetDM": (taus.decayMode != -1),
         "tau_DecayMode"  : (
             (taus.decayMode ==  0)
             | ((taus.decayMode ==  1) & (taus.decayModeHPS == 1))
@@ -486,6 +494,34 @@ def jet_selection(
     #jet_forward_mask = ak.where((abs(events.Jet.eta) >= 3.0),
     #                               events.Jet.pt > 30.0,
     #                               jet_mask)
+
+    """
+    # Redefination of JetID because of the bug in NanoAOD v12-v15
+    # https://gitlab.cern.ch/cms-jetmet/coordination/coordination/-/issues/117
+    passJetIdTight = ak.where(np.abs(events.Jet.eta) <= 2.6,
+                              ((events.Jet.neHEF < 0.99)
+                               & (events.Jet.neEmEF < 0.9)
+                               & (events.Jet.chMultiplicity + events.Jet.neMultiplicity > 1)
+                               & (events.Jet.chHEF > 0.01)
+                               & (events.Jet.chMultiplicity > 0)),  # Tight criteria for abs_eta <= 2.6
+                              ak.where((np.abs(events.Jet.eta) > 2.6) & (np.abs(events.Jet.eta) <= 2.7),
+                                       ((events.Jet.neHEF < 0.9)
+                                        & (events.Jet.neEmEF < 0.99)),  # Tight criteria for 2.6 < abs_eta <= 2.7
+                                       ak.where((np.abs(events.Jet.eta) > 2.7) & (np.abs(events.Jet.eta) <= 3.0),
+                                                events.Jet.neHEF < 0.99,  # Tight criteria for 2.7 < abs_eta <= 3.0
+                                                ((events.Jet.neMultiplicity >= 2) & (events.Jet.neEmEF < 0.4))  # Tight criteria for abs_eta > 3.0
+                                                )
+                                       )
+                              )
+    
+    # Default tight lepton veto
+    passJetIdTightLepVeto = ak.where(
+        np.abs(events.Jet.eta) <= 2.7,
+        (passJetIdTight & (events.Jet.muEF < 0.8) & (events.Jet.chEmEF < 0.8)),  # add lepton veto for abs_eta <= 2.7
+        passJetIdTight  # No lepton veto for 2.7 < abs_eta
+    )
+    """
+    
         
     # nominal selection
     good_selections = {
@@ -493,9 +529,11 @@ def jet_selection(
         "jet_eta_4p7"             : abs(events.Jet.eta) <= 4.7,  # 2.4
         "jet_special_for_PU"      : ak.where(((abs(events.Jet.eta) >= 2.5) & (abs(events.Jet.eta) < 3.0)), events.Jet.pt > 50.0, jet_mask),
         "jet_forward"             : ak.where((abs(events.Jet.eta) >= 3.0), events.Jet.pt > 30.0, jet_mask),
+        # use the newly defined TightLepVeto ID
         "jet_id"                  : events.Jet.jetId >= 2,  # Jet ID flag: bit2 is tight, bit3 is tightLepVeto            
                                                             # So, 0000010 : 2**1 = 2 : pass tight, fail lep-veto          
                                                             #     0000110 : 2**1 + 2**2 = 6 : pass both tight and lep-veto
+        #"jet_id"                  : passJetIdTightLepVeto,
     }
     
     #if is_run2: 
@@ -552,9 +590,9 @@ def jet_selection(
     )
     
     # additional jet veto map, vetoing entire events
-    if self.config_inst.campaign.x.run == 3:
-        events, veto_result = self[jet_veto_map](events, **kwargs)
-        results += veto_result
+    #if self.config_inst.campaign.x.run == 3:
+    #    events, veto_result = self[jet_veto_map](events, **kwargs)
+    #    results += veto_result
     
     return events, results #, bjet_veto, good_jet_indices
 
