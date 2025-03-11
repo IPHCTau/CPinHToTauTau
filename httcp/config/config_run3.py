@@ -131,6 +131,9 @@ def add_config (ana: od.Analysis,
         else:
             proc = cfg.add_process(procs.get(process_name))
 
+        if re.match(r"^tt(|_.+)$", process_name):
+            proc.add_tag({"ttbar", "tt"})
+
     # configuration of colors, labels, etc. can happen here
     from httcp.config.styles import stylize_processes
     stylize_processes(cfg)    
@@ -283,6 +286,11 @@ def add_config (ana: od.Analysis,
             dataset.add_tag("is_ggf_signal")
         elif re.match(r"^(.*)h_tautau(.*)Filtered$", dataset.name):
             dataset.add_tag("is_vh_signal")
+        elif dataset.name.startswith("tt_"):
+            dataset.add_tag("is_tt")
+            #dataset.add_tag({"has_top", "ttbar", "tt"})
+        #elif dataset.name.startswith("st_"):
+        #    dataset.add_tag({"has_top", "single_top", "st"})
         
         # for testing purposes, limit the number of files to 1
         for info in dataset.info.values():
@@ -789,10 +797,11 @@ def add_config (ana: od.Analysis,
                 "mutau"  : "VVLoose",
                 "tautau" : "VVLoose",
             },
+            # All DeepTauVsMu WPs are changed to TIGHT WPs (studied by IC)
             "vs_m": {
-                "etau"   : "Loose",
+                "etau"   : "Loose",  #"Tight",
                 "mutau"  : "Tight",
-                "tautau" : "VLoose",
+                "tautau" : "Tight", #"VLoose",
             },
             "vs_j": {
                 "etau"   : "Tight",
@@ -802,7 +811,27 @@ def add_config (ana: od.Analysis,
         },
     })
     
+    ################################################################################################
+    # dataset / process specific methods
+    ################################################################################################
 
+    """
+    # top pt reweighting
+    # https://twiki.cern.ch/twiki/bin/view/CMS/TopPtReweighting?rev=31
+    from columnflow.production.cms.top_pt_weight import TopPtWeightConfig
+    cfg.x.top_pt_weight = TopPtWeightConfig(
+        params={
+            "a": 0.0615,
+            "a_up": 0.0615 * 1.5,
+            "a_down": 0.0615 * 0.5,
+            "b": -0.0005,
+            "b_up": -0.0005 * 1.5,
+            "b_down": -0.0005 * 0.5,
+        },
+        pt_max=500.0,
+    )
+    """
+    
     # --------------------------------------------------------------------------------------------- #
     # met settings
     # --------------------------------------------------------------------------------------------- #
@@ -1052,7 +1081,7 @@ def add_config (ana: od.Analysis,
         "muon_xtrig_weight"                     : [], #get_shifts("mu_xtrig"),
         "tau_weight"                            : [], #get_shifts("tau"),
         "tau_trigger_weight"                    : [], #get_shifts("tau_trig"),
-        "ff_weight"                             : [],
+        #"ff_weight"                             : [],
         #"ff_ext_corr_weight"                    : [],
         #"tes_weight"                           : [], #get_shifts("tes"),
         "tauspinner_weight"                     : get_shifts("tauspinner"),
@@ -1371,14 +1400,14 @@ def add_config (ana: od.Analysis,
             "tau"                     : False,
         },
         "selection": {
-            "main"                    : False,
+            "main"                    : True,
             "trigobject_matching"     : False,
             "extra_lep_veto"          : False,
             "dilep_veto"              : False,
             "higgscand"               : False,
         },
         "production": {
-            "main"                    : False,
+            "main"                    : True,
         },
     })
 
