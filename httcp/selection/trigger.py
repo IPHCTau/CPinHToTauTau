@@ -114,12 +114,12 @@ def trigger_selection(
             if leg.min_pt is not None:
                 min_pt = leg.min_pt * ak.ones_like(events.event)
                 leg_min_pt.append(min_pt[:,None])
-                leg_mask = leg_mask & (events.TrigObj.pt >= leg.min_pt)
+                leg_mask = leg_mask & (events.TrigObj.pt >= (leg.min_pt-5.0))
             # eta cut
             if leg.max_abseta is not None:
                 max_eta = leg.max_abseta * ak.ones_like(events.event)
                 leg_max_eta.append(max_eta[:,None])
-                leg_mask = leg_mask & (np.abs(events.TrigObj.eta) <= leg.max_abseta)
+                leg_mask = leg_mask & (np.abs(events.TrigObj.eta) <= (leg.max_abseta+0.3))
             # trigger bits match
             if leg.trigger_bits is not None:
                 # OR across bits themselves, AND between all decision in the list
@@ -303,6 +303,8 @@ def trigger_selection(
         "leg1_matched_trigobjs" : leg1_matched_trigobjs_filtered,
         "leg2_matched_trigobjs" : leg2_matched_trigobjs_filtered,
     }
+
+    #from IPython import embed; embed()
     
     return events, SelectionResult(
         steps={

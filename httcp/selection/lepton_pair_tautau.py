@@ -40,6 +40,8 @@ def match_trigobjs(
 
     old_leps_pair = leps_pair
 
+    #from IPython import embed; embed()
+    # ----- WARNING : TIME CONSUMING ------ #
     leps_pair = filter_by_triggers(leps_pair, has_tau_triggers) 
 
     taus1, taus2 = ak.unzip(leps_pair)
@@ -114,6 +116,9 @@ def match_trigobjs(
     # tau1 to leg1 & tau2 to leg2 or, tau1 to leg2 & tau2 to leg1
     pass_taus_legs = (pass_tau1_leg1_triglevel & pass_tau2_leg2_triglevel) | (pass_tau1_leg2_triglevel & pass_tau2_leg1_triglevel)
 
+
+    #from IPython import embed; embed()
+
     
     mask_has_tau_triggers_and_has_tau_pairs_evt_level = ak.fill_none(ak.any(mask_has_tau_triggers_and_has_tau_pairs, axis=1), False)
     trigobj_matched_mask_dummy = ak.from_regular((trigger_ids > 0)[:,:0][:,None])
@@ -148,7 +153,7 @@ def match_trigobjs(
     #ids_dummy = ak.from_regular((trigger_ids > 0)[:,:0])
     #ids = ak.where(mask_has_tau_triggers_and_has_tau_pairs_evt_level, ids, ids_dummy)
     
-    
+    ids = ids[ak.fill_none(ak.firsts(pass_taus_legs, axis=1), False)]
     ids = ak.values_astype(ids, 'int64')
 
     new_taus1 = taus1[pass_taus]
@@ -174,8 +179,10 @@ def match_trigobjs(
     tautau_trigger_types_brdcst_dummy = ak.from_regular(tautau_trigger_types_brdcst[:,:0][:,None])
     tautau_trigger_types_brdcst = ak.where(ak.num(tautau_trigger_types_brdcst) > 0, tautau_trigger_types_brdcst, tautau_trigger_types_brdcst_dummy)
     
+    
     types = ak.Array(ak.to_list(ak.firsts(tautau_trigger_types_brdcst, axis=1))) # BAD Practice !!!
-
+    types = types[ak.fill_none(ak.firsts(pass_taus_legs, axis=1), False)]
+    
     #types = ak.fill_none(ak.firsts(tautau_trigger_types_brdcst, axis=-1), "")
 
     #from IPython import embed; embed()
@@ -289,6 +296,8 @@ def tautau_selection(
     leps_pair  = ak.combinations(taus, 2, axis=1)    
     lep1, lep2 = ak.unzip(leps_pair)
 
+    #from IPython import embed; embed()
+    
     preselection = {
         #"tautau_tau1_iso"      : (lep1.idDeepTau2018v2p5VSjet >= tau_tagger_wps.vs_j[vs_jet_wp]),
         "tautau_is_pt_35"      : (lep1.pt > 35.0) & (lep2.pt > 35.0), # just changed 40.0 to 35.0 (19.12.2024)
