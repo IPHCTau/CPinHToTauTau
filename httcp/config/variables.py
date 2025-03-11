@@ -18,7 +18,7 @@ def add_common_features(cfg: od.config) -> None:
     cfg.add_variable(
         name="event",
         expression="event",
-        binning=(1, 0.0, 1.0e9),
+        binning=(1, 0.0, 1.0e6),
         x_title="Event number",
         discrete_x=True,
     )
@@ -398,6 +398,22 @@ def add_hcand_features(cfg: od.Config) -> None:
         expression="hcand_invm",
         null_value=EMPTY_FLOAT,
         binning=(40, 0.0, 200.0),
+        unit="GeV",
+        x_title=r"$visible mass$",
+    )
+    cfg.add_variable(
+        name="hcand_invm_1bin",
+        expression="hcand_invm",
+        null_value=EMPTY_FLOAT,
+        binning=(1, 0.0, 10000.0),
+        unit="GeV",
+        x_title=r"$visible mass$",
+    )
+    cfg.add_variable(
+        name="hcand_invm_10GeV",
+        expression="hcand_invm",
+        null_value=EMPTY_FLOAT,
+        binning=(40, 0.0, 400.0),
         unit="GeV",
         x_title=r"$visible mass$",
     )

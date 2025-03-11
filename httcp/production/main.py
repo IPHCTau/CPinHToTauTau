@@ -17,6 +17,7 @@ from columnflow.production.cms.pileup import pu_weight
 from columnflow.production.cms.pdf import pdf_weights
 from columnflow.production.cms.seeds import deterministic_seeds
 from columnflow.production.cms.mc_weight import mc_weight
+#from columnflow.production.cms.top_pt_weight import top_pt_weight
 
 from columnflow.production.util import attach_coffea_behavior
 
@@ -47,7 +48,7 @@ from httcp.production.columnvalid import make_column_valid
 
 #from httcp.production.angular_features import ProduceDetCosPsi, ProduceGenCosPsi
 
-from httcp.util import IF_DATASET_HAS_LHE_WEIGHTS, IF_DATASET_IS_DY, IF_DATASET_IS_W, IF_DATASET_IS_SIGNAL
+from httcp.util import IF_DATASET_HAS_LHE_WEIGHTS, IF_DATASET_IS_DY, IF_DATASET_IS_W, IF_DATASET_IS_SIGNAL, IF_DATASET_IS_TT
 from httcp.util import IF_RUN2, IF_RUN3, IF_ALLOW_STITCHING, IF_GENMATCH_ON_FOR_SIGNAL
 
 from httcp.production.applyFastMTT import apply_fastMTT
@@ -135,7 +136,7 @@ def hcand_features(
     # ########################### #
     events, P4_dict = self[reArrangeDecayProducts](events)
     events   = self[ProduceDetPhiCP](events, P4_dict)
-    #events  = self[ProduceDetCosPsi](events, P4_dict) # for CosPsi only
+    ###events  = self[ProduceDetCosPsi](events, P4_dict) # for CosPsi only
     
     if self.config_inst.x.extra_tags.genmatch:
         if "is_signal" in list(self.dataset_inst.aux.keys()):
@@ -173,12 +174,13 @@ def hcand_features(
         IF_DATASET_IS_SIGNAL(tauspinner_weights),
         IF_DATASET_IS_DY(zpt_reweight),
         #IF_DATASET_IS_DY(zpt_reweight_v2),
+        #IF_DATASET_IS_TT(top_pt_weight),
         hcand_features,
         hcand_mass,
         category_ids,
         build_abcd_masks,
         "channel_id",
-        ff_weight,
+        #ff_weight,
         "process_id",
     },
     produces={
@@ -203,6 +205,7 @@ def hcand_features(
         tau_all_weights,
         IF_DATASET_IS_SIGNAL(tauspinner_weights),
         IF_DATASET_IS_DY(zpt_reweight),
+        #IF_DATASET_IS_TT(top_pt_weight),
         #IF_DATASET_IS_DY(zpt_reweight_v2),
         hcand_features,
         hcand_mass,
@@ -210,7 +213,7 @@ def hcand_features(
         #"trigger_ids",
         category_ids,
         build_abcd_masks,
-        ff_weight,
+        #ff_weight,
         "process_id",
     },
 )
@@ -301,7 +304,11 @@ def main(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
         #    logger.warning("splitting Drell-Yan dataset <{self.dataset_inst.name()}>")
         #    events = self[split_dy](events,**kwargs)
 
-    events = self[ff_weight](events, **kwargs)        
+        # top pt weight
+        #if self.has_dep(top_pt_weight):
+        #    events = self[top_pt_weight](events, **kwargs)
+
+    #events = self[ff_weight](events, **kwargs)        
 
     # features
     events = self[hcand_mass](events, **kwargs)

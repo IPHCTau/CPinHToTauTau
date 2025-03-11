@@ -20,6 +20,7 @@ from columnflow.production.processes import process_ids
 from columnflow.production.cms.mc_weight import mc_weight
 from columnflow.production.util import attach_coffea_behavior
 #from columnflow.production.categories import category_ids
+#from columnflow.production.cms.top_pt_weight import gen_parton_top
 
 from columnflow.util import maybe_import
 from columnflow.columnar_util import optional_column as optional
@@ -46,6 +47,7 @@ from httcp.production.dilepton_features import hcand_mass, mT, rel_charge #TODO:
 from httcp.util import filter_by_triggers, get_objs_p4, trigger_object_matching_deep, IF_DATASET_IS_DY, IF_DATASET_IS_W, IF_DATASET_IS_SIGNAL
 
 from httcp.selection.debug import debug_main
+from columnflow.selection.cms.jets import jet_veto_map  
 
 logger = law.logger.get_logger(__name__)
 
@@ -135,7 +137,7 @@ def get_2n_pairs(etau_indices_pair,
         tautau_selection, 
         get_categories,
         extra_lepton_veto, 
-        double_lepton_veto, 
+        #double_lepton_veto, 
         match_trigobj,
         increment_stats, 
         custom_increment_stats,
@@ -145,6 +147,9 @@ def get_2n_pairs(etau_indices_pair,
         rel_charge,
         #category_ids,
         #build_abcd_masks,
+        jet_veto_map,
+        "PuppiMET.pt", "Jet.pt", "Jet.eta", "Jet.phi", "Jet.neEmEF", "Jet.chEmEF",
+        "Flag.ecalBadCalibFilter",
     },
     produces={
         # selectors / producers whose newly created columns should be kept
@@ -161,7 +166,7 @@ def get_2n_pairs(etau_indices_pair,
         get_categories, 
         process_ids,
         extra_lepton_veto, 
-        double_lepton_veto, 
+        #double_lepton_veto, 
         match_trigobj,
         higgscandprod,
         gentau_selection,
@@ -210,10 +215,42 @@ def main(
     else:
         results += SelectionResult(steps={"json": np.ones(len(events), dtype=bool)})
 
-    # met filter selection
-    events, met_filter_results = self[met_filters](events, **kwargs)
-    results += met_filter_results
 
+    #if self.config_inst.campaign.x.run == 3:
+    events, veto_result = self[jet_veto_map](events, **kwargs)
+    results += veto_result
+
+    # ############################ #
+    #     met filter selection     #
+    # ############################ #
+    events, met_filter_results = self[met_filters](events, **kwargs)
+    #from IPython import embed; embed()
+    if self.dataset_inst.is_data:
+        # BadCalibrationFilter is meant to reject events with noise which are related to bad crystals in Ecal.
+        # The issue was present in some run ranges in data (end of 2022 & early 2023) only. The fraction of bad
+        # data in terms of lumi is small. So, one can ignore the recipe in MC.
+        # Also, DO NOT USE THIS FLAG AT ALL.
+        #BadCalibrationFilter = ak.values_astype(events.Flag.ecalBadCalibFilter, bool)
+        BadCalibrationFilter = events.event > 0 # all True
+        met = ak.with_name(events.PuppiMET, "PtEtaPhiMLorentzVector")
+        jet = ak.with_name(events.Jet, "PtEtaPhiMLorentzVector")
+        BadCalibrationFilter_perjet_mask = (
+            (events.PuppiMET.pt > 100)
+            & (events.Jet.pt > 50)
+            & (events.Jet.eta > -0.5) & (events.Jet.eta < -0.1)
+            & (events.Jet.phi > -2.1) & (events.Jet.phi < -1.8)
+            & ((events.Jet.neEmEF > 0.9) | (events.Jet.chEmEF > 0.9))
+            & ak.all(met.metric_table(jet, metric=lambda a,b: a.delta_phi(b)) > 2.9, axis=1)
+        )
+        BadCalibrationFilter_mask = ak.values_astype(ak.any(BadCalibrationFilter_perjet_mask, axis=1), bool)
+        # Keep the default BadCalibrationFilter if outside the run-range, else use the calibrationFilter_mask
+        BadCalibrationFilter = ak.where((events.run >= 362433) & (events.run <= 367144), ~BadCalibrationFilter_mask, BadCalibrationFilter)
+        
+        BadCalibrationFilter_results = SelectionResult(steps={"met_filter:BadCalibration" : BadCalibrationFilter}) # negate the entire mask
+        met_filter_results += BadCalibrationFilter_results
+        
+    results += met_filter_results    
+    
     # trigger selection
     events, trigger_results = self[trigger_selection](events, **kwargs)
     results += trigger_results
@@ -247,20 +284,26 @@ def main(
     good_tau_indices_tautau= None
 
     if self.dataset_inst.is_mc:
-        events, tau_results, good_tau_indices_mutau = self[tau_selection](events, "mutau",  call_force=True, **kwargs)
-        results += tau_results
-        _, _, good_tau_indices_etau           = self[tau_selection](events, "etau",   call_force=True, **kwargs)
-        _, _, good_tau_indices_tautau         = self[tau_selection](events, "tautau", call_force=True, **kwargs)
+        logger.info("MC tau_selection for mutau channel")
+        events_mutau, tau_results_mu, good_tau_indices_mutau = self[tau_selection](events, "mutau",  call_force=True, **kwargs)
+        #results += tau_results
+        logger.info("MC tau_selection for etau channel")
+        events_etau, tau_results_ele, good_tau_indices_etau       = self[tau_selection](events, "etau",   call_force=True, **kwargs)
+        logger.info("MC tau_selection for tautau channel")
+        events_tautau, tau_results_tau, good_tau_indices_tautau     = self[tau_selection](events, "tautau", call_force=True, **kwargs)
+        results += tau_results_tau
     else:
+        logger.info("DATA tau_selection for tautau channel")
         events, tau_results, good_tau_indices = self[tau_selection](events, call_force=True, **kwargs)
         results += tau_results
     
     # double lepton veto
+    """
     events, extra_double_lepton_veto_results = self[double_lepton_veto](events,
                                                                         dlveto_ele_indices,
                                                                         dlveto_muon_indices)
     results += extra_double_lepton_veto_results
-
+    """
         
     # e-tau pair i.e. hcand selection
     etau_results, etau_pair, etau_trig_ids, etau_trig_types = self[etau_selection](events,
@@ -361,6 +404,7 @@ def main(
 
     trigger_ids = ak.concatenate([etau_trig_ids, mutau_trig_ids, tautau_trig_ids], axis=1)
 
+    
     # save the trigger_ids column
     #events = set_ak_column(events, "trigger_ids", trigger_ids)
 
@@ -498,6 +542,8 @@ def main(
         debug_main(events,
                    results,
                    self.config_inst.x.triggers)
+
+        from IPython import embed; embed()
         
     return events, results
 
@@ -548,3 +594,7 @@ def main_init(self: Selector) -> None:
 
                     # stop after the first match
                     break
+
+    #if self.dataset_inst.has_tag("ttbar"):
+    #    self.uses.add(gen_parton_top)
+    #    self.produces.add(gen_parton_top)

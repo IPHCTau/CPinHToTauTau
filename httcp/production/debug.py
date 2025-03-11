@@ -52,56 +52,58 @@ def tautau_category_flow(tag, events):
     flowdict["leading tau is real"] = events.is_real_1
     flowdict["leading tau is fake"] = events.is_fake_1
     
-    flowdict["A  : is_ss + is_iso_1    + is_iso_2    + is_b_veto"] = ~events.is_os & events.is_iso_1 & events.is_iso_2 & events.is_b_veto
-    flowdict["B  : is_ss + is_noniso_1 + is_iso_2    + is_b_veto"] = ~events.is_os & ~events.is_iso_1 & events.is_iso_2 & events.is_b_veto
-    flowdict["A0 : is_ss + is_noniso_1 + is_noniso_2 + is_b_veto"] = ~events.is_os & events.is_iso_1 & ~events.is_iso_2 & events.is_b_veto	
-    flowdict["B0 : is_ss + is_noniso_1 + is_noniso_2 + is_b_veto"] = ~events.is_os & ~events.is_iso_1 & ~events.is_iso_2 & events.is_b_veto
-    flowdict["D0 : is_os + is_iso_1    + is_noniso_2 + is_b_veto"] = events.is_os & events.is_iso_1 & ~events.is_iso_2 & events.is_b_veto
-    flowdict["C0 : is_os + is_noniso_1 + is_noniso_2 + is_b_veto"] = events.is_os & ~events.is_iso_1 & ~events.is_iso_2 & events.is_b_veto
-    flowdict["D  : is_os + is_iso_1    + is_iso_2    + is_b_veto"] = events.is_os & events.is_iso_1 & events.is_iso_2 & events.is_b_veto
-    flowdict["C  : is_os + is_noniso_1 + is_iso_2    + is_b_veto"] = events.is_os & ~events.is_iso_1 & events.is_iso_2 & events.is_b_veto
+    flowdict["A  : is_ss + is_iso_1    + is_iso_2    "] = ~events.is_os & events.is_iso_1 & events.is_iso_2
+    flowdict["B  : is_ss + is_noniso_1 + is_iso_2    "] = ~events.is_os & ~events.is_iso_1 & events.is_iso_2
+    flowdict["A0 : is_ss + is_noniso_1 + is_noniso_2 "] = ~events.is_os & events.is_iso_1 & ~events.is_iso_2
+    flowdict["B0 : is_ss + is_noniso_1 + is_noniso_2 "] = ~events.is_os & ~events.is_iso_1 & ~events.is_iso_2
+    flowdict["D0 : is_os + is_iso_1    + is_noniso_2 "] = events.is_os & events.is_iso_1 & ~events.is_iso_2
+    flowdict["C0 : is_os + is_noniso_1 + is_noniso_2 "] = events.is_os & ~events.is_iso_1 & ~events.is_iso_2
+    flowdict["D  : is_os + is_iso_1    + is_iso_2    "] = events.is_os & events.is_iso_1 & events.is_iso_2
+    flowdict["C  : is_os + is_noniso_1 + is_iso_2    "] = events.is_os & ~events.is_iso_1 & events.is_iso_2
     
     flowdict["DM1 = 0"]     = events.is_pi_1
     flowdict["DM1 = 1"]     = events.is_rho_1
     flowdict["DM1 = 2"]     = events.is_a1_1pr_2pi0_1
     flowdict["DM1 = 10"]    = events.is_a1_3pr_0pi0_1
     flowdict["DM1 = 11"]    = events.is_a1_3pr_1pi0_1
-    flowdict["DMs = 0-0"]   = events.is_pi_1 & events.is_pi_2
-    flowdict["DMs = 0-1"]   = ((events.is_pi_1 & events.is_rho_2) | (events.is_pi_2 & events.is_rho_1))
-    flowdict["DMs = 0-2"]   = ((events.is_pi_1 & events.is_a1_1pr_2pi0_2) | (events.is_pi_2 & events.is_a1_1pr_2pi0_1))
-    flowdict["DMs = 0-10"]  = ((events.is_pi_1 & events.is_a1_3pr_0pi0_2) | (events.is_pi_2 & events.is_a1_3pr_0pi0_1))
-    flowdict["DMs = 0-11"]  = ((events.is_pi_1 & events.is_a1_3pr_1pi0_2) | (events.is_pi_2 & events.is_a1_3pr_1pi0_1))
-    flowdict["DMs = 1-1"]   = events.is_rho_1 & events.is_rho_2
-    flowdict["DMs = 1-2"]   = ((events.is_rho_1 & events.is_a1_1pr_2pi0_2) | (events.is_rho_2 & events.is_a1_1pr_2pi0_1))
-    flowdict["DMs = 1-10"]  = ((events.is_rho_1 & events.is_a1_3pr_0pi0_2) | (events.is_rho_2 & events.is_a1_3pr_0pi0_1))
-    flowdict["DMs = 1-11"]  = ((events.is_rho_1 & events.is_a1_3pr_1pi0_2) | (events.is_rho_2 & events.is_a1_3pr_1pi0_1))
-    flowdict["DMs = 2-2"]   = events.is_a1_1pr_2pi0_1 & events.is_a1_1pr_2pi0_2
-    flowdict["DMs = 2-10"]  = ((events.is_a1_1pr_2pi0_1 & events.is_a1_3pr_0pi0_2) | (events.is_a1_1pr_2pi0_2 & events.is_a1_3pr_0pi0_1))
-    flowdict["DMs = 2-11"]  = ((events.is_a1_1pr_2pi0_1 & events.is_a1_3pr_1pi0_2) | (events.is_a1_1pr_2pi0_2 & events.is_a1_3pr_1pi0_1))
-    flowdict["DMs = 10-10"] = events.is_a1_3pr_0pi0_1 & events.is_a1_3pr_0pi0_2
-    flowdict["DMs = 10-11"] = ((events.is_a1_3pr_0pi0_1 & events.is_a1_3pr_1pi0_2) | (events.is_a1_3pr_0pi0_2 & events.is_a1_3pr_1pi0_1))
-    flowdict["DMs = 11-11"] = events.is_a1_3pr_1pi0_1 & events.is_a1_3pr_1pi0_2
+    #flowdict["DMs = 0-0"]   = events.is_pi_1 & events.is_pi_2
+    #flowdict["DMs = 0-1"]   = ((events.is_pi_1 & events.is_rho_2) | (events.is_pi_2 & events.is_rho_1))
+    #flowdict["DMs = 0-2"]   = ((events.is_pi_1 & events.is_a1_1pr_2pi0_2) | (events.is_pi_2 & events.is_a1_1pr_2pi0_1))
+    #flowdict["DMs = 0-10"]  = ((events.is_pi_1 & events.is_a1_3pr_0pi0_2) | (events.is_pi_2 & events.is_a1_3pr_0pi0_1))
+    #flowdict["DMs = 0-11"]  = ((events.is_pi_1 & events.is_a1_3pr_1pi0_2) | (events.is_pi_2 & events.is_a1_3pr_1pi0_1))
+    #flowdict["DMs = 1-1"]   = events.is_rho_1 & events.is_rho_2
+    #flowdict["DMs = 1-2"]   = ((events.is_rho_1 & events.is_a1_1pr_2pi0_2) | (events.is_rho_2 & events.is_a1_1pr_2pi0_1))
+    #flowdict["DMs = 1-10"]  = ((events.is_rho_1 & events.is_a1_3pr_0pi0_2) | (events.is_rho_2 & events.is_a1_3pr_0pi0_1))
+    #flowdict["DMs = 1-11"]  = ((events.is_rho_1 & events.is_a1_3pr_1pi0_2) | (events.is_rho_2 & events.is_a1_3pr_1pi0_1))
+    #flowdict["DMs = 2-2"]   = events.is_a1_1pr_2pi0_1 & events.is_a1_1pr_2pi0_2
+    #flowdict["DMs = 2-10"]  = ((events.is_a1_1pr_2pi0_1 & events.is_a1_3pr_0pi0_2) | (events.is_a1_1pr_2pi0_2 & events.is_a1_3pr_0pi0_1))
+    #flowdict["DMs = 2-11"]  = ((events.is_a1_1pr_2pi0_1 & events.is_a1_3pr_1pi0_2) | (events.is_a1_1pr_2pi0_2 & events.is_a1_3pr_1pi0_1))
+    #flowdict["DMs = 10-10"] = events.is_a1_3pr_0pi0_1 & events.is_a1_3pr_0pi0_2
+    #flowdict["DMs = 10-11"] = ((events.is_a1_3pr_0pi0_1 & events.is_a1_3pr_1pi0_2) | (events.is_a1_3pr_0pi0_2 & events.is_a1_3pr_1pi0_1))
+    #flowdict["DMs = 11-11"] = events.is_a1_3pr_1pi0_1 & events.is_a1_3pr_1pi0_2
     
     root = Tree(f"[yellow]{tag} : {ak.count(events.event)}")
     
     for a in ["leading tau is real", "leading tau is fake"]:
         _temp = root.add(f"[cyan]{a} : {ak.sum(flowdict[a])}")
-        for b in ["A  : is_ss + is_iso_1    + is_iso_2    + is_b_veto",
-                  "B  : is_ss + is_noniso_1 + is_iso_2    + is_b_veto",
-                  "A0 : is_ss + is_noniso_1 + is_noniso_2 + is_b_veto",
-                  "B0 : is_ss + is_noniso_1 + is_noniso_2 + is_b_veto",
-                  "C0 : is_os + is_noniso_1 + is_noniso_2 + is_b_veto",
-                  "D0 : is_os + is_iso_1    + is_noniso_2 + is_b_veto",
-                  "C  : is_os + is_noniso_1 + is_iso_2    + is_b_veto",
-                  "D  : is_os + is_iso_1    + is_iso_2    + is_b_veto",
+        for b in ["A  : is_ss + is_iso_1    + is_iso_2    ",
+                  "B  : is_ss + is_noniso_1 + is_iso_2    ",
+                  "A0 : is_ss + is_noniso_1 + is_noniso_2 ",
+                  "B0 : is_ss + is_noniso_1 + is_noniso_2 ",
+                  "C0 : is_os + is_noniso_1 + is_noniso_2 ",
+                  "D0 : is_os + is_iso_1    + is_noniso_2 ",
+                  "C  : is_os + is_noniso_1 + is_iso_2    ",
+                  "D  : is_os + is_iso_1    + is_iso_2    ",
                   ]:
             _temp2 = _temp.add(f"[green]{b} : {ak.sum(flowdict[a] & flowdict[b])}")
-            for c in ["DM1 = 0", "DM1 = 1", "DM1 = 2", "DM1 = 10", "DM1 = 11",
-                      "DMs = 0-0", "DMs = 0-1", "DMs = 0-2", "DMs = 0-10", "DMs = 0-11",
-                      "DMs = 1-1", "DMs = 1-2", "DMs = 1-10", "DMs = 1-11",
-                      "DMs = 2-2", "DMs = 2-10", "DMs = 2-11",
-                      "DMs = 10-10", "DMs = 10-11",
-                      "DMs = 11-11"]:
+            for c in [
+                    "DM1 = 0", "DM1 = 1", "DM1 = 2", "DM1 = 10", "DM1 = 11",
+                    #"DMs = 0-0", "DMs = 0-1", "DMs = 0-2", "DMs = 0-10", "DMs = 0-11",
+                    #"DMs = 1-1", "DMs = 1-2", "DMs = 1-10", "DMs = 1-11",
+                    #"DMs = 2-2", "DMs = 2-10", "DMs = 2-11",
+                    #"DMs = 10-10", "DMs = 10-11",
+                    #"DMs = 11-11"
+            ]:
                 _temp2.add(f"[bright_white]{c} : {ak.sum(flowdict[a] & flowdict[b] & flowdict[c])}")
     return root
 
