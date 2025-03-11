@@ -16,39 +16,59 @@ def add_met_filters(config: od.Config) -> None:
     Resources:
     https://twiki.cern.ch/twiki/bin/view/CMS/MissingETOptionalFiltersRun2?rev=157#UL_data
     """
-    if config.campaign.x.year == 2016:
-        filters = [
-            "Flag.goodVertices",
-            "Flag.globalSuperTightHalo2016Filter",
-            "Flag.HBHENoiseFilter",
-            "Flag.HBHENoiseIsoFilter",
-            "Flag.EcalDeadCellTriggerPrimitiveFilter",
-            "Flag.BadPFMuonFilter",
-            "Flag.BadPFMuonDzFilter",
-            "Flag.eeBadScFilter",
-        ]
-        # same filter for mc and data, but still separate
-        filters = {
-            "mc": filters,
-            "data": filters,
-        }
+    if config.campaign.x.run == 2:
+        if config.campaign.x.year == 2016:
+            filters = [
+                "Flag.goodVertices",
+                "Flag.globalSuperTightHalo2016Filter",
+                "Flag.HBHENoiseFilter",
+                "Flag.HBHENoiseIsoFilter",
+                "Flag.EcalDeadCellTriggerPrimitiveFilter",
+                "Flag.BadPFMuonFilter",
+                "Flag.BadPFMuonDzFilter",
+                "Flag.eeBadScFilter",
+            ]
+            # same filter for mc and data, but still separate
+            filters = {
+                "mc": filters,
+                "data": filters,
+            }
+        else:
+            filters = [
+                "Flag.goodVertices",
+                "Flag.globalSuperTightHalo2016Filter",
+                "Flag.HBHENoiseFilter",
+                "Flag.HBHENoiseIsoFilter",
+                "Flag.EcalDeadCellTriggerPrimitiveFilter",
+                "Flag.BadPFMuonFilter",
+                "Flag.BadPFMuonDzFilter",
+                "Flag.hfNoisyHitsFilter",
+                "Flag.eeBadScFilter",
+                "Flag.ecalBadCalibFilter",
+            ]
+            # same filter for mc and data, but still separate
+            filters = {
+                "mc": filters,
+                "data": filters,
+            }
     else:
+        # Run3
         filters = [
             "Flag.goodVertices",
             "Flag.globalSuperTightHalo2016Filter",
-            "Flag.HBHENoiseFilter",
-            "Flag.HBHENoiseIsoFilter",
             "Flag.EcalDeadCellTriggerPrimitiveFilter",
             "Flag.BadPFMuonFilter",
             "Flag.BadPFMuonDzFilter",
             "Flag.hfNoisyHitsFilter",
             "Flag.eeBadScFilter",
-            "Flag.ecalBadCalibFilter",
         ]
         # same filter for mc and data, but still separate
+        # BUT, IMPORTANT :
+        # https://twiki.cern.ch/twiki/bin/view/CMS/MissingETOptionalFiltersRun2#ECal_BadCalibration_Filter_Flag
         filters = {
             "mc": filters,
             "data": filters,
         }
 
     config.x.met_filters = DotDict.wrap(filters)
+    config.x.BadCalibration_Filter = DotDict.wrap({"mc": ["Flag.ecalBadCalibFilter"], "data": ["Flag.ecalBadCalibFilter"]})
