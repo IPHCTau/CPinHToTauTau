@@ -114,12 +114,14 @@ def trigger_selection(
             if leg.min_pt is not None:
                 min_pt = leg.min_pt * ak.ones_like(events.event)
                 leg_min_pt.append(min_pt[:,None])
-                leg_mask = leg_mask & (events.TrigObj.pt >= (leg.min_pt-5.0))
+            if leg.min_pt_online is not None:
+                leg_mask = leg_mask & (events.TrigObj.pt >= leg.min_pt_online)
             # eta cut
             if leg.max_abseta is not None:
                 max_eta = leg.max_abseta * ak.ones_like(events.event)
                 leg_max_eta.append(max_eta[:,None])
-                leg_mask = leg_mask & (np.abs(events.TrigObj.eta) <= (leg.max_abseta+0.3))
+            if leg.max_abseta_online is not None:
+                leg_mask = leg_mask & (np.abs(events.TrigObj.eta) <= leg.max_abseta_online)
             # trigger bits match
             if leg.trigger_bits is not None:
                 # OR across bits themselves, AND between all decision in the list
@@ -202,28 +204,17 @@ def trigger_selection(
     #  [ [25.0], [25.0] ]
     # ]
     leg_minpt_filtered     = ak.drop_none(ak.mask(leg_min_pt_concat,  fired_and_all_legs_match_concat))
+
     # for simplicity, save the minpt separated for two legs
-    # leg1_minpt:
-    # [
-    #  [ 28.0 ],
-    #  [ 28.0, 33.0, 25.0, 40.0 ],
-    #  [ 25.0, 25.0 ]
-    # ]
     leg1_minpt_filtered    = ak.firsts(leg_minpt_filtered[:,:,0:1], axis=-1) # 
-    # leg2_minpt:
-    # will contain None because, single triggers do not have 2nd leg
-    # so fill all the None with -1.0
-    # [
-    #  [ -1.0 ],
-    #  [ -1.0, -1.0, 35.0, 40.0 ],
-    #  [ -1.0, -1.0 ]
-    # ]
     leg2_minpt_filtered    = ak.fill_none(ak.firsts(leg_minpt_filtered[:,:,1:2], axis=-1), -1.0)
+    leg3_minpt_filtered    = ak.fill_none(ak.firsts(leg_minpt_filtered[:,:,2:3], axis=-1), -1.0) # NEW
 
 
     leg_maxeta_filtered     = ak.drop_none(ak.mask(leg_max_eta_concat,  fired_and_all_legs_match_concat))
     leg1_maxeta_filtered    = ak.firsts(leg_maxeta_filtered[:,:,0:1], axis=-1) # 
     leg2_maxeta_filtered    = ak.fill_none(ak.firsts(leg_maxeta_filtered[:,:,1:2], axis=-1), -1.0)
+    leg3_maxeta_filtered    = ak.fill_none(ak.firsts(leg_maxeta_filtered[:,:,2:3], axis=-1), -1.0) # NEW
 
         
     # leg mathced trig obj indices:
@@ -234,20 +225,9 @@ def trigger_selection(
     # ]
     leg_matched_trigobj_idxs_filtered = ak.drop_none(ak.mask(leg_matched_trigobj_idxs, fired_and_all_legs_match_concat))
     # for simplicity, save the matched indices per leg
-    # leg 1 mathced trig obj indices:
-    # [
-    #  [ [0] ],
-    #  [ [0],   [0],   [0],   [2, 37, 38] ],
-    #  [ [0],   [0] ]
-    # ]
     leg1_matched_trigobj_idxs_filtered = ak.firsts(leg_matched_trigobj_idxs_filtered[:,:,0:1], axis=2)
-    # leg 2 mathced trig obj indices:
-    # [
-    #  [ None ],
-    #  [ None,   None,   [2, 37, 38],   [2, 37, 38] ],
-    #  [ None,   None ]
-    # ]
     leg2_matched_trigobj_idxs_filtered = ak.firsts(leg_matched_trigobj_idxs_filtered[:,:,1:2], axis=2)
+    leg3_matched_trigobj_idxs_filtered = ak.firsts(leg_matched_trigobj_idxs_filtered[:,:,2:3], axis=2) # NEW
 
     
     # leg mathced trig objects p4:
@@ -258,20 +238,9 @@ def trigger_selection(
     # ]
     leg_matched_trigobjs_filtered     = ak.drop_none(ak.mask(leg_matched_trigobjs, fired_and_all_legs_match_concat))
     # for simplicity, save the matched objects per leg
-    # leg 1 mathced trig objects:
-    # [
-    #  [ [p4] ],
-    #  [ [p4],   [p4],   [p4],   [p4, p4, p4] ],
-    #  [ [p4],   [p4] ]
-    # ]
     leg1_matched_trigobjs_filtered = ak.firsts(leg_matched_trigobjs_filtered[:,:,0:1], axis=2)
-    # leg 2 mathced trig objects:
-    # [
-    #  [ None ],
-    #  [ None,   None,   [p4, p4, p4],   [p4, p4, p4] ],
-    #  [ None,   None ]
-    # ]
     leg2_matched_trigobjs_filtered = ak.firsts(leg_matched_trigobjs_filtered[:,:,1:2], axis=2)
+    leg3_matched_trigobjs_filtered = ak.firsts(leg_matched_trigobjs_filtered[:,:,2:3], axis=2) # NEW
 
 
     
@@ -296,12 +265,16 @@ def trigger_selection(
         "trigger_ids"    : trigger_ids_filtered,
         "leg1_minpt"     : leg1_minpt_filtered,
         "leg2_minpt"     : leg2_minpt_filtered,
-        "leg1_maxeta"     : leg1_maxeta_filtered,
-        "leg2_maxeta"     : leg2_maxeta_filtered,
+        "leg3_minpt"     : leg3_minpt_filtered, # NEW
+        "leg1_maxeta"    : leg1_maxeta_filtered,
+        "leg2_maxeta"    : leg2_maxeta_filtered,
+        "leg3_maxeta"    : leg3_maxeta_filtered, # NEW
         "leg1_matched_trigobj_idxs" : leg1_matched_trigobj_idxs_filtered,
         "leg2_matched_trigobj_idxs" : leg2_matched_trigobj_idxs_filtered,
+        "leg3_matched_trigobj_idxs" : leg3_matched_trigobj_idxs_filtered, # NEW
         "leg1_matched_trigobjs" : leg1_matched_trigobjs_filtered,
         "leg2_matched_trigobjs" : leg2_matched_trigobjs_filtered,
+        "leg3_matched_trigobjs" : leg3_matched_trigobjs_filtered, # NEW
     }
 
     #from IPython import embed; embed()
