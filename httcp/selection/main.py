@@ -392,6 +392,9 @@ def main(
     cross_tau_triggered = ak.any(trigger_types == 'cross_tau_tau', axis=1)
     cross_tau_jet_triggered = ak.any(trigger_types == 'cross_tau_tau_jet', axis=1)
 
+    #from IPython import embed; embed()
+
+    
     events = set_ak_column(events, "single_e_triggered", single_e_triggered)
     events = set_ak_column(events, "single_mu_triggered", single_mu_triggered)
     events = set_ak_column(events, "cross_e_triggered", cross_e_triggered)
@@ -402,6 +405,7 @@ def main(
     events = set_ak_column(events, "single_triggered", (single_e_triggered | single_mu_triggered))
     events = set_ak_column(events, "cross_triggered", (cross_e_triggered | cross_mu_triggered | cross_tau_triggered | cross_tau_jet_triggered))
 
+    
     trigger_ids = ak.concatenate([etau_trig_ids, mutau_trig_ids, tautau_trig_ids], axis=1)
 
     
@@ -543,7 +547,7 @@ def main(
                    results,
                    self.config_inst.x.triggers)
 
-        from IPython import embed; embed()
+        #from IPython import embed; embed()
         
     return events, results
 

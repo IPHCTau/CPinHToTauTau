@@ -23,6 +23,7 @@ from httcp.util import filter_by_triggers, get_objs_p4, trigger_matching_extra, 
 def match_trigobjs(
         leps_pair: ak.Array,
         trigger_results: SelectionResult,
+        jets: ak.Array,
         **kwargs,
 ) -> tuple[ak.Array, ak.Array]:
 
@@ -31,10 +32,13 @@ def match_trigobjs(
     trigger_types         = trigger_results.x.trigger_types
     leg1_minpt            = trigger_results.x.leg1_minpt
     leg2_minpt            = trigger_results.x.leg2_minpt
+    leg3_minpt            = trigger_results.x.leg3_minpt # NEW
     leg1_maxeta           = trigger_results.x.leg1_maxeta
     leg2_maxeta           = trigger_results.x.leg2_maxeta
+    leg3_maxeta           = trigger_results.x.leg3_maxeta # NEW
     leg1_matched_trigobjs = trigger_results.x.leg1_matched_trigobjs
     leg2_matched_trigobjs = trigger_results.x.leg2_matched_trigobjs
+    leg3_matched_trigobjs = trigger_results.x.leg3_matched_trigobjs # NEW
 
     has_tau_triggers     = ((trigger_types == "cross_tau_tau") | (trigger_types == "cross_tau_tau_jet"))
 
@@ -45,6 +49,11 @@ def match_trigobjs(
     leps_pair = filter_by_triggers(leps_pair, has_tau_triggers) 
 
     taus1, taus2 = ak.unzip(leps_pair)
+
+    #from IPython import embed; embed()
+
+    #jets = filter_by_triggers(jets, trigger_types == "cross_tau_tau_jet") # NEW
+    jets = filter_by_triggers(jets, has_tau_triggers) # NEW
     
     # Event level masks
     # if events have tau
@@ -56,12 +65,18 @@ def match_trigobjs(
     tautau_trigger_ids            = trigger_ids[mask_has_tau_triggers_and_has_tau_pairs]    
     tautau_trigger_types          = trigger_types[mask_has_tau_triggers_and_has_tau_pairs]
     tautau_leg_1_minpt            = leg1_minpt[mask_has_tau_triggers_and_has_tau_pairs]
-    tautau_leg_2_minpt            = leg2_minpt[mask_has_tau_triggers_and_has_tau_pairs] 
+    tautau_leg_2_minpt            = leg2_minpt[mask_has_tau_triggers_and_has_tau_pairs]
+    tautau_leg_3_minpt            = leg3_minpt[mask_has_tau_triggers_and_has_tau_pairs] # NEW
     tautau_leg_1_maxeta           = leg1_maxeta[mask_has_tau_triggers_and_has_tau_pairs]
-    tautau_leg_2_maxeta           = leg2_maxeta[mask_has_tau_triggers_and_has_tau_pairs] 
+    tautau_leg_2_maxeta           = leg2_maxeta[mask_has_tau_triggers_and_has_tau_pairs]
+    tautau_leg_3_maxeta           = leg3_maxeta[mask_has_tau_triggers_and_has_tau_pairs] # NEW
     tautau_leg_1_matched_trigobjs = leg1_matched_trigobjs[mask_has_tau_triggers_and_has_tau_pairs]
     tautau_leg_2_matched_trigobjs = leg2_matched_trigobjs[mask_has_tau_triggers_and_has_tau_pairs]
+    tautau_leg_3_matched_trigobjs = leg3_matched_trigobjs[mask_has_tau_triggers_and_has_tau_pairs] # NEW
 
+    jets = jets[mask_has_tau_triggers_and_has_tau_pairs]
+    
+    
 
     # tau1            : [ [    t11,        t12      ], [  t11  ] ]
     # tau2            : [ [    t21,        t22      ], [  t21  ] ]
@@ -112,13 +127,57 @@ def match_trigobjs(
                                                             tautau_leg_2_maxeta,
                                                             True)
 
+    # is any jet matched to leg3?
+    pass_jets_leg3_triglevel = trigger_object_matching_deep(jets,
+                                                            tautau_leg_3_matched_trigobjs,
+                                                            tautau_leg_3_minpt,
+                                                            tautau_leg_3_maxeta,
+                                                            True)
+    
+    #from IPython import embed; embed()
+
+
+
+
+
+    
 
     # tau1 to leg1 & tau2 to leg2 or, tau1 to leg2 & tau2 to leg1
     pass_taus_legs = (pass_tau1_leg1_triglevel & pass_tau2_leg2_triglevel) | (pass_tau1_leg2_triglevel & pass_tau2_leg1_triglevel)
 
+    #pass_jet_leg_jet_level = ak.any(pass_jets_leg3_triglevel, axis=-1)
+    #pass_jet_leg_jet_level_1 = pass_jet_leg_jet_level[:,:,0:1]
+    #pass_jet_leg_jet_level_2 = pass_jet_leg_jet_level[:,:,1:2]
+    #pass_jet_leg_any_1 = ak.any(pass_jet_leg_jet_level_1, axis=1)[:,None]
+    #pass_jet_leg_any_2 = ak.any(pass_jet_leg_jet_level_2, axis=1)[:,None]
+    #pass_jet_leg_tau_pair_level = ak.concatenate([pass_jet_leg_any_1, pass_jet_leg_any_2], axis=1)
+
+    pass_jet_leg_jet_level = ak.any(pass_jets_leg3_triglevel, axis=-1)
+
+
+    #dummy_true = ak.values_astype(ak.ones_like(tautau_trigger_ids), np.bool)
+    #ak.where(tautau_trigger_ids == 15152, pass_jet_leg_trg_level, dummy_true)
+
+
+    
+
+    #pass_jet_leg_2 = ak.any(pass_jets_leg3_triglevel, axis=1)
+    #temp = ak.values_astype(ak.ones_like(tautau_trigger_ids), np.bool)
+    #dummy = temp[:,:0]
+    #num_mask = ak.num(tautau_trigger_ids, axis=1) > 0
+    #temp2 = ak.where(num_mask, temp[:,None], dummy)
+    #pass_jet_leg_2 = ak.where(num_mask, pass_jet_leg[:,None], dummy)
 
     #from IPython import embed; embed()
 
+    #pass_jet_leg2 = ak.where(num_mask, pass_jet_leg_2[:,None], dummy)
+    #dummy_2 = tautau_trigger_ids[:,:0]
+    #ids_2 = ak.where(num_mask, tautau_trigger_ids[:,None], dummy_2)
+    
+    
+    #ditaujet_mask = (tautau_trigger_ids == 15152)
+    #ak.where(ditaujet_mask, pass_jet_leg, temp2)
+    
     
     mask_has_tau_triggers_and_has_tau_pairs_evt_level = ak.fill_none(ak.any(mask_has_tau_triggers_and_has_tau_pairs, axis=1), False)
     trigobj_matched_mask_dummy = ak.from_regular((trigger_ids > 0)[:,:0][:,None])
@@ -162,8 +221,6 @@ def match_trigobjs(
     
     leps_pair = ak.zip([new_taus1, new_taus2])
 
-
-
     tautau_trigger_types_brdcst, _ = ak.broadcast_arrays(tautau_trigger_types[:,None], pass_taus)
     #tautau_trigger_ids_brdcst = ak.where(mask_has_tau_triggers_and_has_tau_pairs_evt_level,
     #                                     tautau_trigger_ids_brdcst, 
@@ -186,9 +243,31 @@ def match_trigobjs(
     #types = ak.fill_none(ak.firsts(tautau_trigger_types_brdcst, axis=-1), "")
 
     #from IPython import embed; embed()
+
+
+    #pass_jet_leg_2 = pass_jet_leg[:,None]
+    #dummy = pass_jet_leg_jet_level[:,:0]
+    #pass_jet_leg_2 = ak.where(mask_has_tau_triggers_and_has_tau_pairs_evt_level, pass_jet_leg_2, dummy)
+
+    #ids_mask_ditaujet = ak.sort(ids == 15152, ascending=False)
+    #mask_ditaujet = ak.fill_none(ak.firsts(ids_mask_ditaujet, axis=1), False)
+    #ids_mask_ditau = ids == 15151
+    #mask_ditau = ak.fill_none(ak.firsts(ids_mask_ditaujet, axis=1), False)
+    #mask_ditaujet_with_jetmatch = mask_ditaujet & pass_jet_leg
+
+    #mask_all_matched = mask_ditau | mask_ditaujet_with_jetmatch
+
+    #ids_ditau = 
+
+    #from IPython import embed; embed()
+
+
     
+    #-----ids = ak.enforce_type(ids, "var * int64")
+    #-----types = ak.enforce_type(types, "var * string")
+    jets_idx = ak.local_index(jets.pt)[pass_jet_leg_jet_level][:,:1]
     
-    return leps_pair, ids, types
+    return leps_pair, ids, types, jets_idx
 
 
 
@@ -255,6 +334,7 @@ def sort_pairs(dtrpairs: ak.Array)->ak.Array:
         "Tau.rawIdx", optional("Tau.genPartFlav"),
         "Tau.charge", "Tau.rawDeepTau2018v2p5VSjet",
         "Tau.idDeepTau2018v2p5VSjet", "Tau.idDeepTau2018v2p5VSe", "Tau.idDeepTau2018v2p5VSmu",
+        "Jet.pt","Jet.eta","Jet.phi","Jet.mass",
     },
     exposed=False,
 )
@@ -328,7 +408,7 @@ def tautau_selection(
 
     
     # match trigger objects for all pairs
-    leps_pair, trigIds, trigTypes = match_trigobjs(leps_pair, trigger_results)
+    leps_pair, trigIds, trigTypes, jet_idx = match_trigobjs(leps_pair, trigger_results, events.Jet)
 
     
     pair_selection_steps["tautau_after_trigger_matching"] = leps_pair["0"].pt >= 0.0
@@ -340,6 +420,24 @@ def tautau_selection(
     lep2 = lep2[:,:1]
     #trigId = trigIds[:,:1]
     #trigTypes = trigTypes[:,:1]
+
+
+    #trigIds_ = ak.sort(trigIds, ascending=False)[:,:1]
+    #is_ditaujet = trigIds_ == 15152 #         [ [], [True], [], [False] ]
+                                    # jetidx  [ [], [1],    [], [0]     ]
+
+    #has_jet_ = ak.num(jet_idx, axis=1) > 0
+    ditau_ids = trigIds[trigIds == 15151]
+    ditaujet_ids =	trigIds[trigIds == 15152]
+
+    has_jet = jet_idx >= 0
+    a = ak.concatenate([(ditaujet_ids == 15152), has_jet], axis=1)
+    b = ak.sum(a, axis=1) == 2
+    ditaujet_ids_matched = ak.where(b, ditaujet_ids, ditaujet_ids[:,:0])
+
+    trig_ids_matched = ak.concatenate([ditau_ids,ditaujet_ids_matched], axis=1)
+    trig_types_matched = trigTypes[trig_ids_matched > 0]
+    
     
     # rebuild the pair with the 1st one only
     leps_pair = ak.concatenate([lep1, lep2], axis=1)
@@ -347,7 +445,16 @@ def tautau_selection(
     sort_idx = ak.argsort(leps_pair.pt, ascending=False)
     leps_pair = leps_pair[sort_idx]
 
+    leps_pair_dummy = leps_pair[:,:0]
+    leps_pair_matched = ak.where(ak.num(trig_ids_matched) > 0, leps_pair, leps_pair_dummy)
+
+    #from IPython import embed; embed()
+    
+
+    #return SelectionResult(
+    #    aux = pair_selection_steps,
+    #), leps_pair, trigIds, trigTypes
 
     return SelectionResult(
         aux = pair_selection_steps,
-    ), leps_pair, trigIds, trigTypes
+    ), leps_pair_matched, trig_ids_matched, trig_types_matched
