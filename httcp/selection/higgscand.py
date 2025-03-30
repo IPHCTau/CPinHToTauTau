@@ -254,7 +254,7 @@ def reorder_hcand_prods(
     electrons_pos = electrons_sorted[electrons_sorted.pdgId == -11]
     electrons_neg = electrons_sorted[electrons_sorted.pdgId == 11]
     
-
+    
     # Step 2: Fill the charged hadrons with electrons if there are not enough charged hadrons
 
 
@@ -321,7 +321,6 @@ def reorder_hcand_prods(
                                 default_photons
                                 )
                        )
-    
 
     # make -11 to 11 for convenience
     pions_pdgId = ak.where((pions.pdgId < 0),
@@ -375,6 +374,9 @@ def reorder_hcand_prods(
     photons = ak.without_field(photons, "pdgId")
     photons = ak.with_field(photons, photons_pdgId, "pdgId")
 
+    photons_idxs = ak.argsort(photons.pt, ascending=False)
+    photons = photons[photons_idxs]
+
     prods = ak.concatenate([pions, photons], axis=1)
 
     #fixdim = lambda prods : ak.zip({field : ak.enforce_type(prods[field], prods[field].typestr.split('[')[1]) for field in prods.fields})
@@ -385,8 +387,7 @@ def reorder_hcand_prods(
     return prods
 
 
-    
-
+"""    
 def build_hcand_mask(hcand, hcandprods, dummy):
     #is_pion         = lambda prods : ((np.abs(prods.pdgId) == 211) | (np.abs(prods.pdgId) == 321))
     #is_pion         = lambda prods : (np.abs(prods.pdgId) == 211)
@@ -424,6 +425,54 @@ def build_hcand_mask(hcand, hcandprods, dummy):
     hmode = ak.fill_none(ak.firsts(hcand.decayMode, axis=1), -10)
     #charge_mask = ak.where(hmode >= 0, charge_mask, dummy[:,:0])
     charge_mask = ak.where(hmode >= 0, charge_mask, dummy)
+    
+    return hcand_mask, charge_mask
+"""
+def build_hcand_mask(hcand, hcand_pi, hcand_pi0, dummy):
+    #is_pion         = lambda prods : ((np.abs(prods.pdgId) == 211) | (np.abs(prods.pdgId) == 321))
+    #is_pion         = lambda prods : (np.abs(prods.pdgId) == 211)
+
+    hcandprods = ak.concatenate([hcand_pi, hcand_pi0], axis=1)
+    
+    is_pion         = lambda prods : np.abs(prods.pdgId) == 211
+    is_pi0          = lambda prods : prods.pdgId == 111
+    has_one_pion    = lambda prods : (ak.sum(is_pion(prods),   axis = 1) == 1)[:,None]
+    has_atleast_one_pion = lambda prods : (ak.sum(is_pion(prods),   axis = 1) >= 1)[:,None] # new
+    has_three_pions = lambda prods : (ak.sum(is_pion(prods),   axis = 1) == 3)[:,None]
+    has_pi0         = lambda prods : (ak.sum(is_pi0(prods), axis = 1) >  0)[:,None]
+    has_no_pi0      = lambda prods : (ak.sum(is_pi0(prods), axis = 1) == 0)[:,None]
+
+    hcand_mask = ak.where((hcand.decayMode == 0),
+                          has_atleast_one_pion(hcandprods),
+                          #has_one_pion(hcandprods),
+                          ak.where(((hcand.decayMode == 1) | (hcand.decayMode == 2)),
+                                   (has_atleast_one_pion(hcandprods) & has_pi0(hcandprods)),
+                                   #(has_one_pion(hcandprods) & has_photons(hcandprods)),
+                                   ak.where((hcand.decayMode == 10),
+                                            has_three_pions(hcandprods),
+                                            ak.where((hcand.decayMode == 11),
+                                                     #(has_three_pions(hcandprods) & has_photons(hcandprods)),
+                                                     has_three_pions(hcandprods),
+                                                     dummy)
+                                            )
+                                   )
+                          )
+    # Check charge assignments
+    h_ch = ak.values_astype(ak.fill_none(ak.firsts(hcand.charge, axis=1), 0), np.int32)
+    #hrpod_pion = hcandprods[np.abs(hcandprods.pdgId) == 211]
+    hrpod_pion = hcandprods[is_pion(hcandprods)]
+    hrpod_pion_ch_sum = ak.values_astype(ak.sum(hrpod_pion.charge, axis=1), np.int32)
+
+    ok_ch = (hrpod_pion_ch_sum - h_ch) == 0
+    charge_mask = ak.from_regular(ok_ch[:,None])
+    #from IPython import embed; embed()
+    hmode = ak.fill_none(ak.firsts(hcand.decayMode, axis=1), -10)
+    #charge_mask = ak.where(hmode >= 0, charge_mask, dummy[:,:0])
+    charge_mask = ak.where(hmode >= 0, charge_mask, dummy)
+
+    #from IPython import embed; embed()
+    
+
     
     return hcand_mask, charge_mask
 
@@ -484,8 +533,8 @@ def higgscandprod(
     
     dummy = (events.event >= 0)[:,None]
 
+    """
     #from IPython import embed; embed()
-    
     hcand1_mask, hcand1_charge_mask = build_hcand_mask(hcand1, hcand1prods, dummy)
     hcand2_mask, hcand2_charge_mask = build_hcand_mask(hcand2, hcand2prods, dummy)
 
@@ -496,7 +545,7 @@ def higgscandprod(
     
     hcand_prod_mask = ak.concatenate([hcand1_mask, hcand2_mask], axis=1)
     hcand_prod_charge_mask = ak.concatenate([hcand1_charge_mask, hcand2_charge_mask], axis=1)
-    
+    """
     # reconstruct pi-zeros here
     # save those in the hcand prods instead of photons
 
@@ -510,16 +559,34 @@ def higgscandprod(
     p4_hcand1     = ak.with_name(hcand1, "PtEtaPhiMLorentzVector")
     p4_hcand1_pi  = ak.with_name(hcand1prod_pions, "PtEtaPhiMLorentzVector")
     p4_hcand1_pi  = presel_decay_pis(p4_hcand1, p4_hcand1_pi) # safe
-    p4_hcand1_pi0 = reconstructPi0(p4_hcand1, hcand1prod_photons, method="simpleIC") # simpleIC, simpleMB
+    #p4_hcand1_pi0 = reconstructPi0(p4_hcand1, hcand1prod_photons, method="simpleIC") # simpleIC, simpleMB
+    p4_hcand1_pi0 = reconstructPi0(p4_hcand1, hcand1prod_photons, method="simpleMB") # simpleIC, simpleMB
     p4_hcand1_pi0 = presel_decay_pi0s(p4_hcand1, p4_hcand1_pi0) # safe
-
+    
     # hcand2 and its decay products
     p4_hcand2     = ak.with_name(hcand2, "PtEtaPhiMLorentzVector")
     p4_hcand2_pi  = ak.with_name(hcand2prod_pions, "PtEtaPhiMLorentzVector")
     p4_hcand2_pi  = presel_decay_pis(p4_hcand2, p4_hcand2_pi)	# safe 
-    p4_hcand2_pi0 = reconstructPi0(p4_hcand2, hcand2prod_photons, method="simpleIC") # simpleIC, simpleMB
+    #p4_hcand2_pi0 = reconstructPi0(p4_hcand2, hcand2prod_photons, method="simpleIC") # simpleIC, simpleMB
+    p4_hcand2_pi0 = reconstructPi0(p4_hcand2, hcand2prod_photons, method="simpleMB") # simpleIC, simpleMB
     p4_hcand2_pi0 = presel_decay_pi0s(p4_hcand2, p4_hcand2_pi0)	# safe  
+    
+    # CHANGE
+    # mask is now based on Pi0, not photons
+    hcand1_mask, hcand1_charge_mask = build_hcand_mask(hcand1, p4_hcand1_pi, p4_hcand1_pi0, dummy)
+    hcand2_mask, hcand2_charge_mask = build_hcand_mask(hcand2, p4_hcand2_pi, p4_hcand2_pi0, dummy)
 
+    hcand1_mask = ak.fill_none(hcand1_mask, False)
+    hcand2_mask = ak.fill_none(hcand2_mask, False)
+    hcand1_charge_mask = ak.fill_none(hcand1_charge_mask, False)
+    hcand2_charge_mask = ak.fill_none(hcand2_charge_mask, False)
+    
+    hcand_prod_mask = ak.concatenate([hcand1_mask, hcand2_mask], axis=1)
+    hcand_prod_charge_mask = ak.concatenate([hcand1_charge_mask, hcand2_charge_mask], axis=1)
+    #
+
+    #from IPython import embed; embed()
+    
     # energy split
     hcand1_E_split = get_energy_split(p4_hcand1, p4_hcand1_pi, p4_hcand1_pi0)
     hcand1_pass_E_split_mask = ak.fill_none(ak.firsts(hcand1_E_split > 0.2, axis=1), True)

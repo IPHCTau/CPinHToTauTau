@@ -73,6 +73,9 @@ def reconstructPi0(
         })
         
     elif method == "simpleMB":
+        # https://indico.cern.ch/event/1289627/contributions/5444322/attachments/2674971/4638385/mbluj_pi0-direction_CPHTTworkshop_June2023.pdf
+        # I will try Michals XGB model later
+        
         pi0RecoM = 0.136 #approximate pi0 peak from fits in PF paper
         pi0RecoW = 0.013 
 
@@ -102,7 +105,8 @@ def reconstructPi0(
 
         mask_photons = ((np.abs(deta_photons_hcand) < maxeta_photons)
                         & (np.abs(dphi_photons_hcand) < maxphi_photons))
-
+        mask_photons = ak.fill_none(mask_photons, False)
+        
         mass_pi0 = mass_pi0[mask_photons][:,:1]
         charge_pi0 = charge_pi0[mask_photons][:,:1]
         tauidx_pi0 = tauidx_pi0[mask_photons][:,:1]
@@ -144,16 +148,18 @@ def reconstructPi0(
 
         
         dummy = sel_strip_photons_p4.px[:,:0]
+
+        #dummy = photons[ak.argsort(photons.pt, ascending=False)][:,:1] # CHANGE
         _mask = ak.num(sel_strip_photons_p4.px, axis=1) > 0
         
         px = ak.from_regular(ak.fill_none(ak.sum(sel_strip_photons_p4.px, axis=1), 0.0)[:,None])
-        px = ak.where(_mask, px, dummy)
+        px = ak.where(_mask, px, dummy) # CHANGE 
         py = ak.from_regular(ak.fill_none(ak.sum(sel_strip_photons_p4.py, axis=1), 0.0)[:,None])
-        py = ak.where(_mask, py, dummy)
+        py = ak.where(_mask, py, dummy) # CHANGE 
         pz = ak.from_regular(ak.fill_none(ak.sum(sel_strip_photons_p4.pz, axis=1), 0.0)[:,None])
-        pz = ak.where(_mask, pz, dummy)
+        pz = ak.where(_mask, pz, dummy) # CHANGE 
         energy = ak.from_regular(ak.fill_none(ak.sum(sel_strip_photons_p4.energy, axis=1), 0.0)[:,None])
-        energy = ak.where(_mask, energy, dummy)
+        energy = ak.where(_mask, energy, dummy) # CHANGE 
         
         p4 = convert_to_coffea_p4(
             {
@@ -167,19 +173,24 @@ def reconstructPi0(
                 "pt": p4.pt,
                 "eta": p4.eta,
                 "phi": p4.phi,
-                "mass": mass_pi0,
-                "pdgId": pdgid_pi0,
-                "charge": charge_pi0,
-                "tauIdx": tauidx_pi0,
+                "mass": ak.enforce_type(mass_pi0, "var * float32"),
+                "pdgId": ak.enforce_type(pdgid_pi0, "var * int64"),
+                "charge": ak.enforce_type(charge_pi0, "var * int32"),
+                "tauIdx": ak.enforce_type(tauidx_pi0, "var * int16")
             }
         )
 
+        
     return p4_pi0
 
 
 def getpions(decay_gentau: ak.Array) -> ak.Array :
+    """
     ispion_pos = lambda prod: ((prod.pdgId ==  211) | (prod.pdgId ==  321)) # | (prod.pdgId ==  323) | (prod.pdgId ==  325) | (prod.pdgId ==  327) | (prod.pdgId ==  329) )
     ispion_neg = lambda prod: ((prod.pdgId == -211) | (prod.pdgId == -321)) # | (prod.pdgId == -323) | (prod.pdgId == -325) | (prod.pdgId == -327) | (prod.pdgId == -329) )
+    """
+    ispion_pos = lambda prod: ((prod.pdgId ==  211) | (prod.pdgId ==  321) | (prod.pdgId ==  323) | (prod.pdgId ==  10321) | (prod.pdgId ==  10211))
+    ispion_neg = lambda prod: ((prod.pdgId == -211) | (prod.pdgId == -321) | (prod.pdgId == -323) | (prod.pdgId == -10321) | (prod.pdgId == -10211))
 
     pions_tau  = decay_gentau[(ispion_pos(decay_gentau) | ispion_neg(decay_gentau))]
 
