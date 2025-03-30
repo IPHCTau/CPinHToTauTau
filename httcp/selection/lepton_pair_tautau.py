@@ -16,7 +16,7 @@ ak = maybe_import("awkward")
 coffea = maybe_import("coffea")
 maybe_import("coffea.nanoevents.methods.nanoaod")
 
-from httcp.util import filter_by_triggers, get_objs_p4, trigger_matching_extra, trigger_object_matching_deep
+from httcp.util import filter_by_triggers, get_objs_p4, trigger_matching_extra, trigger_object_matching_deep, trigger_object_matching_jets_deep
 
 
 
@@ -53,7 +53,12 @@ def match_trigobjs(
     #from IPython import embed; embed()
 
     #jets = filter_by_triggers(jets, trigger_types == "cross_tau_tau_jet") # NEW
+    #jets = events.Jet[jet_indices]
     jets = filter_by_triggers(jets, has_tau_triggers) # NEW
+
+    # IMPORTANT : APPLY JET PT > 60 GeV BEFORE MATCHING WITH JET LEG
+    jets = jets[jets.pt > 60.0]
+
     
     # Event level masks
     # if events have tau
@@ -74,8 +79,11 @@ def match_trigobjs(
     tautau_leg_2_matched_trigobjs = leg2_matched_trigobjs[mask_has_tau_triggers_and_has_tau_pairs]
     tautau_leg_3_matched_trigobjs = leg3_matched_trigobjs[mask_has_tau_triggers_and_has_tau_pairs] # NEW
 
-    jets = jets[mask_has_tau_triggers_and_has_tau_pairs]
-    
+    #from IPython import embed; embed()
+    mask_has_tau_triggers_and_has_tau_pairs_evt_level = ak.fill_none(ak.any(mask_has_tau_triggers_and_has_tau_pairs, axis=1), False)
+    jets_dummy = jets[:,:0]
+    #jets = jets[mask_has_tau_triggers_and_has_tau_pairs]
+    jets = ak.where(mask_has_tau_triggers_and_has_tau_pairs_evt_level, jets, jets_dummy)
     
 
     # tau1            : [ [    t11,        t12      ], [  t11  ] ]
@@ -128,11 +136,11 @@ def match_trigobjs(
                                                             True)
 
     # is any jet matched to leg3?
-    pass_jets_leg3_triglevel = trigger_object_matching_deep(jets,
-                                                            tautau_leg_3_matched_trigobjs,
-                                                            tautau_leg_3_minpt,
-                                                            tautau_leg_3_maxeta,
-                                                            True)
+    pass_jets_leg3_triglevel, jets = trigger_object_matching_jets_deep(jets,
+                                                                       tautau_leg_3_matched_trigobjs,
+                                                                       tautau_leg_3_minpt,
+                                                                       tautau_leg_3_maxeta,
+                                                                       True)
     
     #from IPython import embed; embed()
 
@@ -179,7 +187,7 @@ def match_trigobjs(
     #ak.where(ditaujet_mask, pass_jet_leg, temp2)
     
     
-    mask_has_tau_triggers_and_has_tau_pairs_evt_level = ak.fill_none(ak.any(mask_has_tau_triggers_and_has_tau_pairs, axis=1), False)
+    #mask_has_tau_triggers_and_has_tau_pairs_evt_level = ak.fill_none(ak.any(mask_has_tau_triggers_and_has_tau_pairs, axis=1), False)
     trigobj_matched_mask_dummy = ak.from_regular((trigger_ids > 0)[:,:0][:,None])
     
     pass_taus_legs = ak.where(mask_has_tau_triggers_and_has_tau_pairs_evt_level, pass_taus_legs, trigobj_matched_mask_dummy)
@@ -265,7 +273,11 @@ def match_trigobjs(
     
     #-----ids = ak.enforce_type(ids, "var * int64")
     #-----types = ak.enforce_type(types, "var * string")
-    jets_idx = ak.local_index(jets.pt)[pass_jet_leg_jet_level][:,:1]
+    """
+    jets_idx = jets[pass_jet_leg_jet_level].rawIdx[:,:1]
+    """
+    jets_idx = jets.rawIdx[:,:1]
+    #jets_idx = ak.local_index(jets.pt)[pass_jet_leg_jet_level][:,:1]
     
     return leps_pair, ids, types, jets_idx
 
@@ -288,6 +300,7 @@ def sort_pairs(dtrpairs: ak.Array)->ak.Array:
                           sorted_idx)
     dtrpairs = dtrpairs[sorted_idx]
 
+    """
     # if the deep tau val of tau-1 is the same for the first two pair 
     where_same_iso_2 = ak.fill_none(
         ak.firsts(dtrpairs["1"].rawDeepTau2018v2p5VSjet[:,:1], axis=1) == ak.firsts(dtrpairs["1"].rawDeepTau2018v2p5VSjet[:,1:2], axis=1),
@@ -301,6 +314,7 @@ def sort_pairs(dtrpairs: ak.Array)->ak.Array:
                           sorted_idx)
     dtrpairs = dtrpairs[sorted_idx]
 
+    
     # check if the first two pairs have the second tau with same rawDeepTau2017v2p1VSjet
     where_same_pt_1 = ak.fill_none(
         ak.firsts(dtrpairs["0"].pt[:,:1], axis=1) == ak.firsts(dtrpairs["0"].pt[:,1:2], axis=1),
@@ -319,7 +333,9 @@ def sort_pairs(dtrpairs: ak.Array)->ak.Array:
     #lep2 = ak.singletons(ak.firsts(dtrpairs["1"], axis=1))
 
     #dtrpair    = ak.concatenate([lep1, lep2], axis=1) 
+    """
 
+    
     return dtrpairs
 
 
@@ -343,6 +359,7 @@ def tautau_selection(
         events: ak.Array,
         lep_indices: ak.Array,
         trigger_results: SelectionResult,
+        jet_indices : ak.Array,
         **kwargs,
 ) -> tuple[SelectionResult, ak.Array, ak.Array]:
 
@@ -355,8 +372,9 @@ def tautau_selection(
     vs_jet_wp       = self.config_inst.x.deep_tau_info[tau_tagger].vs_j["tautau"]
 
     is_good_tau     = (
+        (taus.pt > 20.0)
         #(taus.idDeepTau2018v2p5VSjet   >= tau_tagger_wps.vs_j[vs_jet_wp])
-        (taus.idDeepTau2018v2p5VSe   >= tau_tagger_wps.vs_e[vs_e_wp])
+        & (taus.idDeepTau2018v2p5VSe   >= tau_tagger_wps.vs_e[vs_e_wp])
         & (taus.idDeepTau2018v2p5VSmu  >= tau_tagger_wps.vs_m[vs_mu_wp])
     )
 
@@ -384,7 +402,7 @@ def tautau_selection(
         "tautau_is_eta_2p1"    : (np.abs(lep1.eta) < 2.1) & (np.abs(lep2.eta) < 2.1),
         #"tautau_is_os"         : (lep1.charge * lep2.charge) < 0,
         "tautau_dr_0p5"        : (1*lep1).delta_r(1*lep2) > 0.5,  #deltaR(lep1, lep2) > 0.5,
-        "tautau_invmass_40"    : (1*lep1 + 1*lep2).mass > 40, # invariant_mass(lep1, lep2) > 40
+        "tautau_invmass_40"    : (1*lep1 + 1*lep2).mass > 40.0, # invariant_mass(lep1, lep2) > 40
     }
 
     
@@ -408,7 +426,7 @@ def tautau_selection(
 
     
     # match trigger objects for all pairs
-    leps_pair, trigIds, trigTypes, jet_idx = match_trigobjs(leps_pair, trigger_results, events.Jet)
+    leps_pair, trigIds, trigTypes, jet_idx = match_trigobjs(leps_pair, trigger_results, events.Jet[jet_indices])
 
     
     pair_selection_steps["tautau_after_trigger_matching"] = leps_pair["0"].pt >= 0.0
@@ -457,4 +475,4 @@ def tautau_selection(
 
     return SelectionResult(
         aux = pair_selection_steps,
-    ), leps_pair_matched, trig_ids_matched, trig_types_matched
+    ), leps_pair_matched, trig_ids_matched, trig_types_matched, jet_idx
