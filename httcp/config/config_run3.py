@@ -379,7 +379,7 @@ def add_config (ana: od.Analysis,
     
     # define inclusive datasets for the stitched process identification with corresponding leaf processes
     # drell-yan [NLO]
-    cfg.x.allow_dy_stitching = True
+    cfg.x.allow_dy_stitching = False
     cfg.x.allow_dy_stitching_for_plotting = False
     cfg.x.dy_stitching = {
         "dy": {
@@ -1187,7 +1187,10 @@ def add_config (ana: od.Analysis,
             "TauProd.*",
             # general event info
             "run", "luminosityBlock", "event", "LHEPdfWeight",
-            "PV.npvs","Pileup.nTrueInt","Pileup.nPU","genWeight", "LHEWeight.originalXWGTUP",
+            "PV.x","PV.y","PV.z","PV.npvs","PV.npvsGood",
+            "PVBS.*",
+            "SV.x","SV.y","SV.z",#"SV.pAngle",
+            "Pileup.nTrueInt","Pileup.nPU","genWeight", "LHEWeight.originalXWGTUP",
             #"trigger_ids",
             "single_triggered", "cross_triggered",
             "single_e_triggered", "cross_e_triggered",
@@ -1235,6 +1238,10 @@ def add_config (ana: od.Analysis,
                 "pt", "eta", "phi", "mass",
                 "btagDeepFlavB", "hadronFlavour"
             ]
+        } | {
+            f"trigJet.{var}" for var in [
+                "pt", "eta", "phi", "mass",
+            ]
         } | { # raw tau in events before any selection
             f"RawTau.{var}" for var in [
                 "pt","eta","phi","mass",
@@ -1256,7 +1263,7 @@ def add_config (ana: od.Analysis,
                 "decayModePNet",
                 "genPartFlav",
                 "rawIdx",
-                "pt_no_tes", "mass_no_tes"
+                "pt_no_tes", "mass_no_tes","SVx","SVy","SVz",
             ]
         } | {
             f"TauSpinner.weight_cp_{var}" for var in [
@@ -1290,7 +1297,7 @@ def add_config (ana: od.Analysis,
         } | { # muons from hcand
             f"Muon.{var}" for var in [
                 "pt","eta","phi","mass","dxy","dz", "charge", "IPx", "IPy", "IPz",
-                "decayMode", "pfRelIso04_all","mT", "rawIdx"
+                "decayMode", "pfRelIso04_all","mT", "rawIdx","SVx","SVy","SVz",
             ]
         } | { # eles before any selection
             f"RawElectron.{var}" for var in [
@@ -1321,7 +1328,7 @@ def add_config (ana: od.Analysis,
                 "pt_no_ss", "pt","eta","phi","mass",
                 "dxy","dz", "charge", "IPx", "IPy", "IPz",
                 "decayMode", "pfRelIso03_all", "mT", "rawIdx",
-                "deltaEtaSC",
+                "deltaEtaSC","SVx","SVy","SVz",
             ]
         } | {
             f"TrigObj.{var}" for var in [
@@ -1332,6 +1339,7 @@ def add_config (ana: od.Analysis,
                 "pt","eta","phi","mass", "charge",
                 "decayMode", "rawIdx", "idVsJet",
                 "IPx", "IPy", "IPz", "IPsig",
+                "SVx","SVy","SVz",
             ]
         } | {
             "GenTau.*", "GenTauProd.*",
@@ -1347,7 +1355,10 @@ def add_config (ana: od.Analysis,
         },
         "cf.UniteColumns": {
             "run","luminosityBlock","event","LHEPdfWeight",
-            "PV.npvs","Pileup.nTrueInt","Pileup.nPU","genWeight",
+            "PV.x","PV.y","PV.z","PV.npvs","PV.npvsGood",
+            "PVBS.*",
+            "SV.x","SV.y","SV.z",#"SV.pAngle",
+            "Pileup.nTrueInt","Pileup.nPU","genWeight",
             "single_triggered", "cross_triggered",
             "single_e_triggered", "cross_e_triggered",
             "single_mu_triggered", "cross_mu_triggered",

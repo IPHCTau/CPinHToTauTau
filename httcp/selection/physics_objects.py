@@ -39,7 +39,7 @@ coffea = maybe_import("coffea")
     produces={
         f"Muon.{var}" for var in [
             "rawIdx", "decayMode", "IPsig", "idVsJet",
-            "decayModeHPS",
+            "decayModeHPS", "SVx", "SVy", "SVz",
         ]
     },
     exposed=False,
@@ -64,6 +64,10 @@ def muon_selection(
     ipsig_dummy = 0.0 #-999.9
     events = set_ak_column(events, "Muon.IPsig", ak.nan_to_num(events.Muon.sip3d, nan=ipsig_dummy))
     events = set_ak_column(events, "Muon.idVsJet", -2.0)
+
+    events = set_ak_column(events, "Muon.SVx", 0.0)
+    events = set_ak_column(events, "Muon.SVy", 0.0)
+    events = set_ak_column(events, "Muon.SVz", 0.0)
     
     # pt sorted indices for converting masks to indices
     sorted_indices = ak.argsort(events.Muon.pt, axis=-1, ascending=False)
@@ -176,7 +180,7 @@ def muon_selection(
     produces={
         f"Electron.{var}" for var in [
             "rawIdx", "decayMode", "IPsig", "idVsJet",
-            "decayModeHPS",
+            "decayModeHPS", "SVx", "SVy", "SVz",
         ]
     },
     exposed=False,
@@ -200,7 +204,11 @@ def electron_selection(
     ipsig_dummy = 0.0 #-999.9
     events = set_ak_column(events, "Electron.IPsig", ak.nan_to_num(events.Electron.sip3d, nan=ipsig_dummy))
     events = set_ak_column(events, "Electron.idVsJet", -1.0)
-    
+
+    events = set_ak_column(events, "Electron.SVx", 0.0)
+    events = set_ak_column(events, "Electron.SVy", 0.0)
+    events = set_ak_column(events, "Electron.SVz", 0.0)
+
     # pt sorted indices for converting masks to indices
     sorted_indices = ak.argsort(events.Electron.pt, axis=-1, ascending=False)
     electrons = events.Electron[sorted_indices]
@@ -315,6 +323,7 @@ def electron_selection(
     produces={
         f"Tau.{var}" for var in [
             "rawIdx", "decayMode", "decayModeHPS", "IPsig", "idVsJet",
+            "SVx","SVy","SVz",
         ]
     },
     exposed=False,
@@ -341,6 +350,10 @@ def tau_selection(
     ipsig_dummy = 0.0
     events = set_ak_column(events, "Tau.IPsig",  ak.nan_to_num(events.Tau.ipLengthSig, nan=ipsig_dummy))
     events = set_ak_column(events, "Tau.idVsJet", events.Tau.idDeepTau2018v2p5VSjet)
+
+    events = set_ak_column(events, "Tau.SVx", ak.nan_to_num(events.Tau.refitSVx, 0.0))
+    events = set_ak_column(events, "Tau.SVy", ak.nan_to_num(events.Tau.refitSVy, 0.0))
+    events = set_ak_column(events, "Tau.SVz", ak.nan_to_num(events.Tau.refitSVz, 0.0))
     
     # https://cms-nanoaod-integration.web.cern.ch/integration/cms-swmaster/data106Xul17v2_v10_doc.html#Tau
     tau_vs_e = DotDict(vvloose=2, vloose=3)
@@ -370,7 +383,7 @@ def tau_selection(
     taus = events.Tau[sorted_indices]
 
     good_selections = {
-        "tau_pt_20"     : taus.pt > 20,
+        "tau_pt_15"     : taus.pt > 15.0, # 20 GeV is in pair selection
         "tau_eta_2p5"   : abs(taus.eta) < 2.5, # 2.3
         "tau_dz_0p2"    : abs(taus.dz) < 0.2,
         # have to make them channel-specific later
@@ -464,13 +477,13 @@ def tau_selection_init(self: Selector) -> None:
     uses={ f"Jet.{var}" for var in 
         [
             "pt", "eta", "phi", "mass",
-            "jetId", "btagDeepFlavB"
+            "jetId", "btagDeepFlavB",
+            "neHEF", "neEmEF", "chMultiplicity", "neMultiplicity",
+            "chHEF", "chMultiplicity", "muEF", "chEmEF",
         ]}
     | {optional("Jet.puId")}
     | {optional("Jet.genJetIdx")}
     | {IF_RUN3(jet_veto_map)}
-    | {optional("hcand.pt"), optional("hcand.eta"), optional("hcand.phi"),
-       optional("hcand.mass"), optional("hcand.decayMode")}
     | {optional("GenJet.*")}
     | {attach_coffea_behavior},
     produces={"Jet.rawIdx"},
@@ -495,7 +508,6 @@ def jet_selection(
     #                               events.Jet.pt > 30.0,
     #                               jet_mask)
 
-    """
     # Redefination of JetID because of the bug in NanoAOD v12-v15
     # https://gitlab.cern.ch/cms-jetmet/coordination/coordination/-/issues/117
     passJetIdTight = ak.where(np.abs(events.Jet.eta) <= 2.6,
@@ -520,7 +532,6 @@ def jet_selection(
         (passJetIdTight & (events.Jet.muEF < 0.8) & (events.Jet.chEmEF < 0.8)),  # add lepton veto for abs_eta <= 2.7
         passJetIdTight  # No lepton veto for 2.7 < abs_eta
     )
-    """
     
         
     # nominal selection
@@ -530,10 +541,10 @@ def jet_selection(
         "jet_special_for_PU"      : ak.where(((abs(events.Jet.eta) >= 2.5) & (abs(events.Jet.eta) < 3.0)), events.Jet.pt > 50.0, jet_mask),
         "jet_forward"             : ak.where((abs(events.Jet.eta) >= 3.0), events.Jet.pt > 30.0, jet_mask),
         # use the newly defined TightLepVeto ID
-        "jet_id"                  : events.Jet.jetId >= 2,  # Jet ID flag: bit2 is tight, bit3 is tightLepVeto            
+        #"jet_id"                  : events.Jet.jetId >= 2,  # Jet ID flag: bit2 is tight, bit3 is tightLepVeto            
                                                             # So, 0000010 : 2**1 = 2 : pass tight, fail lep-veto          
                                                             #     0000110 : 2**1 + 2**2 = 6 : pass both tight and lep-veto
-        #"jet_id"                  : passJetIdTightLepVeto,
+        "jet_id"                  : passJetIdTightLepVeto,
     }
     
     #if is_run2: 
@@ -550,6 +561,61 @@ def jet_selection(
     sorted_indices = ak.argsort(events.Jet.pt, axis=-1, ascending=False)
     good_jet_indices = sorted_indices[jet_mask[sorted_indices]]
     good_jet_indices = ak.values_astype(good_jet_indices, np.int32)
+    
+    results = SelectionResult(
+        # bveto selection will be required later for ABCD
+        objects = {
+            "Jet": {
+                "RawJet": events.Jet.rawIdx,
+                "SortedJet": sorted_indices,
+            },
+        },
+        aux = selection_steps,
+    )
+        
+    return events, results, good_jet_indices
+
+
+@jet_selection.init
+def jet_selection_init(self: Selector) -> None:
+    # register shifts
+    self.shifts |= {
+        shift_inst.name
+        for shift_inst in self.config_inst.shifts
+        if shift_inst.has_tag(("jec", "jer"))
+    }
+
+
+
+
+
+
+
+@selector(
+    uses={ f"Jet.{var}" for var in 
+           [
+            "pt", "eta", "phi", "mass",
+            "jetId", "btagDeepFlavB"
+           ]} | {optional("hcand.pt"), optional("hcand.eta"), optional("hcand.phi"),
+                 optional("hcand.mass"), optional("hcand.decayMode")} | {"cross_tau_jet_triggered", "cross_tau_triggered"} | {"channel_id"},
+    #produces={"Jet.pass_ditaujet"},
+    exposed=False,
+)
+def jet_cleaning(
+        self: Selector,
+        events: ak.Array,
+        good_jet_indices: ak.Array,
+        jet_selection_results: SelectionResult,
+        ditaujet_jet_indices: Optional[ak.Array]=None,
+        **kwargs
+) -> tuple[ak.Array, SelectionResult]:
+    """
+    This function vetoes b-jets with sufficiently high pt and incide eta region of interest
+    """
+
+    selection_steps = jet_selection_results.aux
+
+    jet_mask  = good_jet_indices >= 0
 
     if "hcand" in events.fields:
         good_jets = ak.with_name(events.Jet[good_jet_indices], "PtEtaPhiMLorentzVector")
@@ -557,7 +623,7 @@ def jet_selection(
         #hcand = ak.with_name(events.hcand[events.hcand.decayMode >= 0], "PtEtaPhiMLorentzVector") # to make sure the presence of tauh only
         hcand = ak.with_name(events.hcand, "PtEtaPhiMLorentzVector")
         dr_jets_hcand = good_jets.metric_table(hcand)
-        jet_is_closed_to_hcand = ak.any(dr_jets_hcand < 0.4, axis=-1)
+        jet_is_closed_to_hcand = ak.any(dr_jets_hcand < 0.5, axis=-1)
         selection_steps["jet_isclean"] = ~jet_is_closed_to_hcand
         good_clean_jets = good_jets[~jet_is_closed_to_hcand]
         good_jet_indices = good_clean_jets.rawIdx
@@ -571,19 +637,44 @@ def jet_selection(
     # bjet veto
     bjet_veto = ak.sum(b_jet_mask, axis=1) == 0
 
-    # make a 30 GeV cut on good jet pT
-    #jet_pt_30_mask = events.Jet[good_jet_indices].pt > 30.0
-    #good_jet_indices = good_jet_indices[jet_pt_30_mask]
-    #selection_steps["good_jet_pt_30"] = ak.fill_none(jet_pt_30_mask, False)
+    # good_jet_indices
+    # ditaujet_jet_indices
+    #from IPython import embed; embed()
+
+    #jet_indices = ak.local_index(events.Jet.pt)
+    #temp = ak.cartesian([jet_indices, ditaujet_jet_indices], axis=1)
+    #jet_indices_, ditaujet_jet_indices_ = ak.unzip(temp)
+    
+    
+    #ditau_jet_triggered = ak.where(jet_indices_ == ditaujet_jet_indices_, 1, 0)
+    #ditau_jet_triggered = ak.where(ak.num(ditaujet_jet_indices) > 0,
+    #                               ditau_jet_triggered,
+    #                               ak.zeros_like(jet_indices))
+
+    
+    #events = set_ak_column(events, "Jet.pass_ditaujet", ditau_jet_triggered)
+
+
+    temp = ak.cartesian([good_jet_indices, ditaujet_jet_indices], axis=1)
+    good_jet_indices_, ditaujet_jet_indices_ = ak.unzip(temp)
+    temp2 = ak.any((good_jet_indices_ - ditaujet_jet_indices_ == 0), axis=1)
+
+    trigger_mask = (events.channel_id == 4) & (ak.num(ditaujet_jet_indices_) > 0)  & events.cross_tau_jet_triggered & ~events.cross_tau_triggered
+    mask = ak.where(trigger_mask, temp2, True)
+    
+    #from IPython import embed; embed()
+
     
     results = SelectionResult(
-        # bveto selection will be required later for ABCD
+        # check if ditaujet matched jet is in cleaned jets
+        steps={
+            "ditaujet_is_in_selected_jets": mask,
+        },
         objects = {
             "Jet": {
-                "RawJet": events.Jet.rawIdx,
-                "SortedJet": sorted_indices,
                 "Jet": good_jet_indices,
                 "bJet": b_jet_indices,
+                "trigJet": ditaujet_jet_indices,
             },
         },
         aux = selection_steps,
@@ -594,19 +685,10 @@ def jet_selection(
     #    events, veto_result = self[jet_veto_map](events, **kwargs)
     #    results += veto_result
     
-    return events, results #, bjet_veto, good_jet_indices
+    return events, results, ditaujet_jet_indices #, bjet_veto
 
 
-@jet_selection.init
-def jet_selection_init(self: Selector) -> None:
-    # register shifts
-    self.shifts |= {
-        shift_inst.name
-        for shift_inst in self.config_inst.shifts
-        if shift_inst.has_tag(("jec", "jer"))
-    }
-
-
+    
     
 # ------------------------------------------------------------------------------------------------------- #
 # GenTau Selection
@@ -652,8 +734,8 @@ def gentau_selection(
         "genpart_pdgId"           : np.abs(events.GenPart.pdgId) == 15,
         "genpart_status"          : events.GenPart.status == 2,
         "genpart_status_flags"    : events.GenPart.hasFlags(["isPrompt", "isFirstCopy"]),
-        "genpart_pt_10"           : events.GenPart.pt > 10.0,
-        "genpart_eta_2p5"         : np.abs(events.GenPart.eta) < 2.5,
+        "genpart_pt_10"           : events.GenPart.pt > 5.0, # CHANGE 10.0
+        "genpart_eta_2p5"         : np.abs(events.GenPart.eta) < 3.0, # CHANGE 2.5
         "genpart_momid_25"        : events.GenPart[events.GenPart.distinctParent.genPartIdxMother].pdgId == 25,
         "genpart_mom_status_22"   : events.GenPart[events.GenPart.distinctParent.genPartIdxMother].status == 22,
     }
@@ -672,24 +754,37 @@ def gentau_selection(
     hcands  = ak.with_name(events.hcand, "PtEtaPhiMLorentzVector")
 
     # check the matching
-    matched_gentaus = hcands.nearest(gentaus, threshold=0.5) if match else gentaus
+    matched_gentaus = hcands.nearest(gentaus, threshold=0.8) if match else gentaus # CHANGE 0.5
 
     # nearest method can include None if a particle is not matched
     # so, taking care of the none values before adding it as a new column
+    matched_gentaus_dummy = matched_gentaus[:,:0]
+    """
     is_none = ak.sum(ak.is_none(matched_gentaus, axis=1), axis=1) > 0
-    matched_gentaus_dummy = matched_gentaus[:,:0] # new
     #matched_gentaus = ak.where(is_none, gentaus[:,:0], matched_gentaus)
     matched_gentaus = ak.where(is_none, matched_gentaus_dummy, matched_gentaus) # new
-
+    """
+    matched_gentaus = ak.drop_none(matched_gentaus) # CHANGE
+    
+    """
     has_full_match           = ~is_none
-    has_two_matched_gentaus  = has_full_match & ak.fill_none(ak.num(matched_gentaus.rawIdx, axis=1) == 2, False)
+    """
+    #has_two_matched_gentaus  = has_full_match & ak.fill_none(ak.num(matched_gentaus.rawIdx, axis=1) == 2, False)
+    has_two_matched_gentaus = ak.fill_none(ak.num(matched_gentaus.rawIdx, axis=1) == 2, False) # CHANGE
     gentaus_of_opposite_sign = ak.fill_none(ak.sum(matched_gentaus.pdgId, axis=1) == 0, False)
 
     # new
     # filter, again
+    """
     matched_gentaus = ak.where((has_full_match & has_two_matched_gentaus & gentaus_of_opposite_sign),
                                matched_gentaus,
                                matched_gentaus_dummy)
+    """
+    matched_gentaus = ak.where((has_two_matched_gentaus & gentaus_of_opposite_sign),
+                               matched_gentaus,
+                               matched_gentaus_dummy) 
+
+
     
     # Get gentau decay products 
     # hack: _apply_global_index [todo: https://github.com/columnflow/columnflow/discussions/430]
@@ -765,7 +860,7 @@ def gentau_selection(
     # new implementation for GenTau : IPx,IPy,IPz
     # Ref: https://indico.cern.ch/event/1451226/contributions/6253060/attachments/2976341/5239440/Pi_CP_28_11_24.pdf
 
-    is_pi = (np.abs(events.GenTauProd.pdgId) == 211) | (np.abs(events.GenTauProd.pdgId) == 321)  # | (np.abs(events.GenTauProd.pdgId) == 323)
+    is_pi = (np.abs(events.GenTauProd.pdgId) == 211) | (np.abs(events.GenTauProd.pdgId) == 321) | (np.abs(events.GenTauProd.pdgId) == 323) | (np.abs(events.GenTauProd.pdgId) == 10321) | (np.abs(events.GenTauProd.pdgId) == 10211)
     is_pi_oneprong = (events.GenTau.decayMode == 0) & is_pi # 1-prong
     prod_e = events.GenTauProd[is_e]
     prod_mu = events.GenTauProd[is_mu]

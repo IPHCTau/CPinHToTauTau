@@ -91,6 +91,9 @@ def higgscand(
                                           "IPsig"         : "float64",
                                           "idVsJet"       : "int32",
                                           "genPartFlav"   : "int32",
+                                          "SVx"           : "float64",
+                                          "SVy"           : "float64",
+                                          "SVz"           : "float64",
                                           }
                                          )
     else:
@@ -491,6 +494,7 @@ def build_hcand_mask(hcand, hcand_pi, hcand_pi0, dummy):
         "hcand.energy_split",
         IF_RUN3("hcand.IPx", "hcand.IPy", "hcand.IPz"), "hcand.IPsig",
         "hcand.idVsJet", "hcand.genPartFlav",
+        "hcand.SVx","hcand.SVy","hcand.SVz",
         "hcandprod.pt", "hcandprod.eta", "hcandprod.phi", "hcandprod.mass",
         "hcandprod.charge", "hcandprod.pdgId", "hcandprod.tauIdx",
         assign_tauprod_mass_charge,
