@@ -405,7 +405,6 @@ def convert_fit_formula_to_correctionlib(fit_formula, min_value=None, max_value=
     # print("min_value: ", min_value)
     # print("max_value: ", max_value)
     
-    print(f"Original fit formula: {fit_formula}")
     for key, value in replacements.items():
         fit_formula = fit_formula.replace(key, value)
 
@@ -422,7 +421,5 @@ def convert_fit_formula_to_correctionlib(fit_formula, min_value=None, max_value=
 
     # Clean up extra spaces (optional, for neatness)
     fit_formula = re.sub(r'\s+', ' ', fit_formula).strip()
-
-    print(f"Converted fit formula: {fit_formula}")
     
     return fit_formula

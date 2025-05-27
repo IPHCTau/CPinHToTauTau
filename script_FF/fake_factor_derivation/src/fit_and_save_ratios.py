@@ -27,7 +27,8 @@ def create_th1d_histogram(name, bin_edges, bin_contents, bin_uncertainties):
     th1d = ROOT.TH1D(name, name, n_bins, bin_edges[0], bin_edges[-1])
     
     for i, (content, uncertainty) in enumerate(zip(bin_contents, bin_uncertainties), start=1):
-        if content > 1.0e-5 and uncertainty < 1:
+        if content > 1.0e-5:
+            # print(f"content: {content}, uncertainty: {uncertainty}")
             th1d.SetBinContent(i, content)
             th1d.SetBinError(i, uncertainty)
     
@@ -68,37 +69,49 @@ def configure_directories(config):
     input_files = []
     output_dirs = []
     categories_str = []
+    ss_noniso_data_minus_mc_files = []
+    ss_iso_data_minus_mc_files = []
 
     for dm, n_jets in categories:
-        CATEGORY, INPUT_FILE = get_input_file(dm, n_jets, config, VARIABLE,CORRECTION_TYPE)
+        CATEGORY, INPUT_FILE, ss_noniso_data_minus_mc_file, ss_iso_data_minus_mc_file = get_input_file(dm, n_jets, config, VARIABLE,CORRECTION_TYPE)
         output_dir = os.path.join(OUTPUT_DIR_BASE, f"{CATEGORY}")
         ensure_directory(output_dir)
 
         input_files.append(INPUT_FILE)
+        ss_noniso_data_minus_mc_files.append(ss_noniso_data_minus_mc_file)
+        ss_iso_data_minus_mc_files.append(ss_iso_data_minus_mc_file)
         output_dirs.append(output_dir)
         categories_str.append(CATEGORY)
 
-    return input_files, output_dirs, HIST_NAME, categories_str, PT_RANGE
+    return input_files, ss_noniso_data_minus_mc_files, ss_iso_data_minus_mc_files, output_dirs, HIST_NAME, categories_str, PT_RANGE
 
 
 def get_input_file(dm, n_jets, config, VARIABLE,CORRECTION_TYPE):
     """Return the input file path based on dm, n_jets, and the given config."""
+
+    ss_noniso_data_minus_mc_file = None
+    ss_iso_data_minus_mc_file = None
+
+    # print(n_jets)
     if dm == -1 and n_jets == -1:
         CATEGORY = "inclusive"
-        INPUT_FILE = f"{config['input_base_path']}/RATIO_{VARIABLE}_{CATEGORY}.pkl"
+        FF_FILE = f"{config['input_base_path']}/RATIO_{VARIABLE}_{CATEGORY}.pkl"
     elif dm == -1 and n_jets != -1:
         CATEGORY = n_jets
-        INPUT_FILE = f"{config['input_base_path']}/RATIO_{VARIABLE}_{CATEGORY}.pkl"
+        FF_FILE = f"{config['input_base_path']}/RATIO_{VARIABLE}_{CATEGORY}.pkl"
     elif dm != -1 and n_jets == -1:
         CATEGORY = dm
-        INPUT_FILE = f"{config['input_base_path']}/RATIO_{VARIABLE}_{CATEGORY}.pkl"
+        # INPUT_FILE = f"{config['input_base_path']}/{CORRECTION_TYPE}_{VARIABLE}_dm_{CATEGORY}_alljet.pkl" # 
+        FF_FILE = f"{config['input_base_path']}/{CORRECTION_TYPE}_{VARIABLE}_DM0.pkl" # 
     elif dm != -1 and n_jets != -1:
         CATEGORY = f"{dm}_{n_jets}"
-        INPUT_FILE = f"{config['input_base_path']}/{CORRECTION_TYPE}_{VARIABLE}_dm_{dm}_njet_{n_jets}.pkl" 
+        FF_FILE = f"{config['input_base_path']}/{CORRECTION_TYPE}_{VARIABLE}_dm_{dm}_njet_{n_jets}.pkl"
+        ss_noniso_data_minus_mc_file = f"{config['input_base_path']}/{CORRECTION_TYPE}_ss_noniso_data_minus_mc_hist_dm_{dm}_njet_{n_jets}.pkl" # fake_factors_ss_noniso_data_minus_mc_hist_dm_tau1pi_njet_has1j.pkl  
+        ss_iso_data_minus_mc_file = f"{config['input_base_path']}/{CORRECTION_TYPE}_ss_iso_data_minus_mc_hist_dm_{dm}_njet_{n_jets}.pkl" # fake_factors_ss_iso_data_minus_mc_hist_dm_tau1pi_njet_has1j.pkl
     else:
         raise ValueError("Invalid DM and N_JETS values")
 
-    return CATEGORY, INPUT_FILE
+    return CATEGORY, FF_FILE, ss_noniso_data_minus_mc_file, ss_iso_data_minus_mc_file
 
 
 def save_root_file(OUTPUT_DIR, th1d, HIST_NAME, fit, h_uncert, ratio_hist, config, CATEGORY, combine=False):
@@ -120,7 +133,9 @@ def save_root_file(OUTPUT_DIR, th1d, HIST_NAME, fit, h_uncert, ratio_hist, confi
 def plot_results(fit, h_uncert, ratio_hist, OUTPUT_DIR, CATEGORY, output_root_file, lumi=1):
     """Create and save the plot results."""
     canvas = ROOT.TCanvas("Extrapolation Correction", "Extrapolation Correction", 800, 600)
+    ROOT.gStyle.SetOptStat(0) # Disable stat box
     ratio_hist.Draw("EP")
+    ratio_hist.SetStats(0)  # Disable stats box
     ratio_hist.SetLineColor(ROOT.kBlack)
     ratio_hist.SetMarkerStyle(20)
     
@@ -130,7 +145,9 @@ def plot_results(fit, h_uncert, ratio_hist, OUTPUT_DIR, CATEGORY, output_root_fi
     ratio_hist.GetYaxis().SetRangeUser(0, 1.0)
 
     h_uncert.Draw("E3 SAME")
+    h_uncert.SetStats(0)  # Disable stats box
     h_uncert.SetFillColorAlpha(ROOT.kAzure + 7, 0.3)
+    h_uncert.SetFillStyle(1001)
     h_uncert.SetLineColor(ROOT.kAzure + 7)
     h_uncert.SetLineWidth(2)
 
@@ -146,7 +163,7 @@ def plot_results(fit, h_uncert, ratio_hist, OUTPUT_DIR, CATEGORY, output_root_fi
     legend.SetTextSize(0.03)
     legend.Draw()
 
-    ROOT.gStyle.SetOptFit(0) 
+    ROOT.gStyle.SetOptFit(0) # Disable fit info
 
     # Add luminosity label with cms style 
     luminosity_label = ROOT.TLatex()
@@ -158,6 +175,7 @@ def plot_results(fit, h_uncert, ratio_hist, OUTPUT_DIR, CATEGORY, output_root_fi
     luminosity_label.DrawLatex(0.72, 0.91, f"{lumi} fb^{{-1}} (13.6 TeV)")
 
     output_image_base = output_root_file.replace(".root", "")
+    canvas.Update()
     canvas.SaveAs(f"{output_image_base}_FullPlot.root")
     canvas.SaveAs(f"{output_image_base}_FullPlot.png")
     canvas.SaveAs(f"{output_image_base}_FullPlot.pdf")
@@ -257,139 +275,245 @@ def save_json_correction(fit, fit_up, fit_down, ratio_hist, output_root_file, co
     save_to_correctionlib_with_fit(ratio_hist, output_json_file, dm, njet, fit_formula, fit_up_formula, fit_down_formula, 
                                    config['correction_type'], config['variable'], PT_RANGE[0], PT_RANGE[1])
 
-def merge_histograms_lumi_weighted(hist_list, lumi_list):
-    """Merge histograms using luminosity-weighted averaging."""
-    total_lumi = sum(lumi_list)
+def merge_histograms_years(ss_noniso_data_minus_mc_list, ss_iso_data_minus_mc_list ):
+    """Merge histograms bu summing"""
 
     # verify that number of hsit un nb files
-    if len(hist_list) != len(lumi_list):
-        raise ValueError("Number of histograms and luminosities must be equal.")
+    if len(ss_noniso_data_minus_mc_list) != len(ss_iso_data_minus_mc_list):
+        raise ValueError("Number of histograms must be equal.")
 
-    merged_hist = hist_list[0].Clone()  # Clone first histogram to maintain structure
+    ss_noniso_data_minus_mc_sum = ss_noniso_data_minus_mc_list[0].Clone()  # Clone first histogram to maintain structure
+    ss_iso_data_minus_mc_sum = ss_iso_data_minus_mc_list[0].Clone()  # Clone first histogram to maintain structure
+
+    ss_noniso_data_minus_mc_sum.Sumw2()
+    ss_iso_data_minus_mc_sum.Sumw2()
     
-    # Reset values to zero
-    merged_hist.Reset()
+    # sum the hist of num and denominator
+    for i in range(1, len(ss_noniso_data_minus_mc_list)):
+        ss_noniso_data_minus_mc_sum.Add(ss_noniso_data_minus_mc_list[i])
+        ss_iso_data_minus_mc_sum.Add(ss_iso_data_minus_mc_list[i])
 
-    hist1 = hist_list[0]
-    hist2 = hist_list[1]
+        # take care of error
+        ss_noniso_data_minus_mc_sum.Sumw2()
+        ss_iso_data_minus_mc_sum.Sumw2()
 
-    lumi1 = lumi_list[0]
-    lumi2 = lumi_list[1]
+    return ss_noniso_data_minus_mc_sum, ss_iso_data_minus_mc_sum
 
-    # Test if they have the same binning
-    if hist1.GetNbinsX() != hist2.GetNbinsX():
-        raise ValueError("Histograms must have the same number of bins.")
+def load_config(config_file):
+    """Loads the configuration from a JSON file."""
+    with open(config_file, "r") as f:
+        return json.load(f)
 
-    # should have the same binning
-    for bin in range(1, hist1.GetNbinsX() + 1):
-        bin_content_hist1 = hist1.GetBinContent(bin)
-        bin_content_hist2 = hist2.GetBinContent(bin)
+def process_category(input_files, ss_noniso_data_minus_mc_files, ss_iso_data_minus_mc_files, output_dirs, categories):
+    """Process the data for each category and return the necessary processed information."""
+    results = []
 
-        bin_uncert_hist1 = hist1.GetBinError(bin)
-        bin_uncert_hist2 = hist2.GetBinError(bin)
+    for INPUT_FILE, ss_noniso_data_minus_mc_file, ss_iso_data_minus_mc_file, OUTPUT_DIR, CATEGORY in zip(input_files, ss_noniso_data_minus_mc_files, ss_iso_data_minus_mc_files, output_dirs, categories):
+        # print(f"Processing category: {CATEGORY}")
+        dm, njet = extract_category_info(CATEGORY)
 
-        # Calculate the weighted average
-        merged_bin_content = (lumi1 * bin_content_hist1 + lumi2 * bin_content_hist2) / total_lumi
-        merged_bin_uncert = np.sqrt((lumi1 * bin_uncert_hist1**2 + lumi2 * bin_uncert_hist2**2) / total_lumi)
+        ss_noniso_data_minus_mc_pkl, ss_iso_data_minus_mc_pkl = load_data_files(ss_noniso_data_minus_mc_file, ss_iso_data_minus_mc_file)
+        ss_noniso_data_minus_mc_hist, ss_iso_data_minus_mc_hist = ss_noniso_data_minus_mc_pkl[0, :, :], ss_iso_data_minus_mc_pkl[0, :, :]
 
-        merged_hist.SetBinContent(bin, merged_bin_content)
-        merged_hist.SetBinError(bin, merged_bin_uncert)
+        # Process the histograms
+        ss_noniso_data_minus_mc_hist_bin_edges, ss_noniso_data_minus_mc_hist_bin_contents, ss_noniso_data_minus_mc_hist_bin_uncertainties = extract_hist_data(ss_noniso_data_minus_mc_hist)
+        ss_iso_data_minus_mc_hist_bin_edges, ss_iso_data_minus_mc_hist_bin_contents, ss_iso_data_minus_mc_hist_bin_uncertainties = extract_hist_data(ss_iso_data_minus_mc_hist)
 
-    return merged_hist
+        ss_noniso_data_minus_mc_th1d = create_th1d_histogram("ss_noniso_data_minus_mc", ss_noniso_data_minus_mc_hist_bin_edges, ss_noniso_data_minus_mc_hist_bin_contents, ss_noniso_data_minus_mc_hist_bin_uncertainties)
+        ss_iso_data_minus_mc_th1d = create_th1d_histogram("ss_iso_data_minus_mc", ss_iso_data_minus_mc_hist_bin_edges, ss_iso_data_minus_mc_hist_bin_contents, ss_iso_data_minus_mc_hist_bin_uncertainties)
 
+        results.append((dm, njet, ss_noniso_data_minus_mc_th1d, ss_iso_data_minus_mc_th1d, OUTPUT_DIR, CATEGORY))
+
+    return results
+
+
+def extract_category_info(CATEGORY):
+    """Extracts dm and njet information from the CATEGORY string."""
+    dm = CATEGORY.split("_")[0]
+    njet = CATEGORY.split("_")[1] if len(CATEGORY.split("_")) > 1 else -1
+    return dm, njet
+
+
+def load_data_files(ss_noniso_data_minus_mc_file, ss_iso_data_minus_mc_file):
+    """Loads the pickle data files."""
+    ss_noniso_data_minus_mc_pkl = load_pkl_file(ss_noniso_data_minus_mc_file)
+    ss_iso_data_minus_mc_pkl = load_pkl_file(ss_iso_data_minus_mc_file)
+    return ss_noniso_data_minus_mc_pkl, ss_iso_data_minus_mc_pkl
+
+
+def extract_hist_data(hist):
+    """Extracts histogram data: bin edges, contents, and uncertainties."""
+    bin_edges = hist.axes[1].edges
+    bin_contents = hist.values().flatten()
+    bin_uncertainties = np.sqrt(hist.variances()).flatten()
+    return bin_edges, bin_contents, bin_uncertainties
+
+
+def draw_and_save_histograms(ss_noniso_data_minus_mc_th1d, ss_iso_data_minus_mc_th1d, OUTPUT_DIR, suffix=""):
+    """Draws and saves histograms."""
+    canvas = ROOT.TCanvas("canvas", "canvas", 800, 600)
+    ss_noniso_data_minus_mc_th1d.Draw("EP")
+    ss_noniso_data_minus_mc_th1d.SetStats(0)
+    ss_noniso_data_minus_mc_th1d.SetLineColor(ROOT.kBlack)
+    ss_noniso_data_minus_mc_th1d.SetMarkerStyle(20)
+
+    ss_iso_data_minus_mc_th1d.Draw("EP SAME")
+    ss_iso_data_minus_mc_th1d.SetStats(0)
+    ss_iso_data_minus_mc_th1d.SetLineColor(ROOT.kRed)
+    ss_iso_data_minus_mc_th1d.SetMarkerStyle(20)
+
+    # Save the plot
+    canvas.SaveAs(f"{OUTPUT_DIR}/ss_noniso_data_minus_mc_vs_ss_iso_data_minus_mc{suffix}.png")
+    canvas.SaveAs(f"{OUTPUT_DIR}/ss_noniso_data_minus_mc_vs_ss_iso_data_minus_mc{suffix}.pdf")
+    canvas.SaveAs(f"{OUTPUT_DIR}/ss_noniso_data_minus_mc_vs_ss_iso_data_minus_mc{suffix}.root")
+
+
+def rebin_and_plot(ss_noniso_data_minus_mc_th1d, ss_iso_data_minus_mc_th1d, OUTPUT_DIR, custom_bins):
+    """Rebins and plots the histograms."""
+    ss_noniso_data_minus_mc_th1d_rebin = rebin_to_custom_bins(ss_noniso_data_minus_mc_th1d, custom_bins)
+    ss_iso_data_minus_mc_th1d_rebin = rebin_to_custom_bins(ss_iso_data_minus_mc_th1d, custom_bins)
+
+    # Draw rebin
+    draw_and_save_histograms(ss_noniso_data_minus_mc_th1d_rebin, ss_iso_data_minus_mc_th1d_rebin, OUTPUT_DIR, suffix="_rebin")
+
+    return ss_noniso_data_minus_mc_th1d_rebin, ss_iso_data_minus_mc_th1d_rebin
 
 # -------------------------------
 # Main Function
 # -------------------------------
+
 def main(args):
-
     config_files = args.config
-
     nb_files = len(config_files)
+    combined_ss_data_minus_mc_th1d = {}
 
-    combined_ratios = {}
-
+    total_lumi = 0
     for config_file in config_files:
 
+        # Load the configuration file
         if not os.path.exists(config_file):
             raise ValueError(f"Configuration file {config_file} does not exist.")
         
-        print("Using configuration file: %s"%(config_file))
+        print("Using configuration file: %s" % (config_file))
 
-        # Load configuration from JSON file
-        with open(config_file, "r") as config_file:
-            config = json.load(config_file)
-        
+        config = load_config(config_file)
+
+        era = config["era"]
         lumi = config.get("luminosity", 1)
+        total_lumi += lumi
 
         # Assign configuration values and directories
-        input_files, output_dirs, HIST_NAME, categories, PT_RANGE = configure_directories(config)
+        input_files, ss_noniso_data_minus_mc_files, ss_iso_data_minus_mc_files, output_dirs, HIST_NAME, categories, PT_RANGE = configure_directories(config)
         
-        for INPUT_FILE, OUTPUT_DIR, CATEGORY in zip(input_files, output_dirs, categories):
-            print(f"Processing category: {CATEGORY}")
+        results = process_category(input_files, ss_noniso_data_minus_mc_files, ss_iso_data_minus_mc_files, output_dirs, categories)
+        
+        if era == "2022_preEE":
+            ss_noniso_data_minus_mc_th1d_rebin_dm0 = []
+            ss_iso_data_minus_mc_th1d_rebin_dm0 = []
 
-            dm = CATEGORY.split("_")[0]
-            njet = CATEGORY.split("_")[1]
+        for dm, njet, ss_noniso_data_minus_mc_th1d, ss_iso_data_minus_mc_th1d, OUTPUT_DIR, CATEGORY in results :
+            print(f"Processing category: {dm}, {njet}")
 
+            
+            # Draw and save the initial histograms
+            draw_and_save_histograms(ss_noniso_data_minus_mc_th1d, ss_iso_data_minus_mc_th1d, OUTPUT_DIR)
 
-            # -------------------------------
-            # Load Data
-            # -------------------------------
-            ratio = load_pkl_file(INPUT_FILE)
-            h = ratio[0, :, :]
-
-            bin_edges = h.axes[1].edges
-            bin_contents = h.values().flatten()
-            bin_uncertainties = np.sqrt(h.variances()).flatten()
-
-            print(f"Loaded data from {INPUT_FILE}")
-
-            th1d = create_th1d_histogram(HIST_NAME, bin_edges, bin_contents, bin_uncertainties)
-            th1d.SetMinimum(0)
-            th1d.SetMaximum(1.6)
-   
-
-            custom_bins = [35,40,45,50,55,60,65,70,80,120,200] # Custom binning for hcand_1_pt
-            th1d = rebin_to_custom_bins(th1d, custom_bins)
+            # Rebin and draw histograms
+            custom_bins = [35, 40, 45, 50, 55, 60, 65, 70, 80, 120, 200]
+            ss_noniso_data_minus_mc_th1d_rebin, ss_iso_data_minus_mc_th1d_rebin = rebin_and_plot(ss_noniso_data_minus_mc_th1d, ss_iso_data_minus_mc_th1d, OUTPUT_DIR, custom_bins)
 
 
+            # if dm == 0 merge the njet categories
+            if dm == "tau1pi" and era == "2022_preEE":
+                print("dm = 0")
+                ss_noniso_data_minus_mc_th1d_rebin_dm0.append(ss_noniso_data_minus_mc_th1d_rebin)
+                ss_iso_data_minus_mc_th1d_rebin_dm0.append(ss_iso_data_minus_mc_th1d_rebin)
+
+                # if all njet have been added to list then merge by summin them them else continue 
+                if len(ss_noniso_data_minus_mc_th1d_rebin_dm0) == 3:
+                    ss_noniso_data_minus_mc_th1d_rebin = ss_noniso_data_minus_mc_th1d_rebin_dm0[0].Clone()
+                    ss_iso_data_minus_mc_th1d_rebin = ss_iso_data_minus_mc_th1d_rebin_dm0[0].Clone()
+                    # take care of error
+                    ss_noniso_data_minus_mc_th1d_rebin.Sumw2()
+                    ss_iso_data_minus_mc_th1d_rebin.Sumw2()
+                    for i in range(1, 3):
+                        ss_noniso_data_minus_mc_th1d_rebin.Add(ss_noniso_data_minus_mc_th1d_rebin_dm0[i])
+                        ss_iso_data_minus_mc_th1d_rebin.Add(ss_iso_data_minus_mc_th1d_rebin_dm0[i])
+                else: 
+                    print("skip for loop on dm = 0")
+                    continue
+
+            
+            # in the case several config files are used, we need to combine the histograms
             if nb_files > 1:
                 # Store results for merging
                 key = (dm, njet)
-                if key not in combined_ratios:
-                    combined_ratios[key] = {"hists": [], "lumis": []}
-                 
-                combined_ratios[key]["hists"].append(th1d)
-                combined_ratios[key]["lumis"].append(lumi)
 
 
-            # -------------------------------
-            # Fit Fake Factor & Save Fit Outputs
-            # -------------------------------
+                if key not in combined_ss_data_minus_mc_th1d:
+                    combined_ss_data_minus_mc_th1d[key] = {}
+                    # print("combined_ss_data_minus_mc_th1d[key]", combined_ss_data_minus_mc_th1d[key])
+        
+                if era not in combined_ss_data_minus_mc_th1d:
+                    combined_ss_data_minus_mc_th1d[key][era] = {"combined_ss_noniso_data_minus_mc_th1d": [], "combined_ss_iso_data_minus_mc_th1d": []}
+
+                
+                combined_ss_data_minus_mc_th1d[key][era]["combined_ss_noniso_data_minus_mc_th1d"].append(ss_noniso_data_minus_mc_th1d_rebin)
+                combined_ss_data_minus_mc_th1d[key][era]["combined_ss_iso_data_minus_mc_th1d"].append(ss_iso_data_minus_mc_th1d_rebin)
+
+                # print("combined_ss_data_minus_mc_th1d[key]", combined_ss_data_minus_mc_th1d)
 
 
-            fit_range = (35, 200)
-            fit, h_uncert, ratio_hist, fit_up, fit_down = fit_fake_factor(th1d, *fit_range, usePol1=False, polOnly=3)
+            else : 
+                # Calculate the ratio and fit the fake factor
+                ratio_th1d = ss_iso_data_minus_mc_th1d_rebin.Clone("ratio")
+                ratio_th1d.Divide(ss_noniso_data_minus_mc_th1d_rebin)
+                ratio_th1d.SetTitle("ratio")
 
-            # Save ROOT file
-            output_root_file = save_root_file(OUTPUT_DIR, th1d, HIST_NAME, fit, h_uncert, ratio_hist, config, CATEGORY)
-            
-            # Plot Results
-            canvas = plot_results(fit, h_uncert, ratio_hist, OUTPUT_DIR, CATEGORY, output_root_file, lumi=lumi)
 
-            # Save to JSON
-            save_json_correction(fit, fit_up, fit_down, ratio_hist, output_root_file, config, PT_RANGE, dm, njet)
+                # -------------------------------
+                # Fit Fake Factor & Save Fit Outputs
+                # -------------------------------
+                fit_range = (35, 200)
+                fit, h_uncert, ratio_hist, fit_up, fit_down = fit_fake_factor(ratio_th1d, *fit_range, usePol1=False, polOnly=3)
+
+                print("fit up  forumula : ", fit_up.GetExpFormula("P"))
+                print("fit down  forumula : ", fit_down.GetExpFormula("P"))
+
+                # Save the result in ROOT and JSON
+                output_root_file = save_root_file(OUTPUT_DIR, ratio_th1d, HIST_NAME, fit, h_uncert, ratio_hist, config, CATEGORY)
+
+                # Plot Results
+                canvas = plot_results(fit, h_uncert, ratio_hist, OUTPUT_DIR, CATEGORY, output_root_file, lumi=lumi)
+
+                # Save to JSON
+                save_json_correction(fit, fit_up, fit_down, ratio_hist, output_root_file, config, PT_RANGE, dm, njet)
 
     if nb_files > 1:
         # Merge histograms for the same (dm, njet) category
-        for (dm, njet), data in combined_ratios.items():
-            print(f"Combining histograms for dm={dm}, njet={njet} using luminosity weighting")
 
-            print("data: ", data)
+        # lumi = sum of lumi of all config files 
 
-            merged_hist = merge_histograms_lumi_weighted(data["hists"], data["lumis"])
 
-            combined_era = config["era"].split("_")[0]  #only keep the year
+        for (dm, njet), data in combined_ss_data_minus_mc_th1d.items():
+            print(f"Combining histograms for dm={dm}, njet={njet}")
+
+            combined_ss_noniso_data_minus_mc_th1d_list = []
+            combined_ss_iso_data_minus_mc_th1d_list = []
+
+            for era, data_by_era in data.items():
+
+
+                print(f"eras considered : ", era)
+
+                combined_ss_noniso_data_minus_mc_th1d_list.append(data_by_era["combined_ss_noniso_data_minus_mc_th1d"][0])
+                combined_ss_iso_data_minus_mc_th1d_list.append(data_by_era["combined_ss_iso_data_minus_mc_th1d"][0])
+
+            if nb_files > 2: 
+                combined_era = 2022_2023
+            else:
+                combined_era = config["era"].split("_")[0]  #only keep the year
+
             CORRECTION_TYPE = config["correction_type"] 
 
             OUTPUT_DIR_BASE = f"/afs/cern.ch/user/o/oponcet/private/analysis/CPinHToTauTau/script_FF/fake_factor_derivation/outputs/{combined_era}/{CORRECTION_TYPE}"
@@ -399,18 +523,40 @@ def main(args):
             ensure_directory(OUTPUT_DIR)
 
 
-            # Fit Fake Factor & Save Fit Outputs
-            fit_range = (35, 200)
-            fit, h_uncert, ratio_hist, fit_up, fit_down = fit_fake_factor(merged_hist, *fit_range, usePol1=False, polOnly=3)
+            print(f"combined_ss_noniso_data_minus_mc_th1d_list : ", combined_ss_noniso_data_minus_mc_th1d_list)
+            # Sum the histo
+            ss_noniso_data_minus_mc_th1d_sum, ss_iso_data_minus_mc_th1d_sum = merge_histograms_years(combined_ss_noniso_data_minus_mc_th1d_list, combined_ss_iso_data_minus_mc_th1d_list)
 
-            # Save ROOT file
-            output_root_file = save_root_file(OUTPUT_DIR, merged_hist, HIST_NAME, fit, h_uncert, ratio_hist, config, f"{dm}_{njet}", combine=True)
+            # Rebin and draw histograms
+            custom_bins = [35, 40, 45, 50, 55, 60, 65, 70, 80, 120, 200]
+            ss_noniso_data_minus_mc_th1d_rebin, ss_iso_data_minus_mc_th1d_rebin = rebin_and_plot(ss_noniso_data_minus_mc_th1d_sum, ss_iso_data_minus_mc_th1d_sum, OUTPUT_DIR, custom_bins)
+
+
+            # Calculate the ratio and fit the fake factor
+            ratio_th1d = ss_iso_data_minus_mc_th1d_rebin.Clone("ratio")
+            ratio_th1d.Divide(ss_noniso_data_minus_mc_th1d_rebin)
+            ratio_th1d.SetTitle("ratio")
+
+
+            # -------------------------------
+            # Fit Fake Factor & Save Fit Outputs
+            # -------------------------------
+            fit_range = (35, 200)
+            fit, h_uncert, ratio_hist, fit_up, fit_down = fit_fake_factor(ratio_th1d, *fit_range, usePol1=False, polOnly=3)
+
+            # print("fit up  forumula : ", fit_up.GetExpFormula("P"))
+            # print("fit down  forumula : ", fit_down.GetExpFormula("P"))
+
+            # Save the result in ROOT and JSON
+            output_root_file = save_root_file(OUTPUT_DIR, ratio_th1d, HIST_NAME, fit, h_uncert, ratio_hist, config, CATEGORY)
 
             # Plot Results
-            canvas = plot_results(fit, h_uncert, ratio_hist, OUTPUT_DIR, f"{dm}_{njet}", output_root_file, lumi=sum(data["lumis"]))
+            canvas = plot_results(fit, h_uncert, ratio_hist, OUTPUT_DIR, CATEGORY, output_root_file, lumi=total_lumi)
 
             # Save to JSON
             save_json_correction(fit, fit_up, fit_down, ratio_hist, output_root_file, config, PT_RANGE, dm, njet)
+
+     
 # -------------------------------
 # Call the main function if script is executed
 # -------------------------------
