@@ -949,7 +949,7 @@ def add_triggers_run3_2023(config: od.Config, postfix: str) -> None:
                     pdg_id=13,
                     min_pt=25.0,
                     min_pt_online=24.0,
-                    max_abseta=2.1,
+                    max_abseta=2.4,
                     max_abseta_online=2.4,
                     # filter
                     # hltL3crIsoL1sSingleMu22L1f0L2f10QL3f24QL3trkIsoFiltered
@@ -1069,20 +1069,6 @@ def add_triggers_run3_2023(config: od.Config, postfix: str) -> None:
             tags={"cross_trigger", "cross_tau_tau_jet", "channel_tau_tau"},
         ),
     ])
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 
