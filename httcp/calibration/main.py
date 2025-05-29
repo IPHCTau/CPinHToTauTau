@@ -66,13 +66,9 @@ def main(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array:
     genjet_matched = ak.values_astype(ak.ones_like(events.Jet.pt), np.int32)
     if self.dataset_inst.is_mc:
         events = self[attach_coffea_behavior](events, collections=["Jet", "GenJet"], **kwargs)
-        #cfjets = self[attach_coffea_behavior](events.Jet, **kwargs)
-        #gencfjets = self[attach_coffea_behavior](events.GenJet, **kwargs)
-        #jet_is_matched_to_genjet = cfjets.matched_gen
         jet_is_matched_to_genjet = events.Jet.matched_gen
         temp_ = ak.fill_none(jet_is_matched_to_genjet.pt, -1.0)
         genjet_matched = ak.values_astype(ak.where(temp_ < 0.0, 0, 1), np.int32)
-        #from IPython import embed; embed()
 
     events = set_ak_column(events, "Jet.isgenmatched", genjet_matched)
     
@@ -82,7 +78,6 @@ def main(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array:
         events = ak.without_field(events, "RawPuppiMET")
         events = ak.without_field(events, "PuppiMET")
 
-    #if self.dataset_inst.is_mc:
     logger.warning("JER is not going to be applied to jets in MC with eta > 2.5 and has no genjet match : L716-L722 (columnflow.calibration.jets.py)")
     events = self[jets](events, **kwargs)
 
@@ -92,13 +87,13 @@ def main(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array:
         events = ak.without_field(events, "RawMET")
         events = ak.without_field(events, "MET")
 
+    # BE CAREFUL!!!
+    # TES CAN BE SWITCHED OFF FOR SYNC STUDY
     if self.dataset_inst.is_mc: 
-        ##Apply tau energy scale correction
         events = self[tau_energy_scale](events, **kwargs)
 
     # electron scale and smearing correction
     events = set_ak_column_f32(events, "Electron.pt_no_ss", events.Electron.pt)
-    if self.config_inst.campaign.x.year < 2023:
-        events = self[electron_smearing_scaling](events, **kwargs)
+    events = self[electron_smearing_scaling](events, **kwargs)
         
     return events
