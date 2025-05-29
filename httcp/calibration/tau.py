@@ -50,7 +50,6 @@ def tau_energy_scale(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array:
     syst = "nom" # TODO define this systematics inside config file
     #Get working points of the DeepTau tagger
     deep_tau_tagger    = self.config_inst.x.deep_tau_tagger
-    #deep_tau = self.config_inst.x.deep_tau
    
     #Create get energy scale correction for each tau
     tes_nom = np.ones_like(pt, dtype=np.float32)
@@ -86,6 +85,9 @@ def tau_energy_scale(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array:
 
     events = set_ak_column_f32(events, "Tau.pt_mutau", ak.unflatten(pt * tes_nom, arr_shape))
     events = set_ak_column_f32(events, "Tau.mass_mutau", ak.unflatten(mass * tes_nom, arr_shape))
+    # CAREFUL
+    #events = set_ak_column_f32(events, "Tau.pt_mutau", ak.unflatten(pt, arr_shape))
+    #events = set_ak_column_f32(events, "Tau.mass_mutau", ak.unflatten(mass, arr_shape))
 
     tes_nom = np.ones_like(pt, dtype=np.float32)
     tes_args = lambda events, mask, deep_tau_tagger, syst: (pt[mask],
@@ -98,7 +100,6 @@ def tau_energy_scale(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array:
                                                             syst)
     tes_nom[mask2prong] = self.tes_corrector.evaluate(*tes_args(events, mask2prong, deep_tau_tagger, syst))
     tes_nom     = np.asarray(tes_nom)
-    #from IPython import embed; embed()
     #tau_pt      = np.asarray(ak.flatten(events.Tau.pt))
     #tau_mass    = np.asarray(ak.flatten(events.Tau.mass))
     mask_etau_tes_0 = (pt > 20.0) & (tes_nom == 0)
@@ -109,6 +110,9 @@ def tau_energy_scale(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array:
 
     events = set_ak_column_f32(events, "Tau.pt_etau", ak.unflatten(pt * tes_nom, arr_shape))
     events = set_ak_column_f32(events, "Tau.mass_etau", ak.unflatten(mass * tes_nom, arr_shape))
+    # CAREFUL
+    #events = set_ak_column_f32(events, "Tau.pt_etau", ak.unflatten(pt, arr_shape))
+    #events = set_ak_column_f32(events, "Tau.mass_etau", ak.unflatten(mass, arr_shape))
 
     tes_nom = np.ones_like(pt, dtype=np.float32)
     tes_args = lambda events, mask, deep_tau_tagger, syst: (pt[mask],
@@ -131,6 +135,9 @@ def tau_energy_scale(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array:
 
     events = set_ak_column_f32(events, "Tau.pt_tautau", ak.unflatten(pt * tes_nom, arr_shape))
     events = set_ak_column_f32(events, "Tau.mass_tautau", ak.unflatten(mass * tes_nom, arr_shape))
+    # CAREFUL
+    #events = set_ak_column_f32(events, "Tau.pt_tautau", ak.unflatten(pt, arr_shape))
+    #events = set_ak_column_f32(events, "Tau.mass_tautau", ak.unflatten(mass, arr_shape))
 
     stop = time.time()
     if self.config_inst.x.verbose.calibration.tau:
