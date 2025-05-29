@@ -228,8 +228,9 @@ def etau_selection(
     vs_jet_wp       = self.config_inst.x.deep_tau_info[tau_tagger].vs_j["etau"]
 
     is_good_tau     = (
+        (taus.pt > 20.0)
         #(taus.idDeepTau2018v2p5VSjet   >= tau_tagger_wps.vs_j[vs_jet_wp])
-        (taus.idDeepTau2018v2p5VSe   >= tau_tagger_wps.vs_e[vs_e_wp])
+        & (taus.idDeepTau2018v2p5VSe   >= tau_tagger_wps.vs_e[vs_e_wp])
         & (taus.idDeepTau2018v2p5VSmu  >= tau_tagger_wps.vs_m[vs_mu_wp])
     )
 
