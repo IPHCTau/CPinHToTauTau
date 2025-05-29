@@ -5,7 +5,7 @@ FULL: &full_
   era     : 2023
   postfix : PostBPix
   wrapper : true
-  workers : 12
+  workers : 10
   tasks_per_job  : 2
 
   args: &args_
@@ -13,13 +13,13 @@ FULL: &full_
     workflow  : htcondor
     branch    : -1
     # if dummy, version will be set automatically 
-    version   : Run3_2023PostBPix_full_20250209_204130  #dummy #Run3_2022PreEE_full_20250118_215651
+    version   : Run3_2023PostBPix_full_20250527_v1
 
     datasets  : &datasets_
       ## == data ==
       - data_tau_D
-      #- data_mu0_D
-      #- data_mu1_D
+      - data_mu0_D
+      - data_mu1_D
       #- data_e0_D
       #- data_e1_D
       ## == wj ==
@@ -104,13 +104,13 @@ FULL: &full_
       #- vv
       #- vvv
       - multiboson
-      #- h_ggf_htt
+      - h_ggf_htt
       #- zh_htt
       #- wh_htt
 
     categories: &categories_
-      - etau__real_2__*
-      - mutau__real_2__*
+      #- etau__real_2__*
+      #- mutau__real_2__*
       - tautau__real_1__*
 
     variables: &variables_

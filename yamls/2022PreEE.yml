@@ -13,7 +13,7 @@ FULL: &full_
     workflow  : htcondor
     branch    : -1
     # if dummy, version will be set automatically 
-    version   : Run3_2022PreEE_full_20250212_005903 #dummy
+    version   : Run3_2022PreEE_full_signals #Run3_2022PreEE_full_20250212_005903 #dummy
 
     datasets  : &datasets_
       ## == data ==
