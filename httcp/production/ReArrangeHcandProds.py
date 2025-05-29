@@ -276,6 +276,9 @@ def reArrangeDecayProducts(
     hcand2     = hcand[:, 1:2]
     #hcand1prod = ak.firsts(hcandprod[:,0:1], axis=1)
     #hcand2prod = ak.firsts(hcandprod[:,1:2], axis=1)
+
+    #from IPython import embed; embed()
+    
     hcand1prod = hcandprod[:,0]
     hcand2prod = hcandprod[:,1]
 

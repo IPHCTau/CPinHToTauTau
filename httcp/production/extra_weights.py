@@ -148,14 +148,17 @@ def zpt_reweight_v2(
     zpt = events.GenZ.pt
 
     dataset_type = "LO" if "madgraph" in self.dataset_inst.name else "NLO"
-    era = f"{self.config_inst.campaign.x.year}{self.config_inst.campaign.x.postfix}_{dataset_type}"
+    #era = f"{self.config_inst.campaign.x.year}{self.config_inst.campaign.x.postfix}_{dataset_type}"
+    era = f"{self.config_inst.campaign.x.year}{self.config_inst.campaign.x.postfix}"
     
     for syst in ["nom", "up1", "down1"]:
         tag = re.match(r'([a-zA-Z]+)\d*', syst).group(1)
         name = "zpt_reweight" if syst=="nom" else f"zpt_reweight_{tag}"
+        #from IPython import embed; embed()
         sf = ak.where(is_outside_range,
                       1.0,
                       self.zpt_corrector.evaluate(era,
+                                                  dataset_type,
                                                   zpt,
                                                   syst)
                       )
@@ -330,3 +333,177 @@ def ff_weight_setup(
     #)
     #self.ext_corrector = ext_correction_set["extrapolation_correction"]
     
+
+
+# ------------------------------------------------- #
+# Calculate MET Recoil Corrections
+# ------------------------------------------------- #
+
+@producer(
+    uses={
+        "metRecoilJet.pt",
+        "GenZ.pt", "GenZ.phi",
+        "GenZvis.pt", "GenZvis.phi",
+        "PuppiMET.pt", "PuppiMET.phi",
+    },
+    produces={
+        "PuppiMET.pt", "PuppiMET.phi",
+    },
+    mc_only=True,
+)
+def met_recoil_corr(
+        self: Producer,
+        events: ak.Array,
+        **kwargs,
+) :
+    """
+      Ref:
+        - https://gitlab.cern.ch/dwinterb/HiggsDNA/-/blob/master/higgs_dna/tools/ditau/recoil_corrector.py#L62
+    """
+    n_jets = ak.to_numpy(ak.num(events.metRecoilJet.pt, axis=1)).astype(float)
+    
+    met_pt = events.PuppiMET.pt
+    met_phi = events.PuppiMET.phi
+    gen_boson_pt = events.GenZ.pt
+    gen_boson_phi = events.GenZ.phi
+    gen_boson_visible_pt = events.GenZvis.pt
+    gen_boson_visible_phi = events.GenZvis.phi
+
+    met_x = met_pt * np.cos(met_phi)
+    met_y = met_pt * np.sin(met_phi)
+    gen_boson_x = gen_boson_pt * np.cos(gen_boson_phi)
+    gen_boson_y = gen_boson_pt * np.sin(gen_boson_phi)
+    gen_boson_visible_x = gen_boson_visible_pt * np.cos(gen_boson_visible_phi)
+    gen_boson_visible_y = gen_boson_visible_pt * np.sin(gen_boson_visible_phi)
+
+    U_x = met_x + gen_boson_visible_x - gen_boson_x
+    U_y = met_y + gen_boson_visible_y - gen_boson_y
+
+    U_pt = np.sqrt(U_x**2 + U_y**2)
+    U_phi = np.arctan2(U_y, U_x)
+
+    Upara = U_pt * np.cos(U_phi - gen_boson_phi)
+    Uperp = U_pt * np.sin(U_phi - gen_boson_phi)
+
+
+    dataset_type = "LO" if "madgraph" in self.dataset_inst.name else "NLO"
+    era = f"{self.config_inst.campaign.x.year}{self.config_inst.campaign.x.postfix}"
+
+
+    Upara_corr = self.met_recoil_corrector.evaluate(era, dataset_type, n_jets, gen_boson_pt, "Upara", Upara)
+    Uperp_corr = self.met_recoil_corrector.evaluate(era, dataset_type, n_jets, gen_boson_pt, "Uperp", Uperp)
+
+    U_pt_corr = np.sqrt(Upara_corr**2 + Uperp_corr**2)
+    U_phi_corr = np.arctan2(Uperp_corr, Upara_corr) + gen_boson_phi
+    U_x_corr = U_pt_corr * np.cos(U_phi_corr)
+    U_y_corr = U_pt_corr * np.sin(U_phi_corr)
+    met_x_corr = U_x_corr - gen_boson_visible_x + gen_boson_x
+    met_y_corr = U_y_corr - gen_boson_visible_y + gen_boson_y
+
+    met_pt_corr = np.sqrt(met_x_corr**2 + met_y_corr**2)
+    met_phi_corr = np.arctan2(met_y_corr, met_x_corr)    
+    
+    # Add the column to the events
+    events = set_ak_column(events, "PuppiMET.pt_pre_recoil", met_pt)
+    events = set_ak_column(events, "PuppiMET.phi_pre_recoil", met_phi)
+
+    events = set_ak_column(events, "PuppiMET.pt", met_pt_corr)
+    events = set_ak_column(events, "PuppiMET.phi", met_phi_corr)
+
+    #from IPython import embed; embed()
+    
+    return events
+
+
+@met_recoil_corr.requires
+def met_recoil_corr_requires(self: Producer, reqs: dict) -> None:
+    if "external_files" in reqs:
+        return
+    
+    from columnflow.tasks.external import BundleExternalFiles
+    reqs["external_files"] = BundleExternalFiles.req(self.task)
+
+@met_recoil_corr.setup
+def met_recoil_corr_setup(
+    self: Producer,
+    reqs: dict,
+    inputs: dict,
+    reader_targets: InsertableDict,
+) -> None:
+    bundle = reqs["external_files"]
+    import correctionlib
+    correctionlib.highlevel.Correction.__call__ = correctionlib.highlevel.Correction.evaluate
+
+    #from IPython import embed; embed()
+    correction_set = correctionlib.CorrectionSet.from_file(
+        bundle.files.met_recoil.path,
+    ) 
+    self.met_recoil_corrector = correction_set["Recoil_correction_QuantileMapHist"]
+
+
+
+
+@producer(
+    uses={
+        "GenTop_pt",
+    },
+    produces={
+        "top_pt_weight", "top_pt_weight_up", "top_pt_weight_down",
+    },
+    get_top_pt_config=(lambda self: self.config_inst.x.top_pt_reweighting_params),
+    mc_only=True,
+)
+def top_pt_weight(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
+    """
+    Compute SF to be used for top pt reweighting.
+
+    The *GenPartonTop.pt* column can be produced with the :py:class:`gen_parton_top` Producer.
+
+    The SF should *only be applied in ttbar MC* as an event weight and is computed
+    based on the gen-level top quark transverse momenta.
+
+    The function is skipped when the dataset is data or when it does not have the tag *is_ttbar*.
+
+    The top pt reweighting parameters should be given as an auxiliary entry in the config:
+
+    .. code-block:: python
+
+        cfg.x.top_pt_reweighting_params = {
+            "a": 0.0615,
+            "a_up": 0.0615 * 1.5,
+            "a_down": 0.0615 * 0.5,
+            "b": -0.0005,
+            "b_up": -0.0005 * 1.5,
+            "b_down": -0.0005 * 0.5,
+        }
+
+    *get_top_pt_config* can be adapted in a subclass in case it is stored differently in the config.
+
+    :param events: awkward array containing events to process
+    """
+
+    # get SF function parameters from config
+    params = self.get_top_pt_config()
+
+    # check the number of gen tops
+    if ak.any(ak.num(events.GenTop_pt, axis=1) != 2):
+        logger.warning("There are events with != 2 GenPartonTops. This producer should only run for ttbar")
+
+    # clamp top pT < 500 GeV
+    pt_clamped = ak.where(events.GenTop_pt > 500.0, 500.0, events.GenTop_pt)
+    for variation in ("", "_up", "_down"):
+        # evaluate SF function
+        #sf = np.exp(params[f"a{variation}"] + params[f"b{variation}"] * pt_clamped)
+
+        sf_13p0 = params[f"a{variation}"] * np.exp(params[f"b{variation}"] * pt_clamped) + params[f"c{variation}"] * pt_clamped + params[f"d{variation}"]
+        sf_ext_13p6 = params[f"e{variation}"] + params[f"f{variation}"] * pt_clamped
+
+        sf = sf_13p0 * sf_ext_13p6
+        
+        # compute weight from SF product for top and anti-top
+        weight = np.sqrt(np.prod(sf, axis=1))
+
+        # write out weights
+        events = set_ak_column(events, f"top_pt_weight{variation}", ak.fill_none(weight, 1.0))
+
+    return events

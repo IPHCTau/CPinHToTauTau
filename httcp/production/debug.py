@@ -12,14 +12,20 @@ def leptau_category_flow(tag, events):
     flowdict["tau is real"] = events.is_real_2
     flowdict["tau is fake"] = events.is_fake_2
     
-    flowdict["A  : is_ss + is_iso_2    + is_b_veto + is_low_mt "]  = ~events.is_os & events.is_iso_2 & events.is_b_veto & events.is_low_mt
-    flowdict["B  : is_ss + is_noniso_2 + is_b_veto + is_low_mt "]  = ~events.is_os & ~events.is_iso_2 & events.is_b_veto & events.is_low_mt
-    flowdict["A0 : is_os + is_iso_2    + has_b     + is_low_mt "]  = events.is_os & events.is_iso_2 & ~events.is_b_veto & events.is_low_mt
-    flowdict["B0 : is_os + is_noniso_2 + has_b     + is_low_mt "]  = events.is_os & ~events.is_iso_2 & ~events.is_b_veto & events.is_low_mt
-    flowdict["A1 : is_os + is_iso_2    + is_b_veto + is_high_mt"]  = events.is_os & events.is_iso_2 & events.is_b_veto & ~events.is_low_mt
-    flowdict["B1 : is_os + is_noniso_2 + is_b_veto + is_high_mt"]  = events.is_os & ~events.is_iso_2 & events.is_b_veto & ~events.is_low_mt
-    flowdict["D  : is_os + is_iso_2    + is_b_veto + is_low_mt "]  = events.is_os & events.is_iso_2 & events.is_b_veto & events.is_low_mt
-    flowdict["C  : is_os + is_noniso_2 + is_b_veto + is_low_mt "]  = events.is_os & ~events.is_iso_2 & events.is_b_veto & events.is_low_mt
+    #flowdict["A  : is_ss + is_iso_2    + is_b_veto + is_low_mt "]  = ~events.is_os & events.is_iso_2 & events.is_b_veto & events.is_low_mt
+    #flowdict["B  : is_ss + is_noniso_2 + is_b_veto + is_low_mt "]  = ~events.is_os & ~events.is_iso_2 & events.is_b_veto & events.is_low_mt
+    #flowdict["A0 : is_os + is_iso_2    + has_b     + is_low_mt "]  = events.is_os & events.is_iso_2 & ~events.is_b_veto & events.is_low_mt
+    #flowdict["B0 : is_os + is_noniso_2 + has_b     + is_low_mt "]  = events.is_os & ~events.is_iso_2 & ~events.is_b_veto & events.is_low_mt
+    #flowdict["A1 : is_os + is_iso_2    + is_b_veto + is_high_mt"]  = events.is_os & events.is_iso_2 & events.is_b_veto & ~events.is_low_mt
+    #flowdict["B1 : is_os + is_noniso_2 + is_b_veto + is_high_mt"]  = events.is_os & ~events.is_iso_2 & events.is_b_veto & ~events.is_low_mt
+    #flowdict["D  : is_os + is_iso_2    + is_b_veto + is_low_mt "]  = events.is_os & events.is_iso_2 & events.is_b_veto & events.is_low_mt
+    #flowdict["C  : is_os + is_noniso_2 + is_b_veto + is_low_mt "]  = events.is_os & ~events.is_iso_2 & events.is_b_veto & events.is_low_mt
+
+    flowdict["DR Den : is_ss + is_noniso_1 + is_iso_2 + is_low_mt "]  = ~events.is_os & ~events.is_iso_1 & events.is_iso_2 & events.is_low_mt
+    flowdict["DR Num : is_os + is_noniso_1 + is_iso_2 + is_low_mt "]  =  events.is_os & ~events.is_iso_1 & events.is_iso_2 & events.is_low_mt
+    flowdict["AR     : is_ss + is_iso_1    + is_iso_2 + is_low_mt "]  = ~events.is_os &  events.is_iso_1 & events.is_iso_2 & events.is_low_mt
+    flowdict["SR     : is_os + is_iso_1    + is_iso_2 + is_low_mt "]  =  events.is_os &  events.is_iso_1 & events.is_iso_2 & events.is_low_mt
+
     
     flowdict["DM = 0 "]  = events.is_pi_2
     flowdict["DM = 1 "]  = events.is_rho_2
@@ -29,7 +35,7 @@ def leptau_category_flow(tag, events):
     
     
     root = Tree(f"[yellow]{tag} : {ak.count(events.event)}")
-    
+    """
     for a in ["tau is real", "tau is fake"]:
         _temp = root.add(f"[cyan]{a} : {ak.sum(flowdict[a])}")
         for b in ["A  : is_ss + is_iso_2    + is_b_veto + is_low_mt ",
@@ -40,6 +46,16 @@ def leptau_category_flow(tag, events):
                   "B1 : is_os + is_noniso_2 + is_b_veto + is_high_mt",
                   "D  : is_os + is_iso_2    + is_b_veto + is_low_mt ",
                   "C  : is_os + is_noniso_2 + is_b_veto + is_low_mt "]:
+            _temp2 = _temp.add(f"[green]{b} : {ak.sum(flowdict[a] & flowdict[b])}")
+            for c in ["DM = 0 ", "DM = 1 ", "DM = 2 ", "DM = 10", "DM = 11"]:
+                _temp2.add(f"[bright_white]{c} : {ak.sum(flowdict[a] & flowdict[b] & flowdict[c])}")
+    """
+    for a in ["tau is real", "tau is fake"]:
+        _temp = root.add(f"[cyan]{a} : {ak.sum(flowdict[a])}")
+        for b in ["DR Den : is_ss + is_noniso_1 + is_iso_2 + is_low_mt ",
+                  "DR Num : is_os + is_noniso_1 + is_iso_2 + is_low_mt ",
+                  "AR     : is_ss + is_iso_1    + is_iso_2 + is_low_mt ",
+                  "SR     : is_os + is_iso_1    + is_iso_2 + is_low_mt "]:
             _temp2 = _temp.add(f"[green]{b} : {ak.sum(flowdict[a] & flowdict[b])}")
             for c in ["DM = 0 ", "DM = 1 ", "DM = 2 ", "DM = 10", "DM = 11"]:
                 _temp2.add(f"[bright_white]{c} : {ak.sum(flowdict[a] & flowdict[b] & flowdict[c])}")

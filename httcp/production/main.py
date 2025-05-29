@@ -32,7 +32,7 @@ from columnflow.config_util import get_events_from_categories
 from httcp.production.ReArrangeHcandProds import reArrangeDecayProducts, reArrangeGenDecayProducts
 from httcp.production.PhiCP_Producer import ProduceDetPhiCP, ProduceGenPhiCP
 #from httcp.production.weights import tauspinner_weight
-from httcp.production.extra_weights import zpt_reweight, zpt_reweight_v2, ff_weight # ff_weight : dummy
+from httcp.production.extra_weights import zpt_reweight, zpt_reweight_v2, ff_weight, met_recoil_corr, top_pt_weight
 from httcp.production.muon_weights import muon_id_weights, muon_iso_weights, muon_trigger_weights, muon_xtrigger_weights
 from httcp.production.electron_weights import electron_idiso_weights, electron_trigger_weights, electron_xtrigger_weights
 from httcp.production.tau_weights import tau_all_weights, tauspinner_weights
@@ -172,9 +172,10 @@ def hcand_features(
         # -- tau -- #
         tau_all_weights,
         IF_DATASET_IS_SIGNAL(tauspinner_weights),
-        IF_DATASET_IS_DY(zpt_reweight),
-        #IF_DATASET_IS_DY(zpt_reweight_v2),
-        #IF_DATASET_IS_TT(top_pt_weight),
+        #IF_DATASET_IS_DY(zpt_reweight),
+        IF_DATASET_IS_DY(zpt_reweight_v2),
+        IF_DATASET_IS_TT(top_pt_weight),
+        met_recoil_corr,
         hcand_features,
         hcand_mass,
         category_ids,
@@ -204,9 +205,10 @@ def hcand_features(
         # -- tau -- #
         tau_all_weights,
         IF_DATASET_IS_SIGNAL(tauspinner_weights),
-        IF_DATASET_IS_DY(zpt_reweight),
-        #IF_DATASET_IS_TT(top_pt_weight),
-        #IF_DATASET_IS_DY(zpt_reweight_v2),
+        #IF_DATASET_IS_DY(zpt_reweight),
+        IF_DATASET_IS_TT(top_pt_weight),
+        IF_DATASET_IS_DY(zpt_reweight_v2),
+        met_recoil_corr,
         hcand_features,
         hcand_mass,
         #"channel_id",
@@ -224,13 +226,17 @@ def main(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     events = self[attach_coffea_behavior](events, **kwargs)
     # deterministic seeds
     ##events = self[deterministic_seeds](events, **kwargs)
+    if self.dataset_inst.is_mc:
+        events = self[met_recoil_corr](events, **kwargs)
 
+    events = self[hcand_features](events, **kwargs)       
+    
     logger.warning("NO b-veto cut for tautau categories : Imperial")
     events = self[build_abcd_masks](events, **kwargs)
     # building category ids
-    events, category_ids_debug_dict = self[category_ids](events, debug=False, **kwargs)
+    events, category_ids_debug_dict = self[category_ids](events, debug=False)
 
-    events = self[hcand_features](events, **kwargs)       
+    #from IPython import embed; embed()
     
     # debugging categories
     if self.config_inst.x.verbose.production.main:
@@ -294,10 +300,10 @@ def main(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
             events = self[tauspinner_weights](events, **kwargs)
 
         # -- Z-pT reweighting with corrections from Imperial (Danny) and Kansas (Dennis : v2)
-        if self.has_dep(zpt_reweight):
-        #if self.has_dep(zpt_reweight_v2):
-            events = self[zpt_reweight](events, **kwargs)
-            #events = self[zpt_reweight_v2](events, **kwargs)
+        #if self.has_dep(zpt_reweight):
+        if self.has_dep(zpt_reweight_v2):
+            #events = self[zpt_reweight](events, **kwargs)
+            events = self[zpt_reweight_v2](events, **kwargs)
 
         #processes = self.dataset_inst.processes.names()
         #if ak.any(['dy_' in proc for proc in processes]):
@@ -305,8 +311,8 @@ def main(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
         #    events = self[split_dy](events,**kwargs)
 
         # top pt weight
-        #if self.has_dep(top_pt_weight):
-        #    events = self[top_pt_weight](events, **kwargs)
+        if self.has_dep(top_pt_weight):
+            events = self[top_pt_weight](events, **kwargs)
 
     #events = self[ff_weight](events, **kwargs)        
 

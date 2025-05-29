@@ -385,6 +385,27 @@ def cat_os_noniso2_bveto_lowmt(self: Categorizer, events: ak.Array, **kwargs) ->
     return events, events.is_os & ~events.is_iso_2 & events.is_b_veto & events.is_low_mt
 
 
+# DESY (Stepan)
+# SR
+@categorizer(uses={"is_os", "is_iso_1", "is_iso_2", "is_low_mt"})
+def cat_os_iso1_iso2_lowmt(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
+    return events, events.is_os & events.is_iso_1 & events.is_iso_2 & events.is_low_mt 
+# AR
+@categorizer(uses={"is_os", "is_iso_1", "is_iso_2", "is_low_mt"})
+def cat_ss_iso1_iso2_lowmt(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
+    return events, ~events.is_os & events.is_iso_1 & events.is_iso_2 & events.is_low_mt 
+# DR_Num
+@categorizer(uses={"is_os", "is_iso_1", "is_iso_2", "is_low_mt"})
+def cat_os_noniso1_iso2_lowmt(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
+    return events, events.is_os & ~events.is_iso_1 & events.is_iso_2 & events.is_low_mt 
+# DR_Den
+@categorizer(uses={"is_os", "is_iso_1", "is_iso_2", "is_low_mt"})
+def cat_ss_noniso1_iso2_lowmt(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
+    return events, ~events.is_os & ~events.is_iso_1 & events.is_iso_2 & events.is_low_mt
+
+
+
+
 
 # test
 @categorizer(uses={"channel_id", "has_0jet"})

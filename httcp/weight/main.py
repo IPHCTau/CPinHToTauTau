@@ -78,6 +78,15 @@ def main_init(self: WeightProducer) -> None:
                 if weight_name in ["zpt_reweight"] or is_zpt_reweight:
                     continue
 
+            # top pt weight only for ttbar samples
+            is_top_pt_reweight = any(
+                shift_inst.has_tag("top_pt_weight")
+                for shift_inst in self.config_inst.x.event_weights[weight_name]
+            )
+            if not self.dataset_inst.has_tag("is_tt"):
+                if weight_name in ["top_pt_weight"]:
+                    continue
+
             # tau-spinner weights are only for signal samples
             is_tauspinner_weight = any(
                 shift_inst.has_tag("tauspinner_weight")
