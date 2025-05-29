@@ -38,7 +38,7 @@ coffea = maybe_import("coffea")
     } | {optional("genPartFlav")},
     produces={
         f"Muon.{var}" for var in [
-            "rawIdx", "decayMode", "IPsig", "idVsJet",
+            "rawIdx", "decayMode", "IPsig", "isolation",
             "decayModeHPS", "SVx", "SVy", "SVz",
         ]
     },
@@ -63,7 +63,7 @@ def muon_selection(
     # make sure that there is no nan sip3d
     ipsig_dummy = 0.0 #-999.9
     events = set_ak_column(events, "Muon.IPsig", ak.nan_to_num(events.Muon.sip3d, nan=ipsig_dummy))
-    events = set_ak_column(events, "Muon.idVsJet", -2.0)
+    events = set_ak_column(events, "Muon.isolation", events.Muon.pfRelIso04_all, value_type=np.float32)
 
     events = set_ak_column(events, "Muon.SVx", 0.0)
     events = set_ak_column(events, "Muon.SVy", 0.0)
@@ -79,10 +79,10 @@ def muon_selection(
         "muon_mediumID"       : muons.mediumId == 1,
         "muon_dxy_0p045"      : abs(muons.dxy) < 0.045,
         "muon_dz_0p2"         : abs(muons.dz) < 0.2,
-        "muon_iso_0p15"       : muons.pfRelIso04_all < 0.15,
-        #"muon_ipsig_safe"     : muons.IPsig > ipsig_dummy,
+        #"muon_iso_0p15"       : muons.pfRelIso04_all < 0.15, # For SR, moved to categorization
+        "muon_iso_0p5"        : muons.pfRelIso04_all < 0.5, # new categorization following DESY setup 
         # not before applying correction from IPsig calibration
-        #"muon_ipsig_1p0"      : np.abs(muons.IPsig) > 1.0,
+        "muon_ipsig_1p0"      : np.abs(muons.IPsig) > 1.0,
     }
     single_veto_selections = {
         "muon_pt_10"          : muons.pt > 10,
@@ -179,7 +179,7 @@ def muon_selection(
     },
     produces={
         f"Electron.{var}" for var in [
-            "rawIdx", "decayMode", "IPsig", "idVsJet",
+            "rawIdx", "decayMode", "IPsig", "isolation",
             "decayModeHPS", "SVx", "SVy", "SVz",
         ]
     },
@@ -203,7 +203,8 @@ def electron_selection(
     # make sure that there is no nan sip3d
     ipsig_dummy = 0.0 #-999.9
     events = set_ak_column(events, "Electron.IPsig", ak.nan_to_num(events.Electron.sip3d, nan=ipsig_dummy))
-    events = set_ak_column(events, "Electron.idVsJet", -1.0)
+    #events = set_ak_column(events, "Electron.isolation", -1.0)
+    events = set_ak_column(events, "Electron.isolation", events.Electron.pfRelIso03_all, value_type=np.float32)
 
     events = set_ak_column(events, "Electron.SVx", 0.0)
     events = set_ak_column(events, "Electron.SVy", 0.0)
@@ -224,10 +225,9 @@ def electron_selection(
         "electron_dxy_0p045"      : abs(electrons.dxy) < 0.045,
         "electron_dz_0p2"         : abs(electrons.dz) < 0.2,
         "electron_mva_iso_wp80"   : mva_iso_wp80 == 1,
-        #"electron_ipsig_safe"     : electrons.IPsig > ipsig_dummy,
-        "electron_iso_0p15"       : electrons.pfRelIso03_all < 0.15,
+        "electron_iso_0p15"       : electrons.pfRelIso03_all < 0.5,
         # not before applying correction from IPsig calibration        
-        #"electron_ipsig_1p0"      : np.abs(electrons.IPsig) > 1.0,
+        "electron_ipsig_1p0"      : np.abs(electrons.IPsig) > 1.0,
     }
     single_veto_selections = {
         "electron_pt_10"          : electrons.pt > 10,
@@ -322,7 +322,7 @@ def electron_selection(
     } | {optional("Tau.pt"), optional("Tau.pt_etau"), optional("Tau.pt_mutau"), optional("Tau.pt_tautau"), optional("genPartFlav")},
     produces={
         f"Tau.{var}" for var in [
-            "rawIdx", "decayMode", "decayModeHPS", "IPsig", "idVsJet",
+            "rawIdx", "decayMode", "decayModeHPS", "IPsig", "isolation",
             "SVx","SVy","SVz",
         ]
     },
@@ -349,7 +349,7 @@ def tau_selection(
     #ipsig_dummy = ak.max(events.Tau.ipLengthSig) + np.abs(ak.min(events.Tau.ipLengthSig))
     ipsig_dummy = 0.0
     events = set_ak_column(events, "Tau.IPsig",  ak.nan_to_num(events.Tau.ipLengthSig, nan=ipsig_dummy))
-    events = set_ak_column(events, "Tau.idVsJet", events.Tau.idDeepTau2018v2p5VSjet)
+    events = set_ak_column(events, "Tau.isolation", events.Tau.idDeepTau2018v2p5VSjet, value_type=np.float32)
 
     events = set_ak_column(events, "Tau.SVx", ak.nan_to_num(events.Tau.refitSVx, 0.0))
     events = set_ak_column(events, "Tau.SVy", ak.nan_to_num(events.Tau.refitSVy, 0.0))
@@ -394,12 +394,6 @@ def tau_selection(
         "tau_DeepTauVSjet"  : taus.idDeepTau2018v2p5VSjet >= tau_tagger_wps.vs_j.VVVLoose, # for tautau fake region
         "tau_DeepTauVSe"    : taus.idDeepTau2018v2p5VSe   >= tau_tagger_wps.vs_e.VVLoose,
         "tau_DeepTauVSmu"   : taus.idDeepTau2018v2p5VSmu  >= tau_tagger_wps.vs_m.VLoose,
-        #"tau_DecayMode_IP" : (((taus.decayMode == 0) & (np.abs(taus.IPsig) >= 1.25)) 
-        #                       | (taus.decayMode == 1)
-        #                       | (taus.decayMode == 2)
-        #                       | (taus.decayMode == 10)
-        #                       | (taus.decayMode == 11)),
-        #"tau_ipsig_safe"    : taus.IPsig > ipsig_dummy,
         "tau_HPSDMveto_5or6" : ((taus.decayModeHPS != 5) & (taus.decayModeHPS != 6)),
         "tau_no_undefinedPNetDM": (taus.decayMode != -1),
         "tau_DecayMode"  : (
@@ -407,16 +401,10 @@ def tau_selection(
             | ((taus.decayMode ==  1) & (taus.decayModeHPS == 1))
             | ((taus.decayMode ==  2) & (taus.decayModeHPS == 1))
             | ((taus.decayMode ==  10) & taus.hasRefitSV)
-            | ((taus.decayMode ==  11) & taus.hasRefitSV)
+            #| ((taus.decayMode ==  11) & taus.hasRefitSV)
         ),
         "tau_DM0_IPsig_1p25" : ak.where(taus.decayMode == 0, np.abs(taus.IPsig) >= 1.25, True),
     }
-    #(  ((taus.decayMode ==  0) & (np.abs(taus.IPsig) >= 1.25))
-    #   | (((taus.decayMode ==  1)
-    #       | (taus.decayMode ==  2)
-    #       | (taus.decayMode == 10)
-    #       | (taus.decayMode == 11))
-    #      & (taus.decayModeHPS != 0)))), # decayMode is now decayModePNet
     
     tau_mask = ak.local_index(taus) >= 0
     
@@ -501,12 +489,6 @@ def jet_selection(
     is_run3 = self.config_inst.campaign.x.run == 3
 
     jet_mask  = ak.local_index(events.Jet.pt) >= 0 #Create a mask filled with ones
-    #jet_special_pu_mask = ak.where(((abs(events.Jet.eta) >= 2.5) & (abs(events.Jet.eta) < 3.0)),
-    #                               events.Jet.pt > 50.0,
-    #                               jet_mask)
-    #jet_forward_mask = ak.where((abs(events.Jet.eta) >= 3.0),
-    #                               events.Jet.pt > 30.0,
-    #                               jet_mask)
 
     # Redefination of JetID because of the bug in NanoAOD v12-v15
     # https://gitlab.cern.ch/cms-jetmet/coordination/coordination/-/issues/117
@@ -537,7 +519,7 @@ def jet_selection(
     # nominal selection
     good_selections = {
         "jet_pt_20"               : events.Jet.pt > 20.0,
-        "jet_eta_4p7"             : abs(events.Jet.eta) <= 4.7,  # 2.4
+        "jet_eta_4p7"             : abs(events.Jet.eta) <= 4.7,
         "jet_special_for_PU"      : ak.where(((abs(events.Jet.eta) >= 2.5) & (abs(events.Jet.eta) < 3.0)), events.Jet.pt > 50.0, jet_mask),
         "jet_forward"             : ak.where((abs(events.Jet.eta) >= 3.0), events.Jet.pt > 30.0, jet_mask),
         # use the newly defined TightLepVeto ID
@@ -546,10 +528,7 @@ def jet_selection(
                                                             #     0000110 : 2**1 + 2**2 = 6 : pass both tight and lep-veto
         "jet_id"                  : passJetIdTightLepVeto,
     }
-    
-    #if is_run2: 
-    #    good_selections["jet_puId"] = ((events.Jet.pt >= 50.0) | (events.Jet.puId)) #For the Run2 there was
-    
+        
     events = set_ak_column(events, "Jet.rawIdx", ak.local_index(events.Jet.pt))    
 
     selection_steps = {}
@@ -584,9 +563,6 @@ def jet_selection_init(self: Selector) -> None:
         for shift_inst in self.config_inst.shifts
         if shift_inst.has_tag(("jec", "jer"))
     }
-
-
-
 
 
 
@@ -637,32 +613,16 @@ def jet_cleaning(
     # bjet veto
     bjet_veto = ak.sum(b_jet_mask, axis=1) == 0
 
-    # good_jet_indices
-    # ditaujet_jet_indices
-    #from IPython import embed; embed()
-
-    #jet_indices = ak.local_index(events.Jet.pt)
-    #temp = ak.cartesian([jet_indices, ditaujet_jet_indices], axis=1)
-    #jet_indices_, ditaujet_jet_indices_ = ak.unzip(temp)
-    
-    
-    #ditau_jet_triggered = ak.where(jet_indices_ == ditaujet_jet_indices_, 1, 0)
-    #ditau_jet_triggered = ak.where(ak.num(ditaujet_jet_indices) > 0,
-    #                               ditau_jet_triggered,
-    #                               ak.zeros_like(jet_indices))
-
-    
-    #events = set_ak_column(events, "Jet.pass_ditaujet", ditau_jet_triggered)
-
-
     temp = ak.cartesian([good_jet_indices, ditaujet_jet_indices], axis=1)
     good_jet_indices_, ditaujet_jet_indices_ = ak.unzip(temp)
     temp2 = ak.any((good_jet_indices_ - ditaujet_jet_indices_ == 0), axis=1)
 
     trigger_mask = (events.channel_id == 4) & (ak.num(ditaujet_jet_indices_) > 0)  & events.cross_tau_jet_triggered & ~events.cross_tau_triggered
     mask = ak.where(trigger_mask, temp2, True)
-    
-    #from IPython import embed; embed()
+
+    met_recoil_mask = ak.where((np.abs(events.Jet[good_jet_indices].eta) < 2.5), (events.Jet[good_jet_indices].pt > 30), True)
+    met_recoil_mask = ak.where((np.abs(events.Jet[good_jet_indices].eta) > 4.7), (events.Jet[good_jet_indices].pt > 50), met_recoil_mask) 
+    met_recoil_jet_indices = good_jet_indices[met_recoil_mask]
 
     
     results = SelectionResult(
@@ -675,16 +635,12 @@ def jet_cleaning(
                 "Jet": good_jet_indices,
                 "bJet": b_jet_indices,
                 "trigJet": ditaujet_jet_indices,
+                "metRecoilJet": met_recoil_jet_indices,
             },
         },
         aux = selection_steps,
     )
-    
-    # additional jet veto map, vetoing entire events
-    #if self.config_inst.campaign.x.run == 3:
-    #    events, veto_result = self[jet_veto_map](events, **kwargs)
-    #    results += veto_result
-    
+        
     return events, results, ditaujet_jet_indices #, bjet_veto
 
 
@@ -924,33 +880,7 @@ def gentau_selection(
 # will be used for Zpt reweighting
 # https://github.com/danielwinterbottom/ICHiggsTauTau/blob/UL_ditau/Analysis/HiggsTauTauRun2/src/HTTWeights.cc#L2079-L2114
 # ------------------------------------------------------------------------------------------------------- #
-@selector(
-    uses={
-        "GenPart.*",
-    },
-    produces={
-        "GenZ.pt", "GenZ.eta", "GenZ.phi", "GenZ.mass",
-    },
-    mc_only=True,
-    exposed=False,
-)
-def genZ_selection(
-        self: Selector,
-        events: ak.Array,
-        **kwargs
-) -> ak.Array:
-    """
-    
-    References:
-      - 
-    """
-    genpart_indices = ak.local_index(events.GenPart.pt)
-    sel_gen_ids = genpart_indices[((((np.abs(events.GenPart.pdgId) >= 11) & (np.abs(events.GenPart.pdgId) <= 16))
-                                    & (events.GenPart.hasFlags(["isHardProcess"]))
-                                    & (events.GenPart.status == 1)) | (events.GenPart.hasFlags(["isDirectHardProcessTauDecayProduct"])))]
-    
-    gen_part = events.GenPart[sel_gen_ids]
-
+def get_gen_p4_array(gen_part):
     # form LV
     gen_part = ak.Array(gen_part, behavior=coffea.nanoevents.methods.nanoaod.behavior)
     p4_gen_part = ak.with_name(gen_part, "PtEtaPhiMLorentzVector")    
@@ -984,7 +914,79 @@ def genZ_selection(
             "mass": ak.nan_to_num(sum_p4_gen_part.mass, 0.0),
         }
     )
+    return p4_gen_part_array
+
+
+
+@selector(
+    uses={
+        "GenPart.*",
+    },
+    produces={
+        "GenZ.pt", "GenZ.eta", "GenZ.phi", "GenZ.mass",
+        "GenZvis.pt", "GenZvis.eta", "GenZvis.phi", "GenZvis.mass",
+        "GenTop_pt",
+    },
+    mc_only=True,
+    exposed=False,
+)
+def genZ_selection(
+        self: Selector,
+        events: ak.Array,
+        **kwargs
+) -> ak.Array:
+    """
+    
+    References:
+      - https://gitlab.cern.ch/dwinterb/HiggsDNA/-/blob/master/higgs_dna/tools/ditau/add_gen_info.py#L33
+    """
+    genpart_indices = ak.local_index(events.GenPart.pt)
+
+    """
+    sel_gen_part = (
+        (((np.abs(events.GenPart.pdgId) >= 11) & (np.abs(events.GenPart.pdgId) <= 16))
+         & (events.GenPart.hasFlags(["isHardProcess"]))
+         & (events.GenPart.status == 1)) | (events.GenPart.hasFlags(["isDirectHardProcessTauDecayProduct"]))
+    ) 
+    sel_gen_nus = (
+        (((np.abs(events.GenPart.pdgId) == 12) | (np.abs(events.GenPart.pdgId) == 14) | (np.abs(events.GenPart.pdgId) == 16))
+         & (events.GenPart.hasFlags(["isHardProcess"]))
+         & (events.GenPart.status == 1)) | (events.GenPart.hasFlags(["isDirectHardProcessTauDecayProduct"]))
+    )
+    sel_gen_vis_part = sel_gen_part & ~sel_gen_nus
+
+    sel_top = 
+    """
+    genParts = events.GenPart
+    # Define cuts to select generator-level particles:
+    # get all decay products of leptonic W, Z, or H decays
+    sel_gen_part = ((np.abs(genParts.pdgId) >= 11) & (np.abs(genParts.pdgId) <= 16) & (genParts.statusFlags & 256 != 0) & (genParts.status == 1)) | (genParts.statusFlags & 1024 != 0)
+
+    # gen neutrinos from tau decays
+    sel_gen_nus = ((np.abs(genParts.pdgId) == 12) | (np.abs(genParts.pdgId) == 14) | (np.abs(genParts.pdgId) == 16)) & (genParts.status == 1) & (genParts.statusFlags & 1024 != 0)
+
+    # get visible decay products (pdgId 11, 13, 15)
+    sel_gen_vis_part = sel_gen_part & ~sel_gen_nus
+
+    # top quarks for top pt reweighting
+    sel_gen_top = ((np.abs(genParts.pdgId) == 6) & (genParts.statusFlags & 256 != 0) & (genParts.statusFlags & 8192 != 0))
+
+    sel_gen_ids = genpart_indices[sel_gen_part]
+    gen_part = events.GenPart[sel_gen_ids]
+
+    sel_gen_vis_ids = genpart_indices[sel_gen_vis_part]
+    gen_vis_part = events.GenPart[sel_gen_vis_ids]
+
+    sel_gen_top_ids = genpart_indices[sel_gen_top]
+    gen_top = events.GenPart[sel_gen_top_ids]
+
+    #from IPython import embed; embed()
+    
+    p4_gen_part_array = get_gen_p4_array(gen_part)
+    p4_gen_vis_part_array = get_gen_p4_array(gen_vis_part)
 
     events = set_ak_column(events, "GenZ", p4_gen_part_array)
-                                           
+    events = set_ak_column(events, "GenZvis", p4_gen_vis_part_array)
+    events = set_ak_column(events, "GenTop_pt", gen_top.pt)
+    
     return events    

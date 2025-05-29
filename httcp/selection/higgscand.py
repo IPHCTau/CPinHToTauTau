@@ -89,7 +89,7 @@ def higgscand(
                                           "IPy"           : "float64",
                                           "IPz"           : "float64",
                                           "IPsig"         : "float64",
-                                          "idVsJet"       : "int32",
+                                          "isolation"     : "float32",
                                           "genPartFlav"   : "int32",
                                           "SVx"           : "float64",
                                           "SVy"           : "float64",
@@ -105,7 +105,7 @@ def higgscand(
                                           "charge"        : "int32",
                                           "decayMode"     : "int32",
                                           "rawIdx"        : "int32",
-                                          "idVsJet"       : "int32",
+                                          "isolation"     : "float32",
                                           "genPartFlav"   : "int32",
                                           }
                                          )
@@ -336,38 +336,6 @@ def reorder_hcand_prods(
     pions_sign = pions_pdgId/np.abs(pions_pdgId)
     pions_pdgId = ak.values_astype(pions_sign * 211, np.int32)
     
-    #pions_sign = pions.pdgId / np.abs(pions.pdgId) # any neutral hadron can mess it up
-    #pions_pdgId_211 = ak.values_astype(pions_sign * 211, np.int32)
-    #pions_pdgId = ak.where(((pions.pdgId == 130) | (pions.pdgId == 310) | (pions.pdgId == 311)), # so, if one uses the same, keep their original pdgId 
-    #                       pions.pdgId,
-    #                       pions_pdgId_211)
-
-
-    #hcand_is_pos = ak.fill_none(ak.firsts(hcand.charge > 0, axis=1), False)
-    
-    #pions_charge = pions.pdgId/np.abs(pions.pdgId)
-    #pions_pdgId_pos = ak.values_astype(pions_charge * 211, np.int32)
-    #pions_pdgId_neg = ak.values_astype(pions_charge * -211, np.int32)
-
-    #neutral_hadron_mask = ((prod_abs_pid == 130) | (prod_abs_pid == 310) | (prod_abs_pid == 311))    
-    #is_neutral = (np.abs(pions.pdgId) == 130) | (np.abs(pions.pdgId) == 310) | (np.abs(pions.pdgId) == 311)
-    #pions_pid_for_neutral = ak.where(mask_dm_10_OR_11 & hcand_is_pos,
-    #                                 ak.where(is_neutral,
-    #                                          )
-    
-    
-    #from IPython import embed; embed()
-
-    #pions_pdgId = ak.where(mask_dm_1_OR_2,
-    #                       ak.where(hcand_is_pos,
-    #                                pions_pdgId_pos,
-    #                                pions_pdgId_neg),
-    #                       ak.where(mask_dm_10_OR_11,
-    #                                ak.where(hcand_is_pos,
-    #                                         )
-    #                           
-    #                       ))
-    
     
     photons_pdgId = ak.values_astype(22 * ak.ones_like(np.abs(photons.pdgId)), np.int32)
     
@@ -390,7 +358,8 @@ def reorder_hcand_prods(
     return prods
 
 
-"""    
+
+
 def build_hcand_mask(hcand, hcandprods, dummy):
     #is_pion         = lambda prods : ((np.abs(prods.pdgId) == 211) | (np.abs(prods.pdgId) == 321))
     #is_pion         = lambda prods : (np.abs(prods.pdgId) == 211)
@@ -454,7 +423,7 @@ def build_hcand_mask(hcand, hcand_pi, hcand_pi0, dummy):
                                    ak.where((hcand.decayMode == 10),
                                             has_three_pions(hcandprods),
                                             ak.where((hcand.decayMode == 11),
-                                                     #(has_three_pions(hcandprods) & has_photons(hcandprods)),
+                                                     #(has_three_pions(hcandprods) & has_pi0(hcandprods)),
                                                      has_three_pions(hcandprods),
                                                      dummy)
                                             )
@@ -474,11 +443,9 @@ def build_hcand_mask(hcand, hcand_pi, hcand_pi0, dummy):
     charge_mask = ak.where(hmode >= 0, charge_mask, dummy)
 
     #from IPython import embed; embed()
-    
-
-    
+        
     return hcand_mask, charge_mask
-
+"""
 
 @selector(
     uses={
@@ -493,7 +460,7 @@ def build_hcand_mask(hcand, hcand_pi, hcand_pi0, dummy):
         "hcand.decayModeHPS",
         "hcand.energy_split",
         IF_RUN3("hcand.IPx", "hcand.IPy", "hcand.IPz"), "hcand.IPsig",
-        "hcand.idVsJet", "hcand.genPartFlav",
+        "hcand.isolation", "hcand.genPartFlav",
         "hcand.SVx","hcand.SVy","hcand.SVz",
         "hcandprod.pt", "hcandprod.eta", "hcandprod.phi", "hcandprod.mass",
         "hcandprod.charge", "hcandprod.pdgId", "hcandprod.tauIdx",
@@ -537,7 +504,9 @@ def higgscandprod(
     
     dummy = (events.event >= 0)[:,None]
 
-    """
+
+
+    
     #from IPython import embed; embed()
     hcand1_mask, hcand1_charge_mask = build_hcand_mask(hcand1, hcand1prods, dummy)
     hcand2_mask, hcand2_charge_mask = build_hcand_mask(hcand2, hcand2prods, dummy)
@@ -549,7 +518,9 @@ def higgscandprod(
     
     hcand_prod_mask = ak.concatenate([hcand1_mask, hcand2_mask], axis=1)
     hcand_prod_charge_mask = ak.concatenate([hcand1_charge_mask, hcand2_charge_mask], axis=1)
-    """
+
+
+    
     # reconstruct pi-zeros here
     # save those in the hcand prods instead of photons
 
@@ -563,18 +534,20 @@ def higgscandprod(
     p4_hcand1     = ak.with_name(hcand1, "PtEtaPhiMLorentzVector")
     p4_hcand1_pi  = ak.with_name(hcand1prod_pions, "PtEtaPhiMLorentzVector")
     p4_hcand1_pi  = presel_decay_pis(p4_hcand1, p4_hcand1_pi) # safe
-    #p4_hcand1_pi0 = reconstructPi0(p4_hcand1, hcand1prod_photons, method="simpleIC") # simpleIC, simpleMB
-    p4_hcand1_pi0 = reconstructPi0(p4_hcand1, hcand1prod_photons, method="simpleMB") # simpleIC, simpleMB
+    p4_hcand1_pi0 = reconstructPi0(p4_hcand1, hcand1prod_photons, method="simpleIC") # simpleIC, simpleMB
+    #p4_hcand1_pi0 = reconstructPi0(p4_hcand1, hcand1prod_photons, method="simpleMB") # simpleIC, simpleMB
     p4_hcand1_pi0 = presel_decay_pi0s(p4_hcand1, p4_hcand1_pi0) # safe
     
     # hcand2 and its decay products
     p4_hcand2     = ak.with_name(hcand2, "PtEtaPhiMLorentzVector")
     p4_hcand2_pi  = ak.with_name(hcand2prod_pions, "PtEtaPhiMLorentzVector")
     p4_hcand2_pi  = presel_decay_pis(p4_hcand2, p4_hcand2_pi)	# safe 
-    #p4_hcand2_pi0 = reconstructPi0(p4_hcand2, hcand2prod_photons, method="simpleIC") # simpleIC, simpleMB
-    p4_hcand2_pi0 = reconstructPi0(p4_hcand2, hcand2prod_photons, method="simpleMB") # simpleIC, simpleMB
+    p4_hcand2_pi0 = reconstructPi0(p4_hcand2, hcand2prod_photons, method="simpleIC") # simpleIC, simpleMB
+    #p4_hcand2_pi0 = reconstructPi0(p4_hcand2, hcand2prod_photons, method="simpleMB") # simpleIC, simpleMB
     p4_hcand2_pi0 = presel_decay_pi0s(p4_hcand2, p4_hcand2_pi0)	# safe  
     
+
+    """
     # CHANGE
     # mask is now based on Pi0, not photons
     hcand1_mask, hcand1_charge_mask = build_hcand_mask(hcand1, p4_hcand1_pi, p4_hcand1_pi0, dummy)
@@ -588,6 +561,7 @@ def higgscandprod(
     hcand_prod_mask = ak.concatenate([hcand1_mask, hcand2_mask], axis=1)
     hcand_prod_charge_mask = ak.concatenate([hcand1_charge_mask, hcand2_charge_mask], axis=1)
     #
+    """
 
     #from IPython import embed; embed()
     
@@ -624,7 +598,10 @@ def higgscandprod(
     hcand_E_split = ak.where(_mask, hcand_E_split, hcand_E_split_dummy)    
     events = set_ak_column(events, "hcand.energy_split", hcand_E_split)
 
+    #from IPython import embed; embed()
+    
     # saving hcandprods
+    #hcand_prods_array = ak.Array(ak.to_list(hcand_prods_array)) # fucking bad practice!! 
     events = set_ak_column(events, "hcandprod", hcand_prods_array)
 
     #FOR DEBUGGING
