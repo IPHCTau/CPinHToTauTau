@@ -97,15 +97,23 @@ def add_ABCD_categories(config: od.Config) -> None:
     add_category(config,name="hadD",  id=13000, selection="cat_os_iso1_iso2_bveto",       label="Signal Region",  tags={"os","iso1",   "iso2",   "bveto"})
     add_category(config,name="hadC",  id=15000, selection="cat_os_noniso1_iso2_bveto",    label="Application Region",  tags={"os","noniso1","iso2",   "bveto"})
     # leptonic
-    add_category(config,name="lepA",  id=2000,  selection="cat_ss_iso2_bveto_lowmt",      label="A",   tags={"ss","iso2",   "bveto",  "lowmt" })
-    add_category(config,name="lepB",  id=4000,  selection="cat_ss_noniso2_bveto_lowmt",   label="B",   tags={"ss","noniso2","bveto",  "lowmt" })
-    add_category(config,name="lepA0", id=6000,  selection="cat_os_iso2_nobveto_lowmt",    label="A0",  tags={"os","iso2",   "nobveto","lowmt" })
-    add_category(config,name="lepB0", id=8000,  selection="cat_os_noniso2_nobveto_lowmt", label="B0",  tags={"os","noniso2","nobveto","lowmt" })
-    add_category(config,name="lepA1", id=10000, selection="cat_os_iso2_bveto_highmt",     label="A1",  tags={"os","iso2",   "bveto",  "highmt"})
-    add_category(config,name="lepB1", id=12000, selection="cat_os_noniso2_bveto_highmt",  label="B1",  tags={"os","noniso2","bveto",  "highmt"}) 
-    add_category(config,name="lepD",  id=14000, selection="cat_os_iso2_bveto_lowmt",      label="Signal Region",  tags={"os","iso2",   "bveto",  "lowmt" })
-    add_category(config,name="lepC",  id=16000, selection="cat_os_noniso2_bveto_lowmt",   label="Application Region",  tags={"os","noniso2","bveto",  "lowmt" })
+    #add_category(config,name="lepA",  id=2000,  selection="cat_ss_iso2_bveto_lowmt",      label="A",   tags={"ss","iso2",   "bveto",  "lowmt" })
+    #add_category(config,name="lepB",  id=4000,  selection="cat_ss_noniso2_bveto_lowmt",   label="B",   tags={"ss","noniso2","bveto",  "lowmt" })
+    #add_category(config,name="lepA0", id=6000,  selection="cat_os_iso2_nobveto_lowmt",    label="A0",  tags={"os","iso2",   "nobveto","lowmt" })
+    #add_category(config,name="lepB0", id=8000,  selection="cat_os_noniso2_nobveto_lowmt", label="B0",  tags={"os","noniso2","nobveto","lowmt" })
+    #add_category(config,name="lepA1", id=10000, selection="cat_os_iso2_bveto_highmt",     label="A1",  tags={"os","iso2",   "bveto",  "highmt"})
+    #add_category(config,name="lepB1", id=12000, selection="cat_os_noniso2_bveto_highmt",  label="B1",  tags={"os","noniso2","bveto",  "highmt"}) 
+    #add_category(config,name="lepD",  id=14000, selection="cat_os_iso2_bveto_lowmt",      label="Signal Region",  tags={"os","iso2",   "bveto",  "lowmt" })
+    #add_category(config,name="lepC",  id=16000, selection="cat_os_noniso2_bveto_lowmt",   label="Application Region",  tags={"os","noniso2","bveto",  "lowmt" })
 
+    # DESY
+    add_category(config,name="DRnum",  id=2000,  selection="cat_os_noniso1_iso2_lowmt",      label="dr_num",   tags={"os","noniso1", "iso2", "lowmt" })
+    add_category(config,name="DRden",  id=4000,  selection="cat_ss_noniso1_iso2_lowmt",      label="dr_den",   tags={"ss","noniso1", "iso2", "lowmt" })
+    add_category(config,name="AR",     id=6000,  selection="cat_ss_iso1_iso2_lowmt",         label="ar",       tags={"ss","iso1",    "iso2", "lowmt" })
+    add_category(config,name="SR",     id=8000,  selection="cat_os_iso1_iso2_lowmt",         label="sr",       tags={"os","iso1",    "iso2", "lowmt" })
+    
+
+    
 @call_once_on_config()
 def add_DM_categories(config: od.Config) -> None:
     # hadronic
@@ -140,6 +148,7 @@ def add_DM_categories(config: od.Config) -> None:
     
 @call_once_on_config()
 def add_etau_mutau_categories(config: od.Config) -> None:
+    """
     categories = {
         "channel": [config.get_category("etau"), config.get_category("mutau")],
         "RorF"   : [config.get_category("real_2")],
@@ -147,6 +156,21 @@ def add_etau_mutau_categories(config: od.Config) -> None:
                     config.get_category("lepA0"), config.get_category("lepB0"),
                     config.get_category("lepA1"), config.get_category("lepB1"),
                     config.get_category("lepC"),  config.get_category("lepD")],
+        "cp"     : [config.get_category("pi_2"),
+                    config.get_category("rho_2"),
+                    config.get_category("a1dm2_2"),
+                    config.get_category("a1dm10_2"),                    
+                    config.get_category("a1dm11_2")],
+    }
+    """
+    categories = {
+        "channel": [config.get_category("mutau")],
+        "RorF"   : [config.get_category("real_2")],
+        "abcd"   : [
+            config.get_category("DRnum"),
+            config.get_category("DRden"),
+            config.get_category("AR"),
+            config.get_category("SR")],
         "cp"     : [config.get_category("pi_2"),
                     config.get_category("rho_2"),
                     config.get_category("a1dm2_2"),
