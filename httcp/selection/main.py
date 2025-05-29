@@ -127,11 +127,13 @@ def get_2n_pairs(etau_indices_pair,
         scale_mc_weight, 
         process_ids,
         trigger_selection,
-        IF_DATASET_IS_DY(genZ_selection),
+        #IF_DATASET_IS_DY(genZ_selection),
+        genZ_selection,
         muon_selection, 
         electron_selection, 
         tau_selection, 
         jet_selection,
+        jet_cleaning,
         etau_selection, 
         mutau_selection, 
         tautau_selection, 
@@ -155,11 +157,13 @@ def get_2n_pairs(etau_indices_pair,
         # selectors / producers whose newly created columns should be kept
         scale_mc_weight, 
         trigger_selection,
-        IF_DATASET_IS_DY(genZ_selection),
+        #IF_DATASET_IS_DY(genZ_selection),
+        genZ_selection,
         muon_selection, 
         electron_selection, 
         tau_selection, 
         jet_selection,
+        jet_cleaning,
         etau_selection, 
         mutau_selection, 
         tautau_selection, 
@@ -256,7 +260,8 @@ def main(
     results += trigger_results
 
     # Get genZ collection for Zpt reweighting
-    if self.dataset_inst.has_tag("is_dy"):
+    #if self.dataset_inst.has_tag("is_dy"):
+    if self.dataset_inst.is_mc:
         events = self[genZ_selection](events, **kwargs)
         
     # electron selection
@@ -285,18 +290,23 @@ def main(
 
     if self.dataset_inst.is_mc:
         logger.info("MC tau_selection for mutau channel")
-        events_mutau, tau_results_mu, good_tau_indices_mutau = self[tau_selection](events, "mutau",  call_force=True, **kwargs)
-        #results += tau_results
+        _, _, good_tau_indices_mutau = self[tau_selection](events, "mutau",  call_force=True, **kwargs)
         logger.info("MC tau_selection for etau channel")
-        events_etau, tau_results_ele, good_tau_indices_etau       = self[tau_selection](events, "etau",   call_force=True, **kwargs)
+        _, _, good_tau_indices_etau       = self[tau_selection](events, "etau",   call_force=True, **kwargs)
         logger.info("MC tau_selection for tautau channel")
-        events_tautau, tau_results_tau, good_tau_indices_tautau     = self[tau_selection](events, "tautau", call_force=True, **kwargs)
+        events, tau_results_tau, good_tau_indices_tautau     = self[tau_selection](events, "tautau", call_force=True, **kwargs)
         results += tau_results_tau
     else:
         logger.info("DATA tau_selection for tautau channel")
         events, tau_results, good_tau_indices = self[tau_selection](events, call_force=True, **kwargs)
         results += tau_results
+
+
+    # jet selection
+    events, jet_results, jet_indices = self[jet_selection](events, call_force=True, **kwargs)
     
+
+        
     # double lepton veto
     """
     events, extra_double_lepton_veto_results = self[double_lepton_veto](events,
@@ -324,11 +334,12 @@ def main(
     results += mutau_results
 
     # tau-tau pair i.e. hcand selection
-    tautau_results, tautau_pair, tautau_trig_ids,tautau_trig_types = self[tautau_selection](events,
-                                                                                            good_tau_indices_tautau if self.dataset_inst.is_mc else good_tau_indices,
-                                                                                            trigger_results,
-                                                                                            call_force=True,
-                                                                                            **kwargs)
+    tautau_results, tautau_pair, tautau_trig_ids, tautau_trig_types, ditaujet_jet_indices = self[tautau_selection](events,
+                                                                                                                   good_tau_indices_tautau if self.dataset_inst.is_mc else good_tau_indices,
+                                                                                                                   trigger_results,
+                                                                                                                   jet_indices,
+                                                                                                                   call_force=True,
+                                                                                                                   **kwargs)
     results += tautau_results
 
     match_at_least_one_pair = get_2n_pairs(etau_pair.rawIdx,
@@ -353,34 +364,9 @@ def main(
                                                    tautau_pair.rawIdx)
     results += channel_results
 
-    """
-    trigger_types = ak.concatenate([etau_trig_types, mutau_trig_types, tautau_trig_types], axis=1)
-    # save single_triggered and cross_triggered
-    single_e_triggered = ak.any(ak.fill_none((trigger_types == 'single_e'), False), axis=1)
-    single_mu_triggered = ak.any(ak.fill_none((trigger_types == 'single_mu'), False), axis=1)
-    cross_e_triggered = ak.any(ak.fill_none((trigger_types == 'cross_e_tau'), False), axis=1)
-    cross_mu_triggered = ak.any(ak.fill_none((trigger_types == 'cross_mu_tau'), False), axis=1)
-    cross_tau_triggered = ak.any(ak.fill_none((trigger_types == 'cross_tau_tau'), False), axis=1)
-    cross_tau_jet_triggered = ak.any(ak.fill_none((trigger_types == 'cross_tau_jet_tau'), False), axis=1)
 
-    events = set_ak_column(events, "single_e_triggered", single_e_triggered)
-    events = set_ak_column(events, "single_mu_triggered", single_mu_triggered)
-    events = set_ak_column(events, "cross_e_triggered", cross_e_triggered)
-    events = set_ak_column(events, "cross_mu_triggered", cross_mu_triggered)
-    events = set_ak_column(events, "cross_tau_triggered", cross_tau_triggered)
-    events = set_ak_column(events, "cross_tau_jet_triggered", cross_tau_jet_triggered)
-    events = set_ak_column(events, "single_triggered", (single_e_triggered | single_mu_triggered))
-    events = set_ak_column(events, "cross_triggered", (cross_e_triggered | cross_mu_triggered | cross_tau_triggered | cross_tau_jet_triggered))
-
-    trigger_ids   = ak.concatenate([etau_trig_ids, mutau_trig_ids, tautau_trig_ids], axis=1)
-    trigger_ids = ak.values_astype(ak.fill_none(ak.firsts(trigger_ids, axis=1), 999), np.uint64)
-
-    # save the trigger_ids column
-    events = set_ak_column(events, "trigger_ids", trigger_ids)
-    """
     
     trigger_types = ak.concatenate([etau_trig_types, mutau_trig_types, tautau_trig_types], axis=1)
-
 
     # ele
     single_e_triggered = ak.any(trigger_types == 'single_e', axis=1)
@@ -392,9 +378,6 @@ def main(
     cross_tau_triggered = ak.any(trigger_types == 'cross_tau_tau', axis=1)
     cross_tau_jet_triggered = ak.any(trigger_types == 'cross_tau_tau_jet', axis=1)
 
-    #from IPython import embed; embed()
-
-    
     events = set_ak_column(events, "single_e_triggered", single_e_triggered)
     events = set_ak_column(events, "single_mu_triggered", single_mu_triggered)
     events = set_ak_column(events, "cross_e_triggered", cross_e_triggered)
@@ -441,21 +424,22 @@ def main(
     # this is moved here, because now the jets are
     # cleaned against the tau cadidates of hacnd
     # -------------------------------------------- #
-    #events, bjet_veto_result, bjet_veto_mask, good_jet_indices = self[jet_selection](events,
-    #                                                                                 call_force=True, 
-    #                                                                                 **kwargs)
+
+    """
     events, bjet_veto_result = self[jet_selection](events,
                                                    call_force=True, 
                                                    **kwargs)
     results += bjet_veto_result
-    
+    """
+    events, jet_clean_result, ditaujet_jet_indices = self[jet_cleaning](events,
+                                                                        jet_indices,
+                                                                        jet_results,
+                                                                        ditaujet_jet_indices,
+                                                                        call_force=True, 
+                                                                        **kwargs)
+    results += jet_clean_result
 
-    #events = self[build_abcd_masks](events,
-    #                                good_jet_indices, # this is VERY Essential to make categories with njets
-    #                                bjet_veto_mask,
-    #                                call_force=True,
-    #                                **kwargs)
-    
+
     # gen particles info
     # ############################################ #
     # After building the higgs candidates, one can
@@ -547,8 +531,6 @@ def main(
                    results,
                    self.config_inst.x.triggers)
 
-        #from IPython import embed; embed()
-        
     return events, results
 
 
