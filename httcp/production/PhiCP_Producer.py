@@ -9,7 +9,7 @@ from columnflow.production import Producer, producer
 from columnflow.util import maybe_import
 
 from httcp.production.PhiCP_Estimator import GetPhiCP
-from httcp.production.angular_features import ProduceDetCosPsi, ProduceGenCosPsi
+#from httcp.production.angular_features import ProduceDetCosPsi, ProduceGenCosPsi
 from columnflow.columnar_util import EMPTY_FLOAT, Route, set_ak_column, optional_column as optional
 
 import law
@@ -298,18 +298,18 @@ def ProducePhiCP(
 # ------------ DETECTOR LEVEL ----------- #
 @producer(
     uses={
-        ProducePhiCP, ProduceDetCosPsi,
+        ProducePhiCP, #ProduceDetCosPsi,
     },
     produces={
-        ProduceDetCosPsi,
+        #ProduceDetCosPsi,
         "PhiCP_IPIP",
-        "PhiCP_IPIP_alpha_lt_piby4",
-        "PhiCP_IPIP_alpha_gt_piby4",
+        #"PhiCP_IPIP_alpha_lt_piby4",
+        #"PhiCP_IPIP_alpha_gt_piby4",
         "PhiCP_DPDP",
         "PhiCP_PVPV",
         "PhiCP_IPDP",
-        "PhiCP_IPDP_alpha_lt_piby4",
-        "PhiCP_IPDP_alpha_gt_piby4",
+        #"PhiCP_IPDP_alpha_lt_piby4",
+        #"PhiCP_IPDP_alpha_gt_piby4",
         "PhiCP_IPPV",
     },
 )
@@ -319,45 +319,41 @@ def ProduceDetPhiCP(
         p4hcandinfo: dict,
         **kwargs,
 ) -> ak.Array:
-    #from IPython import embed; embed()
     
-    events, alpha = self[ProduceDetCosPsi](events, p4hcandinfo)
+    #events, alpha = self[ProduceDetCosPsi](events, p4hcandinfo)
 
-    print(f" ===>>> ProduceDetPhiCP ===>>> ")
-    with_alpha_lt_piby4 = ak.fill_none(ak.firsts(alpha < np.pi/4.0, axis=1), False)
-    with_alpha_gt_piby4 = ak.fill_none(ak.firsts(alpha > np.pi/4.0, axis=1), False)
+    #print(f" ===>>> ProduceDetPhiCP ===>>> ")
+    #with_alpha_lt_piby4 = ak.fill_none(ak.firsts(alpha < np.pi/4.0, axis=1), False)
+    #with_alpha_gt_piby4 = ak.fill_none(ak.firsts(alpha > np.pi/4.0, axis=1), False)
 
     events, PhiCP_IPIP, PhiCP_DPDP, PhiCP_PVPV, PhiCP_IPDP, PhiCP_IPPV = self[ProducePhiCP](events, p4hcandinfo)
 
     dummy = PhiCP_IPIP[:,:0]
     
-    #psi_IPIP = ak.where(ak.num(PhiCP_IPIP, axis=1) == 1, psi, dummy)
-    PhiCP_IPIP_alpha_lt_piby4 = ak.where(with_alpha_lt_piby4, PhiCP_IPIP, dummy)
-    PhiCP_IPIP_alpha_gt_piby4 = ak.where(with_alpha_gt_piby4, PhiCP_IPIP, dummy)
+    #PhiCP_IPIP_alpha_lt_piby4 = ak.where(with_alpha_lt_piby4, PhiCP_IPIP, dummy)
+    #PhiCP_IPIP_alpha_gt_piby4 = ak.where(with_alpha_gt_piby4, PhiCP_IPIP, dummy)
 
-    #psi_IPDP = ak.where(ak.num(PhiCP_IPDP, axis=1) == 1, psi, dummy)
-    PhiCP_IPDP_alpha_lt_piby4 = ak.where(with_alpha_lt_piby4, PhiCP_IPDP, dummy)
-    PhiCP_IPDP_alpha_gt_piby4 = ak.where(with_alpha_gt_piby4, PhiCP_IPDP, dummy)
+    #PhiCP_IPDP_alpha_lt_piby4 = ak.where(with_alpha_lt_piby4, PhiCP_IPDP, dummy)
+    #PhiCP_IPDP_alpha_gt_piby4 = ak.where(with_alpha_gt_piby4, PhiCP_IPDP, dummy)
     
-    #PhiCP_PVPV = ak.nan_to_num(PhiCP_PVPV, nan=0.0)
     PhiCP_IPIP = ak.nan_to_num(PhiCP_IPIP, 0.0) # WRONG: CHECK IP FOR GEN PARTICLES
-    PhiCP_IPIP_alpha_lt_piby4 = ak.nan_to_num(PhiCP_IPIP_alpha_lt_piby4, 0.0)
-    PhiCP_IPIP_alpha_gt_piby4 = ak.nan_to_num(PhiCP_IPIP_alpha_gt_piby4, 0.0)
+    #PhiCP_IPIP_alpha_lt_piby4 = ak.nan_to_num(PhiCP_IPIP_alpha_lt_piby4, 0.0)
+    #PhiCP_IPIP_alpha_gt_piby4 = ak.nan_to_num(PhiCP_IPIP_alpha_gt_piby4, 0.0)
     PhiCP_PVPV = ak.nan_to_num(PhiCP_PVPV, 0.0)
     PhiCP_DPDP = ak.nan_to_num(PhiCP_DPDP, 0.0)
     PhiCP_IPPV = ak.nan_to_num(PhiCP_IPPV, 0.0) # WRONG: CHECK IP FOR GEN PARTICLES
     PhiCP_IPDP = ak.nan_to_num(PhiCP_IPDP, 0.0) # WRONG: CHECK IP FOR GEN PARTICLES
-    PhiCP_IPDP_alpha_lt_piby4 = ak.nan_to_num(PhiCP_IPDP_alpha_lt_piby4, 0.0)
-    PhiCP_IPDP_alpha_gt_piby4 = ak.nan_to_num(PhiCP_IPDP_alpha_gt_piby4, 0.0)
+    #PhiCP_IPDP_alpha_lt_piby4 = ak.nan_to_num(PhiCP_IPDP_alpha_lt_piby4, 0.0)
+    #PhiCP_IPDP_alpha_gt_piby4 = ak.nan_to_num(PhiCP_IPDP_alpha_gt_piby4, 0.0)
     
     events = set_ak_column(events, "PhiCP_IPIP", PhiCP_IPIP)
-    events = set_ak_column(events, "PhiCP_IPIP_alpha_lt_piby4", PhiCP_IPIP_alpha_lt_piby4)
-    events = set_ak_column(events, "PhiCP_IPIP_alpha_gt_piby4", PhiCP_IPIP_alpha_gt_piby4)
+    #events = set_ak_column(events, "PhiCP_IPIP_alpha_lt_piby4", PhiCP_IPIP_alpha_lt_piby4)
+    #events = set_ak_column(events, "PhiCP_IPIP_alpha_gt_piby4", PhiCP_IPIP_alpha_gt_piby4)
     events = set_ak_column(events, "PhiCP_DPDP", PhiCP_DPDP)
     events = set_ak_column(events, "PhiCP_PVPV", PhiCP_PVPV)
     events = set_ak_column(events, "PhiCP_IPDP", PhiCP_IPDP)
-    events = set_ak_column(events, "PhiCP_IPDP_alpha_lt_piby4", PhiCP_IPDP_alpha_lt_piby4)
-    events = set_ak_column(events, "PhiCP_IPDP_alpha_gt_piby4", PhiCP_IPDP_alpha_gt_piby4)
+    #events = set_ak_column(events, "PhiCP_IPDP_alpha_lt_piby4", PhiCP_IPDP_alpha_lt_piby4)
+    #events = set_ak_column(events, "PhiCP_IPDP_alpha_gt_piby4", PhiCP_IPDP_alpha_gt_piby4)
     events = set_ak_column(events, "PhiCP_IPPV", PhiCP_IPPV)
 
     return events
@@ -367,18 +363,18 @@ def ProduceDetPhiCP(
 # ------------ GENERATOR LEVEL ----------- #
 @producer(
     uses={
-        ProducePhiCP, ProduceGenCosPsi
+        ProducePhiCP, #ProduceGenCosPsi
     },
     produces={
-        ProduceGenCosPsi,
+        #ProduceGenCosPsi,
         "PhiCPGen_IPIP",
-        "PhiCPGen_IPIP_alpha_lt_piby4",
-        "PhiCPGen_IPIP_alpha_gt_piby4",        
+        #"PhiCPGen_IPIP_alpha_lt_piby4",
+        #"PhiCPGen_IPIP_alpha_gt_piby4",        
         "PhiCPGen_DPDP",
         "PhiCPGen_PVPV",
         "PhiCPGen_IPDP",
-        "PhiCPGen_IPDP_alpha_lt_piby4",
-        "PhiCPGen_IPDP_alpha_gt_piby4",        
+        #"PhiCPGen_IPDP_alpha_lt_piby4",
+        #"PhiCPGen_IPDP_alpha_gt_piby4",        
         "PhiCPGen_IPPV",
     },
     mc_only=True,
@@ -389,11 +385,11 @@ def ProduceGenPhiCP(
         p4hcandinfo: dict,
         **kwargs,
 ) -> ak.Array:
-    events, alpha = self[ProduceGenCosPsi](events, p4hcandinfo)
+    #events, alpha = self[ProduceGenCosPsi](events, p4hcandinfo)
 
     print(f" ===>>> ProduceGenPhiCP ===>>> ")
-    with_alpha_lt_piby4 = ak.fill_none(ak.firsts(alpha < np.pi/4.0, axis=1), False)
-    with_alpha_gt_piby4 = ak.fill_none(ak.firsts(alpha > np.pi/4.0, axis=1), False)
+    #with_alpha_lt_piby4 = ak.fill_none(ak.firsts(alpha < np.pi/4.0, axis=1), False)
+    #with_alpha_gt_piby4 = ak.fill_none(ak.firsts(alpha > np.pi/4.0, axis=1), False)
     
     events, PhiCP_IPIP, PhiCP_DPDP, PhiCP_PVPV, PhiCP_IPDP, PhiCP_IPPV = self[ProducePhiCP](events, p4hcandinfo)
 
@@ -401,34 +397,32 @@ def ProduceGenPhiCP(
 
     #from IPython import embed; embed()
     
-    #psi_IPIP = ak.where(ak.num(PhiCP_IPIP, axis=1) == 1, psi, dummy)
-    PhiCP_IPIP_alpha_lt_piby4 = ak.where(with_alpha_lt_piby4, PhiCP_IPIP, dummy)
-    PhiCP_IPIP_alpha_gt_piby4 = ak.where(with_alpha_gt_piby4, PhiCP_IPIP, dummy)
+    #PhiCP_IPIP_alpha_lt_piby4 = ak.where(with_alpha_lt_piby4, PhiCP_IPIP, dummy)
+    #PhiCP_IPIP_alpha_gt_piby4 = ak.where(with_alpha_gt_piby4, PhiCP_IPIP, dummy)
 
-    #psi_IPDP = ak.where(ak.num(PhiCP_IPDP, axis=1) == 1, psi, dummy)
-    PhiCP_IPDP_alpha_lt_piby4 = ak.where(with_alpha_lt_piby4, PhiCP_IPDP, dummy)
-    PhiCP_IPDP_alpha_gt_piby4 = ak.where(with_alpha_gt_piby4, PhiCP_IPDP, dummy)
+    #PhiCP_IPDP_alpha_lt_piby4 = ak.where(with_alpha_lt_piby4, PhiCP_IPDP, dummy)
+    #PhiCP_IPDP_alpha_gt_piby4 = ak.where(with_alpha_gt_piby4, PhiCP_IPDP, dummy)
     
 
     PhiCP_IPIP = ak.nan_to_num(PhiCP_IPIP, 0.0) # WRONG: CHECK IP FOR GEN PARTICLES
-    PhiCP_IPIP_alpha_lt_piby4 = ak.nan_to_num(PhiCP_IPIP_alpha_lt_piby4, 0.0)
-    PhiCP_IPIP_alpha_gt_piby4 = ak.nan_to_num(PhiCP_IPIP_alpha_gt_piby4, 0.0)
+    #PhiCP_IPIP_alpha_lt_piby4 = ak.nan_to_num(PhiCP_IPIP_alpha_lt_piby4, 0.0)
+    #PhiCP_IPIP_alpha_gt_piby4 = ak.nan_to_num(PhiCP_IPIP_alpha_gt_piby4, 0.0)
     PhiCP_PVPV = ak.nan_to_num(PhiCP_PVPV, 0.0)
     PhiCP_DPDP = ak.nan_to_num(PhiCP_DPDP, 0.0)
     PhiCP_IPPV = ak.nan_to_num(PhiCP_IPPV, 0.0) # WRONG: CHECK IP FOR GEN PARTICLES
     PhiCP_IPDP = ak.nan_to_num(PhiCP_IPDP, 0.0) # WRONG: CHECK IP FOR GEN PARTICLES
-    PhiCP_IPDP_alpha_lt_piby4 = ak.nan_to_num(PhiCP_IPDP_alpha_lt_piby4, 0.0)
-    PhiCP_IPDP_alpha_gt_piby4 = ak.nan_to_num(PhiCP_IPDP_alpha_gt_piby4, 0.0)
+    #PhiCP_IPDP_alpha_lt_piby4 = ak.nan_to_num(PhiCP_IPDP_alpha_lt_piby4, 0.0)
+    #PhiCP_IPDP_alpha_gt_piby4 = ak.nan_to_num(PhiCP_IPDP_alpha_gt_piby4, 0.0)
     
     
     events = set_ak_column(events, "PhiCPGen_IPIP", PhiCP_IPIP)
-    events = set_ak_column(events, "PhiCPGen_IPIP_alpha_lt_piby4", PhiCP_IPIP_alpha_lt_piby4)
-    events = set_ak_column(events, "PhiCPGen_IPIP_alpha_gt_piby4", PhiCP_IPIP_alpha_gt_piby4)
+    #events = set_ak_column(events, "PhiCPGen_IPIP_alpha_lt_piby4", PhiCP_IPIP_alpha_lt_piby4)
+    #events = set_ak_column(events, "PhiCPGen_IPIP_alpha_gt_piby4", PhiCP_IPIP_alpha_gt_piby4)
     events = set_ak_column(events, "PhiCPGen_DPDP", PhiCP_DPDP)
     events = set_ak_column(events, "PhiCPGen_PVPV", PhiCP_PVPV)
     events = set_ak_column(events, "PhiCPGen_IPDP", PhiCP_IPDP)
-    events = set_ak_column(events, "PhiCPGen_IPDP_alpha_lt_piby4", PhiCP_IPDP_alpha_lt_piby4)
-    events = set_ak_column(events, "PhiCPGen_IPDP_alpha_gt_piby4", PhiCP_IPDP_alpha_gt_piby4)
+    #events = set_ak_column(events, "PhiCPGen_IPDP_alpha_lt_piby4", PhiCP_IPDP_alpha_lt_piby4)
+    #events = set_ak_column(events, "PhiCPGen_IPDP_alpha_gt_piby4", PhiCP_IPDP_alpha_gt_piby4)
     events = set_ak_column(events, "PhiCPGen_IPPV", PhiCP_IPPV)
 
     return events
