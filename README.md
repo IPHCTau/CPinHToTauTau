@@ -2,6 +2,8 @@
 
 A Columnflow based analysis framework from IPHC, forked from [desyTau](https://github.com/DesyTau/CPinHToTauTau). Although the basic workflow is similar to the desyTau CP analysis setup, but some differences are there mainly in array structures, categorizations and implementations of some methods. However, synchronization study is being performed recently.
 
+### Link to the AN : [AN-25-008](https://gitlab.cern.ch/tdr/notes/AN-25-008)
+
 <!-- marker-before-logo -->
 
 <div style="text-align: center;">
