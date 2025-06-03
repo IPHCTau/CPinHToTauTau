@@ -1,0 +1,31 @@
+{
+  "ALPAKA_BASE": "/cvmfs/cms.cern.ch/el9_amd64_gcc11/external/alpaka/develop-20230621-c24a22ec5c5d0e67ae2ff41d221065df",
+  "FLAGS": {
+    "CUDA_FLAGS": [
+      "-DALPAKA_DEFAULT_HOST_MEMORY_ALIGNMENT=128"
+    ],
+    "CXXFLAGS": [
+      "-DALPAKA_DEFAULT_HOST_MEMORY_ALIGNMENT=128"
+    ],
+    "GENREFLEX_CPPFLAGS": [
+      "-DALPAKA_DEFAULT_HOST_MEMORY_ALIGNMENT=128"
+    ]
+  },
+  "INCLUDE": [
+    "/cvmfs/cms.cern.ch/el9_amd64_gcc11/external/alpaka/develop-20230621-c24a22ec5c5d0e67ae2ff41d221065df/include"
+  ],
+  "RUNTIME": {
+    "PATH:ROOT_INCLUDE_PATH": [
+      "/cvmfs/cms.cern.ch/el9_amd64_gcc11/external/alpaka/develop-20230621-c24a22ec5c5d0e67ae2ff41d221065df/include"
+    ]
+  },
+  "TOOLNAME": "alpaka",
+  "TOOLVERSION": "develop-20230621-c24a22ec5c5d0e67ae2ff41d221065df",
+  "USE": [
+    "boost"
+  ],
+  "VARIABLES": [
+    "ALPAKA_BASE",
+    "INCLUDE"
+  ]
+}

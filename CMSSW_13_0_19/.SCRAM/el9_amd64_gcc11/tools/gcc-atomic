@@ -1,0 +1,11 @@
+{
+  "GCC_ATOMIC_BASE": "/cvmfs/cms.cern.ch/el9_amd64_gcc11/external/gcc/11.2.1-f9b9dfdd886f71cd63f5538223d8f161",
+  "LIB": [
+    "atomic"
+  ],
+  "TOOLNAME": "gcc-atomic",
+  "TOOLVERSION": "11.2.1",
+  "VARIABLES": [
+    "GCC_ATOMIC_BASE"
+  ]
+}

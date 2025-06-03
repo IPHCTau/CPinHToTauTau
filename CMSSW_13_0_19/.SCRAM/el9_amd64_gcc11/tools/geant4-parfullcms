@@ -1,0 +1,19 @@
+{
+  "GEANT4_PARFULLCMS": "/cvmfs/cms.cern.ch/el9_amd64_gcc11/external/geant4-parfullcms/2014.01.27-b26feff8fa8dda7914bc0abc31457b3d",
+  "RUNTIME": {
+    "G4FORCENUMBEROFTHREADS": [
+      "max"
+    ],
+    "PATH:GEANT4_PARFULLCMS_CONFIG_DIR": [
+      "/cvmfs/cms.cern.ch/el9_amd64_gcc11/external/geant4-parfullcms/2014.01.27-b26feff8fa8dda7914bc0abc31457b3d/share/ParFullCMS"
+    ],
+    "PATH:PATH": [
+      "/cvmfs/cms.cern.ch/el9_amd64_gcc11/external/geant4-parfullcms/2014.01.27-b26feff8fa8dda7914bc0abc31457b3d/bin"
+    ]
+  },
+  "TOOLNAME": "geant4-parfullcms",
+  "TOOLVERSION": "2014.01.27-b26feff8fa8dda7914bc0abc31457b3d",
+  "VARIABLES": [
+    "GEANT4_PARFULLCMS"
+  ]
+}

@@ -1,0 +1,13 @@
+{
+  "ALPGEN_BASE": "/cvmfs/cms.cern.ch/el9_amd64_gcc11/external/alpgen/214-bdefed94326bb07d8c12fcf31e1b20c7",
+  "RUNTIME": {
+    "PATH:PATH": [
+      "/cvmfs/cms.cern.ch/el9_amd64_gcc11/external/alpgen/214-bdefed94326bb07d8c12fcf31e1b20c7/bin"
+    ]
+  },
+  "TOOLNAME": "alpgen",
+  "TOOLVERSION": "214-bdefed94326bb07d8c12fcf31e1b20c7",
+  "VARIABLES": [
+    "ALPGEN_BASE"
+  ]
+}

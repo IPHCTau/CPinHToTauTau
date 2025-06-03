@@ -1,0 +1,13 @@
+{
+  "LIB": [
+    "tensorflow"
+  ],
+  "TOOLNAME": "tensorflow-c",
+  "TOOLVERSION": "2.6.4-d11d9da6622cff6ad896cf997c355738",
+  "USE": [
+    "tensorflow-framework",
+    "eigen",
+    "libpng",
+    "sqlite"
+  ]
+}

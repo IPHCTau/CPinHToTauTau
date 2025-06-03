@@ -1,0 +1,4 @@
+<tool name="oracleocci" version="19.11.0.0.0dbru-092ba337a70a02c4734616a84f842897">
+  <lib name="occi"/>
+  <use name="oracle"/>
+</tool>

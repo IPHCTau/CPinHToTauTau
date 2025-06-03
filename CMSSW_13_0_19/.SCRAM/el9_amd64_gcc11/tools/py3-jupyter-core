@@ -1,0 +1,13 @@
+{
+  "PY3_JUPYTER_CORE_BASE": "/cvmfs/cms.cern.ch/el9_amd64_gcc11/external/py3-jupyter-core/4.11.1-397f209fa6d548047c9de89669c17af8",
+  "RUNTIME": {
+    "PATH:PATH": [
+      "/cvmfs/cms.cern.ch/el9_amd64_gcc11/external/py3-jupyter-core/4.11.1-397f209fa6d548047c9de89669c17af8/bin"
+    ]
+  },
+  "TOOLNAME": "py3-jupyter-core",
+  "TOOLVERSION": "4.11.1-397f209fa6d548047c9de89669c17af8",
+  "VARIABLES": [
+    "PY3_JUPYTER_CORE_BASE"
+  ]
+}

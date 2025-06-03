@@ -36,6 +36,30 @@ def add_common_features(cfg: od.config) -> None:
         x_title="Luminosity block",
         discrete_x=True,
     )
+    cfg.add_variable( #PV.npvs = total number of reconstructed primary vertices https://cms-nanoaod-integration.web.cern.ch/autoDoc/NanoAODv14/2024Prompt/doc_EGamma1_Run2024D-PromptReco-v1.html#SV
+        name="npvs",
+        expression="PV.npvs",
+        binning=(20, 0, 100),
+        x_title="Reconstructed primary vertices",
+        null_value=EMPTY_INT,
+        #discrete_x=True,
+    )
+    cfg.add_variable( #Pileup.nTrueInt
+        name="pu_nTrue_Int",
+        expression="Pileup.nTrueInt",
+        binning=(20, 0.0, 100.0),
+        x_title="PV Index",
+        null_value=EMPTY_FLOAT,
+        #discrete_x=True,
+    )
+    cfg.add_variable( #Pileup.nPU
+        name="nPU",
+        expression="Pileup.nPU",
+        binning=(20, 0, 100),
+        x_title="Number of Pile Up per Event",
+        null_value=EMPTY_INT,
+        #discrete_x=True,
+    )
 
 
 def add_lepton_features(cfg: od.Config) -> None:
@@ -314,6 +338,14 @@ def add_hcand_features(cfg: od.Config) -> None:
             x_title=f"hcand[{i+1}]" + " mass",
         )
         cfg.add_variable(
+            name=f"hcand_{i+1}_mass",
+            expression=f"hcand.mass[:,{i}]",
+            null_value=EMPTY_FLOAT,
+            binning=(30, 0., 3.0),
+            unit="GeV",
+            x_title=f"hcand[{i+1}]" + " mass",
+        )
+        cfg.add_variable(
             name=f"hcand_{i+1}_decayMode",
             expression=f"hcand.decayMode[:,{i}]",
             #null_value=EMPTY_INT,
@@ -349,6 +381,36 @@ def add_hcand_features(cfg: od.Config) -> None:
             x_title=f"hcand[{i+1}]" + r" $IP Significance$",
         )
         cfg.add_variable(
+            name=f"hcand_{i+1}_pt_fastMTT",
+            expression=f"hcand.pt_fastMTT[:,{i}]",
+            null_value=EMPTY_FLOAT,
+            binning=(40, 10., 200.),
+            unit="GeV",
+            x_title=f"hcand[{i+1}]" + r" $p_{T}^{fastMTT W}$",
+        )
+        cfg.add_variable(
+            name=f"hcand_{i+1}_phi_fastMTT",
+            expression=f"hcand.phi_fastMTT[:,{i}]",
+            null_value=EMPTY_FLOAT,
+            binning=(32, -3.2, 3.2),
+            x_title=f"hcand[{i+1}]" + r" $\phi^{fastMTT W}$",
+        )
+        cfg.add_variable(
+            name=f"hcand_{i+1}_eta_fastMTT",
+            expression=f"hcand.eta_fastMTT[:,{i}]",
+            null_value=EMPTY_FLOAT,
+            binning=(25, -2.5, 2.5),
+            x_title=f"hcand[{i+1}]" + r" $\eta^{fastMTT W}$",
+        )
+        cfg.add_variable(
+            name=f"hcand_{i+1}_mass_fastMTT",
+            expression=f"hcand.mass_fastMTT[:,{i}]",
+            null_value=EMPTY_FLOAT,
+            binning=(50, 0.01, 2.5),
+            unit="GeV",
+            x_title=f"hcand[{i+1}]" + r" $ mass^{fastMTT W}$",
+        )
+        cfg.add_variable(
             name=f"dphi_met_h{i+1}",
             expression=f"dphi_met_h{i+1}",
             null_value=EMPTY_FLOAT,
@@ -361,15 +423,135 @@ def add_hcand_features(cfg: od.Config) -> None:
             null_value=EMPTY_FLOAT,
             binning=(30, -1.5, 1.5),
             x_title=r"$MET var QCD$",
-        )    
+        )
 
+        ### Resolution plots to compare fastMTT
+
+        variables = ["px", "py", "pz", "pt", "eta", "phi"]
+        for var in variables:
+            if var in ["px", "py", "pz", "pt"]:
+                cfg.add_variable(
+                        name=f"hcand_resolution_rel__gen_to_reco__{var}_{i+1}",
+                        expression=f"hcand.resolution_rel__gen_to_reco__{var}[:,{i}]",
+                        null_value=EMPTY_FLOAT,
+                        binning=(80, -2., 2.),
+                        unit="GeV",
+                        x_title=f"hcand[{i+1}] {var} relative resolution (gen to reco)",
+                    )
+                cfg.add_variable(
+                        name=f"hcand_resolution_rel__gen_to_fastMTT__{var}_{i+1}",
+                        expression=f"hcand.resolution_rel__gen_to_fastMTT__{var}[:,{i}]",
+                        null_value=EMPTY_FLOAT,
+                        binning=(80, -2., 2.),
+                        unit="GeV",
+                        x_title=f"hcand[{i+1}] {var} relative resolution (gen to fastMTT)",
+                    )
+                cfg.add_variable(
+                        name=f"hcand_resolution_rel__reco_to_fastMTT__{var}_{i+1}",
+                        expression=f"hcand.resolution_rel__reco_to_fastMTT__{var}[:,{i}]",
+                        null_value=EMPTY_FLOAT,
+                        binning=(80, -2., 2.),
+                        unit="GeV",
+                        x_title=f"hcand[{i+1}] {var} relative resolution (reco to fastMTT)",
+                    )
+                cfg.add_variable(
+                        name=f"hcand_resolution_abs__gen_to_reco__{var}_{i+1}",
+                        expression=f"hcand.resolution_abs__gen_to_reco__{var}[:,{i}]",
+                        null_value=EMPTY_FLOAT,
+                        binning=(40, -2., 2.),
+                        unit="GeV",
+                        x_title=f"hcand[{i+1}] {var} absolute resolution (gen to reco)",
+                    )
+                cfg.add_variable(
+                        name=f"hcand_resolution_abs__gen_to_fastMTT__{var}_{i+1}",
+                        expression=f"hcand.resolution_abs__gen_to_fastMTT__{var}[:,{i}]",
+                        null_value=EMPTY_FLOAT,
+                        binning=(40, -2., 2.),
+                        unit="GeV",
+                        x_title=f"hcand[{i+1}] {var} absolute resolution (gen to fastMTT)",
+                    )
+                cfg.add_variable(
+                        name=f"hcand_resolution_abs__reco_to_fastMTT__{var}_{i+1}",
+                        expression=f"hcand.resolution_abs__reco_to_fastMTT__{var}[:,{i}]",
+                        null_value=EMPTY_FLOAT,
+                        binning=(40, -2., 2.),
+                        unit="GeV",
+                        x_title=f"hcand[{i+1}] {var} absolute resolution (reco to fastMTT)",
+                    )
+            if var in ["eta", "phi"]:
+                cfg.add_variable(
+                        name=f"hcand_resolution_abs__gen_to_reco__{var}_{i+1}",
+                        expression=f"hcand.resolution_abs__gen_to_reco__{var}[:,{i}]",
+                        null_value=EMPTY_FLOAT,
+                        binning=(80, -0.2, 0.2),
+                        unit="GeV",
+                        x_title=f"hcand[{i+1}] {var} absolute resolution (gen to reco)",
+                    )
+                cfg.add_variable(
+                        name=f"hcand_resolution_abs__gen_to_fastMTT__{var}_{i+1}",
+                        expression=f"hcand.resolution_abs__gen_to_fastMTT__{var}[:,{i}]",
+                        null_value=EMPTY_FLOAT,
+                        binning=(80, -0.2, 0.2),
+                        unit="GeV",
+                        x_title=f"hcand[{i+1}] {var} absolute resolution (gen to fastMTT)",
+                    )
+                cfg.add_variable(
+                        name=f"hcand_resolution_abs__reco_to_fastMTT__{var}_{i+1}",
+                        expression=f"hcand.resolution_abs__reco_to_fastMTT__{var}[:,{i}]",
+                        null_value=EMPTY_FLOAT,
+                        binning=(80, -0.2, 0.2),
+                        unit="GeV",
+                        x_title=f"hcand[{i+1}] {var} absolute resolution (reco to fastMTT)",
+                    )
+
+    cfg.add_variable(
+            name=f"GenHiggs_mass",
+            expression=f"GenHiggs_mass",
+            null_value=EMPTY_FLOAT,
+            binning=(500, 0, 250),
+            unit="GeV",
+            x_title=r"$m_H^{Gen}$",
+    )
+    cfg.add_variable(
+            name=f"hcand_1_mass",
+            expression=f"hcand.mass[:,{0}]",
+            null_value=EMPTY_FLOAT,
+            binning=(100, 0.001, 0.25),
+            unit="GeV",
+            x_title=f"hcand[{1}]" + r" $m$",
+    )
+    cfg.add_variable(
+            name=f"hcand_2_mass",
+            expression=f"hcand.mass[:,{1}]",
+            null_value=EMPTY_FLOAT,
+            binning=(50, 0.01, 2.5),
+            unit="GeV",
+            x_title=f"hcand[{2}]" + r" $m$",
+    )
     cfg.add_variable(
         name="hcand_invm",
         expression="hcand_invm",
         null_value=EMPTY_FLOAT,
         binning=(40, 0.0, 200.0),
+        binning=(50, 0, 140),
         unit="GeV",
         x_title=r"$visible mass$",
+    )
+    cfg.add_variable(
+        name="hcand_invm_fastMTT",
+        expression="hcand_invm_fastMTT",
+        null_value=EMPTY_FLOAT,
+        binning=(75,  0, 250),
+        unit="GeV",
+        x_title=r"$m_{h1,h2}^{fastMTT W}$",
+    )
+    cfg.add_variable(
+        name="hcand_invm_fastMTT",
+        expression="hcand_invm_fastMTT",
+        null_value=EMPTY_FLOAT,
+        binning=(75,  0, 250),
+        unit="GeV",
+        x_title=r"$m_{h1,h2}^{fastMTT W}$",
     )
     cfg.add_variable(
         name="hcand_dr",
@@ -524,8 +706,6 @@ def add_hcand_features(cfg: od.Config) -> None:
         binning=(int(2*np.pi/(0.1*np.pi)), 0, 2*np.pi),
         x_title=r"$\Phi_{CP}^{IP-NP}$ (rad) [a- > pi/4] [Gen Level]",
     )
-
-    
 
 def add_test_variables(cfg: od.Config) -> None:
         cfg.add_variable(

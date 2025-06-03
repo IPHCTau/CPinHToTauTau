@@ -1,0 +1,6 @@
+  <tool name="gcc-atomic" version="11.2.1">
+    <lib name="atomic"/>
+    <client>
+      <environment name="GCC_ATOMIC_BASE" default="/cvmfs/cms.cern.ch/el9_amd64_gcc11/external/gcc/11.2.1-f9b9dfdd886f71cd63f5538223d8f161"/>
+    </client>
+  </tool>

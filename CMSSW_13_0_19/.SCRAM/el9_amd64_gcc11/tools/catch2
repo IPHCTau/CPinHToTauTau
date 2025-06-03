@@ -1,0 +1,12 @@
+{
+  "CATCH2_BASE": "/cvmfs/cms.cern.ch/el9_amd64_gcc11/external/catch2/2.13.6-84fde6927c396f2973a03635196e7a49",
+  "INCLUDE": [
+    "/cvmfs/cms.cern.ch/el9_amd64_gcc11/external/catch2/2.13.6-84fde6927c396f2973a03635196e7a49/include"
+  ],
+  "TOOLNAME": "catch2",
+  "TOOLVERSION": "2.13.6-84fde6927c396f2973a03635196e7a49",
+  "VARIABLES": [
+    "CATCH2_BASE",
+    "INCLUDE"
+  ]
+}

@@ -1,0 +1,10 @@
+<tool name="mxnet-predict" version="1.6.0-0bf665ed4554f7ec04f3af8e5fc5103e">
+  <lib name="mxnet"/>
+  <client>
+    <environment name="MXNET_PREDICT_BASE" default="/cvmfs/cms.cern.ch/el9_amd64_gcc11/external/mxnet-predict/1.6.0-0bf665ed4554f7ec04f3af8e5fc5103e"/>
+    <environment name="INCLUDE" default="$MXNET_PREDICT_BASE/include"/>
+    <environment name="LIBDIR" default="$MXNET_PREDICT_BASE/lib"/>
+  </client>
+  <use name="openblas"/>
+  <flags SYSTEM_INCLUDE="1"/>
+</tool>

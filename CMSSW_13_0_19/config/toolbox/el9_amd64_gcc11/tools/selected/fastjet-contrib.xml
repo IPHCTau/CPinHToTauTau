@@ -1,0 +1,9 @@
+  <tool name="fastjet-contrib" version="1.044-9f8288cf11100a284a45f857da9ac46e">
+    <info url="http://fastjet.hepforge.org/contrib/"/>
+    <lib name="fastjetcontribfragile"/>
+    <client>
+      <environment name="FASTJET_CONTRIB_BASE" default="/cvmfs/cms.cern.ch/el9_amd64_gcc11/external/fastjet-contrib/1.044-9f8288cf11100a284a45f857da9ac46e"/>
+      <environment name="LIBDIR" default="$FASTJET_CONTRIB_BASE/lib"/>
+      <environment name="INCLUDE" default="$FASTJET_CONTRIB_BASE/include"/>
+    </client>
+  </tool>

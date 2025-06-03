@@ -18,6 +18,7 @@ def stylize_processes(config: od.Config) -> None:
     # recommended cms colors
     cfg.x.colors = DotDict(
         col_h_ggf_htt="#690301",
+        col_h_vbf_htt="#e96a0c",
         col_zh_htt="#1b07f0",
         col_wh_htt="#014d06",
         col_tt="#998ec3",
@@ -40,7 +41,7 @@ def stylize_processes(config: od.Config) -> None:
         aubergine="#431f67",
         yellow="#ebe341",
         dark_yellow="#b1b111",
-        bright_orange="#e96a0c",
+        #bright_orange="#e96a0c",
         dark_orange="#8c4106",
         red="#FF0000",
         teal="#008080",
@@ -54,6 +55,10 @@ def stylize_processes(config: od.Config) -> None:
     if (p := config.get_process("h_ggf_htt", default=None)):
         p.color1 = cfg.x.colors.col_h_ggf_htt
         p.label = r"$H_{ggf} \rightarrow \tau\tau$"
+
+    if (p := config.get_process("h_vbf_htt", default=None)):
+        p.color1 = cfg.x.colors.col_h_vbf_htt
+        p.label = r"$H_{VBF} \rightarrow \tau\tau$"
 
     if (p := config.get_process("zh_htt", default=None)):
         p.color1 = cfg.x.colors.col_zh_htt

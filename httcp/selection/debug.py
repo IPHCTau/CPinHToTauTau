@@ -1,10 +1,14 @@
 from typing import Optional
 
 import law
-
-from columnflow.selection import SelectionResult
+#import matplotlib.pyplot as plt
+#import mplhep #as hep
 from columnflow.util import maybe_import
+from columnflow.selection import SelectionResult
 
+mpl = maybe_import("matplotlib")
+plt = maybe_import("matplotlib.pyplot")
+mplhep = maybe_import("mplhep")
 np = maybe_import("numpy")
 ak = maybe_import("awkward")
 coffea = maybe_import("coffea")
@@ -12,8 +16,7 @@ maybe_import("coffea.nanoevents.methods.nanoaod")
 
 logger = law.logger.get_logger(__name__)
 
-
-def get_event_level_eff(events, results):
+def get_event_level_eff(events, results, dataset_name):
     from tabulate import tabulate
     steps_ = results.steps.keys()
     indiv_selections_ = []
@@ -33,6 +36,10 @@ def get_event_level_eff(events, results):
                             indiv_headers_,
                             tablefmt="pretty")
     logger.info(f"---> Efficiencies of individual selections: \n{indiv_table_}")
+    # save the table as a .txt
+    save_efficiency_table(indiv_table_, dataset_name, "Individual Selection Efficiencies")
+    # plot the table as stair plot
+    plot_eff(indiv_selections_, indiv_headers_, dataset_name, title="Individual Selection Efficiencies")
 
     comb_selections_ = np.array(comb_selections_)
     comb_selections_counts_ = comb_selections_[:,1]
@@ -42,7 +49,6 @@ def get_event_level_eff(events, results):
     comb_table_ = tabulate(comb_selections_,
                            comb_headers_,
                            tablefmt="pretty")
-        
     logger.info(f"---> Efficiencies of combined selections: \n{comb_table_}")
     
 
@@ -83,11 +89,85 @@ def get_object_eff(results,
     evt_table = tabulate(rows_evt_level, ["selection", f"n_{tag}", "abseff"], tablefmt="pretty")
     
     logger.info(f"object level : \n{table}")
-    logger.info(f"event level  : \n{evt_table}")    
+    logger.info(f"event level  : \n{evt_table}")
+    # save the table as a .txt file
+    save_efficiency_table(table, dataset_name, title=f"Object-Level Efficiency: {tag} {key}")
+    save_efficiency_table(evt_table, dataset_name, title=f"Event-Level Efficiency: {tag} {key}")
+    # plot the table as stair plot
+    plot_eff(rows, ["Selection", f"n_{tag}", "Abs Eff"], dataset_name, title=f"Object-Level Efficiency: {tag} {key}")
+    plot_eff(rows_evt_level, ["Selection", f"n_{tag}", "Abs Eff"], dataset_name, title=f"Event-Level Efficiency: {tag} {key}")
+
+    
 
 
+def plot_eff(selections, headers, dataset_name, title="Selection Yield"): #self: Selector,
+    """
+    Plot efficiencies in CMS style.
+    
+    selections : list of lists,     Contains selection names, event counts, and efficiencies.
+    headers : list of str,          Column headers where the first element is selection names.
+    title : str,                    Title of the plot.
+    """
+    #dataset_name = self.dataset_inst.name
+    mplhep.style.use("CMS")
+    
+    # Extract data
+    step_labels = [row[0] for row in selections]  # Selection names
+    event_counts = [row[1] for row in selections]  # Event counts
+    efficiencies = [float(row[2]) for row in selections]
+    #efficiencies = [row[2] for row in selections]  # Absolute efficiencies
+    
+    x_positions = np.arange(len(step_labels))
+    
+    # Create figure
+    fig, ax1 = plt.subplots(figsize=(10.7, 10.7)) 
+    
+    # Plot event counts as stair plot
+    edges = np.arange(len(event_counts) + 1) - 0.5
+    ax1.stairs(event_counts, edges = edges , color="blue", label="Number of Events")
+    ax1.set_ylabel("Event Count")
+    ax1.tick_params(axis="y")
+    
+    # Add a second axis for efficiency
+    ax2 = ax1.twinx()
+    ax2.plot(x_positions, efficiencies, marker="o", color="red", linestyle="-", label="Efficiency")
+    ax2.set_ylabel("Efficiency")
+    ax2.tick_params(axis="y")
+    ax2.set_ylim(0, 1.1)  # Efficiency should be between 0 and 1
+    
+    # Labeling
+    ax1.set_xticks(x_positions)
+    ax1.set_xticklabels(step_labels, rotation=45, ha="right")
+    ax1.set_title(title, pad=50)
+    
+    # CMS label
+    mplhep.cms.label("Private Work", loc=0)
 
-def debug_main(events, results, triggers, **kwargs):
+    # Get handles and labels from both axes
+    handles1, labels1 = ax1.get_legend_handles_labels()
+    handles2, labels2 = ax2.get_legend_handles_labels()
+    # Combine them into one legend
+    ax1.legend(handles1 + handles2, labels1 + labels2, loc="upper right", bbox_to_anchor=(1.0, 1.0))
+    
+    # **Add efficiency values on top of each step**
+    for x, eff in zip(x_positions, efficiencies):
+        ax2.text(x, eff + 0.05, f"{eff:.2%}", ha="center", va="bottom", fontsize=10, color="red")
+
+
+    fig.tight_layout()
+    fig.savefig(f"/eos/user/m/mwitt/CPinHToTauTauOutput/debug/{dataset_name}_{title}.pdf", dpi=300)
+    
+    return fig
+
+def save_efficiency_table(table, dataset_name, title="Selection Yield"):
+    file_path = f"/eos/user/m/mwitt/CPinHToTauTauOutput/debug/{dataset_name}_{title}.txt"
+
+    with open(file_path, "w") as f: # w = write
+        f.write(table)
+        logger.info(f"Efficiencies saved to {file_path}")
+
+
+def debug_main(events, results, triggers, dataset_name, **kwargs):
     
     logger.info(f"---> ################### Inspecting event selections ################### <---\n")
     get_event_level_eff(events, results)
@@ -120,22 +200,22 @@ def debug_main(events, results, triggers, **kwargs):
     
     logger.info(f"---> ################### Inspecting object selections ################### <---")
     # muon
-    get_object_eff(results, "muon", "good_selection")
-    get_object_eff(results, "muon", "single_veto_selection")
-    get_object_eff(results, "muon", "double_veto_selection")
-    get_object_eff(results, "electron", "good_selection")
-    get_object_eff(results, "electron", "single_veto_selection")
-    get_object_eff(results, "electron", "double_veto_selection")
-    get_object_eff(results, "tau")
-    get_object_eff(results, "jet")
+    get_object_eff(results, "muon", dataset_name, "good_selection")
+    get_object_eff(results, "muon", dataset_name, "single_veto_selection")
+    get_object_eff(results, "muon", dataset_name, "double_veto_selection")
+    get_object_eff(results, "electron", dataset_name, "good_selection")
+    get_object_eff(results, "electron", dataset_name, "single_veto_selection")
+    get_object_eff(results, "electron", dataset_name, "double_veto_selection")
+    get_object_eff(results, "tau", dataset_name)
+    get_object_eff(results, "jet", dataset_name)
     
     logger.info(f"---> ################### Inspecting pair selections ################### <---")
     
     # pairs
     #print(f"\n---> Before trigobj matching <---")
-    get_object_eff(results, "etau")
-    get_object_eff(results, "mutau")
-    get_object_eff(results, "tautau")
+    get_object_eff(results, "etau", dataset_name)
+    get_object_eff(results, "mutau", dataset_name)
+    get_object_eff(results, "tautau", dataset_name)
     
     #print(f"\n---> After trigobj matching <---")
     #pairs = []

@@ -1,0 +1,27 @@
+{
+  "FLAGS": {
+    "SYSTEM_INCLUDE": [
+      "1"
+    ]
+  },
+  "INCLUDE": [
+    "/cvmfs/cms.cern.ch/el9_amd64_gcc11/external/mxnet-predict/1.6.0-0bf665ed4554f7ec04f3af8e5fc5103e/include"
+  ],
+  "LIB": [
+    "mxnet"
+  ],
+  "LIBDIR": [
+    "/cvmfs/cms.cern.ch/el9_amd64_gcc11/external/mxnet-predict/1.6.0-0bf665ed4554f7ec04f3af8e5fc5103e/lib"
+  ],
+  "MXNET_PREDICT_BASE": "/cvmfs/cms.cern.ch/el9_amd64_gcc11/external/mxnet-predict/1.6.0-0bf665ed4554f7ec04f3af8e5fc5103e",
+  "TOOLNAME": "mxnet-predict",
+  "TOOLVERSION": "1.6.0-0bf665ed4554f7ec04f3af8e5fc5103e",
+  "USE": [
+    "openblas"
+  ],
+  "VARIABLES": [
+    "MXNET_PREDICT_BASE",
+    "INCLUDE",
+    "LIBDIR"
+  ]
+}

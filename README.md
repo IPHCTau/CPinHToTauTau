@@ -17,6 +17,15 @@ A Columnflow based analysis framework from IPHC and DESY
 - [order](https://github.com/riga/order)
 - [luigi](https://github.com/spotify/luigi)
 
+### Setting up the framework
+Clone from the main github repo:
+```
+git clone --recurse-submodules git@github.com:DesyTau/CPinHToTauTau.git
+soure setup.sh
+```
+
+
+
 
 ### Installation
 

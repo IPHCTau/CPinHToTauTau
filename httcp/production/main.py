@@ -49,9 +49,13 @@ from httcp.production.columnvalid import make_column_valid
 
 from httcp.util import IF_DATASET_HAS_LHE_WEIGHTS, IF_DATASET_IS_DY, IF_DATASET_IS_W, IF_DATASET_IS_SIGNAL
 from httcp.util import IF_RUN2, IF_RUN3, IF_ALLOW_STITCHING
+    
+#from httcp.production.apply_FastMTT import apply_fastMTT
+#from httcp.production.produce_px_py_pz import produce_px_py_pz
+#from httcp.production.produce_px_py_pz import calculate_higgs_mass_genlevel
 
 np = maybe_import("numpy")
-ak = maybe_import("awkward")
+ak = maybe_import("awkward")        
 coffea = maybe_import("coffea")
 maybe_import("coffea.nanoevents.methods.nanoaod")
 
@@ -68,10 +72,14 @@ logger = law.logger.get_logger(__name__)
         "hcand.*", optional("GenTau.*"), optional("GenTauProd.*"),
         "Jet.pt",
         "PuppiMET.pt", "PuppiMET.phi",
-        #reArrangeDecayProducts,
-        #reArrangeGenDecayProducts,
-        #ProduceGenPhiCP, ####ProduceGenCosPsi, 
-        #ProduceDetPhiCP, ####ProduceDetCosPsi,
+        reArrangeDecayProducts,
+        reArrangeGenDecayProducts,
+        ProduceGenPhiCP, #ProduceGenCosPsi, 
+        ProduceDetPhiCP, #ProduceDetCosPsi,
+        #"Pileup.nTrueInt","Pileup.nPU","PV.npvs",
+        #apply_fastMTT,
+        #produce_px_py_pz,
+        #calculate_higgs_mass_genlevel,
     },
     produces={
         # new columns
@@ -83,6 +91,10 @@ logger = law.logger.get_logger(__name__)
         "dphi_met_h1", "dphi_met_h2",
         "met_var_qcd_h1", "met_var_qcd_h2",
         "hT",
+        #"pu_nTrue_Int", "nPU", "npvs",
+        #apply_fastMTT,
+        #produce_px_py_pz,
+        #calculate_higgs_mass_genlevel,
     },
 )
 def hcand_features(
@@ -120,10 +132,28 @@ def hcand_features(
     
     events = set_ak_column_i32(events, "n_jet", ak.num(events.Jet.pt, axis=1))
 
+    # ########################################### #
+    #     PU variables npvs, pu_nTrue_Int, nPU    #
+    # ########################################### #
+
+    #events = set_ak_column_f32(events, "npvs", PV.npvs)
+    #events = set_ak_column_f32(events, "pu_nTrue_Int", Pileup.nTrueInt)
+    #events = set_ak_column_f32(events, "nPU", Pileup.nPU)
+
+
+    # ################## #
+    #     Run FastMTT    #
+    # ################## #
+    #logger.info(" >>>--- FastMTT --->>> [Not as fast as you think]")
+    #events = self[apply_fastMTT](events, **kwargs)
+    #logger.info(" >>>--- produce .px, .py, .pz's --->>>")
+    #events = self[produce_px_py_pz](events, **kwargs)
+    #events = self[calculate_higgs_mass_genlevel](events, **kwargs)
+    
+
     # ########################### #
     # -------- For PhiCP -------- #
     # ########################### #
-    """
     events, P4_dict = self[reArrangeDecayProducts](events)
     events   = self[ProduceDetPhiCP](events, P4_dict)
     #events  = self[ProduceDetCosPsi](events, P4_dict) # for CosPsi only
@@ -133,9 +163,8 @@ def hcand_features(
             events, P4_gen_dict = self[reArrangeGenDecayProducts](events)
             events = self[ProduceGenPhiCP](events, P4_gen_dict) 
             #events = self[ProduceGenCosPsi](events, P4_gen_dict) # for CosPsi only
-    """
-    # ########################### #
-    
+
+
     return events
 
 
@@ -202,6 +231,7 @@ def hcand_features(
         build_abcd_masks,
         ff_weight,
     },
+    #exposed = true or false
 )
 def main(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
 
@@ -254,6 +284,11 @@ def main(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
         # TODO : pileup weight is constrained to max value 10
         # TODO : check columnflow production/pileup
         events = self[pu_weight](events, **kwargs)
+        # remove high pu weights
+        puwt = ak.where(events.pu_weight > 300.0, 1.0, events.pu_weight)
+        events = ak.without_field(events, "pu_weight")
+        events = set_ak_column_f32(events, "pu_weight", puwt)
+
         if self.has_dep(pdf_weights):
             events = self[pdf_weights](events, **kwargs)
         # ----------- Muon weights ----------- #

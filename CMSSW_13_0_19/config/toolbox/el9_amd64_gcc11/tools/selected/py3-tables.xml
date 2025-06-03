@@ -1,0 +1,6 @@
+<tool name="py3-tables" version="3.7.0-30a7ff111c7f4bf774025d62734a1802">
+  <client>
+    <environment name="PY3_TABLES_BASE" default="/cvmfs/cms.cern.ch/el9_amd64_gcc11/external/py3-tables/3.7.0-30a7ff111c7f4bf774025d62734a1802"/>
+  </client>
+  <runtime name="PATH" value="$PY3_TABLES_BASE/bin" type="path"/>
+</tool>

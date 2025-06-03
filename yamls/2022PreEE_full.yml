@@ -5,7 +5,7 @@ era     : 2022
 postfix : PreEE
 wrapper : true
 limited : false
-workers : 9
+workers : 7
 tasks_per_job  : 3
 
 args:
@@ -80,13 +80,14 @@ args:
     - wzz
     - zzz
     ## == signal ==
-    #- h_ggf_tautau_uncorrelated_filter
-    #- h_ggf_tautau_uncorrelatedDecay_CPodd_Filtered_ProdAndDecay
-    #- h_ggf_tautau_uncorrelatedDecay_MM_Filtered_ProdAndDecay
-    #- h_ggf_tautau_uncorrelatedDecay_SM_Filtered_ProdAndDecay
+    - h_ggf_tautau_uncorrelatedDecay_CPodd_Filtered_ProdAndDecay
+    - h_ggf_tautau_uncorrelatedDecay_MM_Filtered_ProdAndDecay
+    - h_ggf_tautau_uncorrelatedDecay_SM_Filtered_ProdAndDecay
+    #- h_ggf_tautau_uncorrelated_filter #inclusive sample (6 root files)
     #- zh_tautau_uncorrelatedDecay_Filtered
     #- wph_tautau_uncorrelatedDecay_Filtered
     #- wmh_tautau_uncorrelatedDecay_Filtered
+    #- h_vbf_tautau_UncorrelatedDecay_Filtered
 
   processes :
     - data
@@ -108,6 +109,7 @@ args:
     #- h_ggf_htt
     #- zh_htt
     #- wh_htt
+    #- h_vbf_htt
 
   categories:
     - etau__real_2__*
@@ -160,30 +162,147 @@ args:
     - dphi_met_h2
     - met_var_qcd_h1
     - met_var_qcd_h2
+    #- hcand_1_pt
+    ##- hcand_1_pt_binvar
+    #- hcand_1_eta
+    #- hcand_1_phi
+    #- hcand_1_mass
+    #- hcand_1_IPx
+    #- hcand_1_IPy
+    #- hcand_1_IPz
+    #- hcand_1_IPsig
+    #- hcand_1_decayMode
+    #- hcand_2_pt
+    ##- hcand_2_pt_binvar
+    #- hcand_2_eta
+    #- hcand_2_phi
+    #- hcand_2_mass
+    #- hcand_2_IPx
+    #- hcand_2_IPy
+    #- hcand_2_IPz
+    #- hcand_2_IPsig
+    #- hcand_2_decayMode
+    #- hcand_dr
+    #- GenHiggs_mass
+    #- hcand_invm
+    #- hcand_invm_fastMTT
+    #- hcand_1_pt_fastMTT
+    #- hcand_1_eta_fastMTT
+    #- hcand_1_phi_fastMTT
+    #- hcand_1_mass_fastMTT
+    #- hcand_2_pt_fastMTT
+    #- hcand_2_eta_fastMTT
+    #- hcand_2_phi_fastMTT
+    #- hcand_2_mass_fastMTT
+    #- hcand_resolution*
+    #- hcand_resolution_rel__gen_to_reco__px_1
+    #- hcand_resolution_abs__gen_to_reco__px_1
+    #- hcand_resolution_rel__gen_to_fastMTT__px_1
+    #- hcand_resolution_abs__gen_to_fastMTT__px_1
+    #- hcand_resolution_rel__reco_to_fastMTT__px_1
+    #- hcand_resolution_abs__reco_to_fastMTT__px_1
+    #- hcand_resolution_rel__gen_to_reco__py_1
+    #- hcand_resolution_abs__gen_to_reco__py_1
+    #- hcand_resolution_rel__gen_to_fastMTT__py_1
+    #- hcand_resolution_abs__gen_to_fastMTT__py_1
+    #- hcand_resolution_rel__reco_to_fastMTT__py_1
+    #- hcand_resolution_abs__reco_to_fastMTT__py_1
+    #- hcand_resolution_rel__gen_to_reco__pz_1
+    #- hcand_resolution_abs__gen_to_reco__pz_1
+    #- hcand_resolution_rel__gen_to_fastMTT__pz_1
+    #- hcand_resolution_abs__gen_to_fastMTT__pz_1
+    #- hcand_resolution_rel__reco_to_fastMTT__pz_1
+    #- hcand_resolution_abs__reco_to_fastMTT__pz_1
+    #- hcand_resolution_rel__gen_to_reco__pt_1
+    #- hcand_resolution_abs__gen_to_reco__pt_1
+    #- hcand_resolution_rel__gen_to_fastMTT__pt_1
+    #- hcand_resolution_abs__gen_to_fastMTT__pt_1
+    #- hcand_resolution_rel__reco_to_fastMTT__pt_1
+    #- hcand_resolution_abs__reco_to_fastMTT__pt_1
+    #- hcand_resolution_rel__gen_to_reco__eta_1
+    #- hcand_resolution_rel__gen_to_fastMTT__eta_1
+    #- hcand_resolution_rel__reco_to_fastMTT__eta_1
+    #- hcand_resolution_rel__gen_to_reco__phi_1
+    #- hcand_resolution_rel__gen_to_fastMTT__phi_1
+    #- hcand_resolution_rel__reco_to_fastMTT__phi_1
+    #- hcand_resolution_rel__gen_to_reco__px_2
+    #- hcand_resolution_abs__gen_to_reco__px_2
+    #- hcand_resolution_rel__gen_to_fastMTT__px_2
+    #- hcand_resolution_abs__gen_to_fastMTT__px_2
+    #- hcand_resolution_rel__reco_to_fastMTT__px_2
+    #- hcand_resolution_abs__reco_to_fastMTT__px_2
+    #- hcand_resolution_rel__gen_to_reco__py_2
+    #- hcand_resolution_abs__gen_to_reco__py_2
+    #- hcand_resolution_rel__gen_to_fastMTT__py_2
+    #- hcand_resolution_abs__gen_to_fastMTT__py_2
+    #- hcand_resolution_rel__reco_to_fastMTT__py_2
+    #- hcand_resolution_abs__reco_to_fastMTT__py_2
+    #- hcand_resolution_rel__gen_to_reco__pz_2
+    #- hcand_resolution_abs__gen_to_reco__pz_2
+    #- hcand_resolution_rel__gen_to_fastMTT__pz_2
+    #- hcand_resolution_abs__gen_to_fastMTT__pz_2
+    #- hcand_resolution_rel__reco_to_fastMTT__pz_2
+    #- hcand_resolution_abs__reco_to_fastMTT__pz_2
+    #- hcand_resolution_rel__gen_to_reco__pt_2
+    #- hcand_resolution_abs__gen_to_reco__pt_2
+    #- hcand_resolution_rel__gen_to_fastMTT__pt_2
+    #- hcand_resolution_abs__gen_to_fastMTT__pt_2
+    #- hcand_resolution_rel__reco_to_fastMTT__pt_2
+    #- hcand_resolution_abs__reco_to_fastMTT__pt_2
+    #- hcand_resolution_rel__gen_to_reco__eta_2
+    #- hcand_resolution_rel__gen_to_fastMTT__eta_2
+    #- hcand_resolution_rel__reco_to_fastMTT__eta_2
+    #- hcand_resolution_rel__gen_to_reco__phi_2
+    #- hcand_resolution_rel__gen_to_fastMTT__phi_2
+    #- hcand_resolution_rel__reco_to_fastMTT__phi_2
+    #- hcand_resolution_rel__reco_to_fastMTT__pt_1
+    #- hcand_resolution_rel__reco_to_fastMTT__pt_2
+    #- dphi_met_h1
+    #- dphi_met_h2
+    #- met_var_qcd_h1
+    #- met_var_qcd_h2
     ## -- jet -- #
-    - n_jet
-    - jet_1_pt
-    - jet_1_eta
-    - jet_1_phi
-    - jet_2_pt
-    - jet_2_eta
-    - jet_2_phi
-    - hT
+    #- n_jet
+    #- jet_1_pt
+    #- jet_1_eta
+    #- jet_1_phi
+    #- jet_2_pt
+    #- jet_2_eta
+    #- jet_2_phi
+    #- hT
+    #- pu_weight # only with MC                     #all weights only with MC
+    #- npvs
+    #- pu_nTrue_Int # only with MC
+    #- nPU # only with MC
     ## -- met -- #
-    - puppi_met_pt
-    - puppi_met_phi
+    #- puppi_met_pt
+    #- puppi_met_phi
     ## -- angular variables -- #
     #- Alpha
-    - PhiCP_IPIP
+    #- PhiCP_IPIP # only with signal data
     #- PhiCP_IPIP_alpha_lt_piby4
     #- PhiCP_IPIP_alpha_gt_piby4
-    - PhiCP_DPDP
-    #- PhiCP_PVPV
-    #- PhiCP_IPPV
-    - PhiCP_IPDP
+    #- PhiCP_DPDP # only with signal data
+    #- PhiCP_PVPV # only with signal data
+    #- PhiCP_IPPV # only with signal data
+    #- PhiCP_IPDP # only with signal data
     #- PhiCP_IPDP_alpha_lt_piby4
     #- PhiCP_IPDP_alpha_gt_piby4
+    #- PhiCPGen_IPIP   
+    #- PhiCPGen_DPDP
+    #- PhiCPGen_PVPV
+    #- PhiCPGen_IPDP       
+    #- PhiCPGen_IPPV
     ## -- Y vs. pT -- ##
+    #- dphi_met_h1-hcand_1_pt
+    #- met_var_qcd_h1-hcand_1_pt
+    #- hcand_dr-hcand_1_pt
+    #- hcand_2_pt-hcand_1_pt
+    #- n_jet-hcand_1_pt
+    #- hT-hcand_1_pt
+    #- hcand_invm-hcand_1_pt
+    #- jet_1_pt-hcand_1_pt
+    #- jet_2_pt-hcand_1_pt
     #- dphi_met_h1-hcand_1_pt
     #- met_var_qcd_h1-hcand_1_pt
     #- hcand_dr-hcand_1_pt
@@ -225,7 +344,10 @@ args:
     #- mu_trig
     #- mu_xtrig
     #- zpt
+    - tauspinner
     
 
   extras:
-    - process-settings "h_ggf_htt,unstack,300"
+    - process-settings "h_ggf_htt,unstack,300:h_vbf_htt,unstack,300"
+    #- variable-settings "pu_weight,overflow"
+    #- skip-ratio

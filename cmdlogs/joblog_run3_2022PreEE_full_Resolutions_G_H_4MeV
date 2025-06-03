@@ -1,0 +1,34 @@
+Creating custom get_dataset_lfns for run3_2022_preEE_nano_cp_tau_v14
+lfn basedir:WLCGDirectoryTarget(fs=wlcg_fs_eoscms_redirector, path=/eos/cms/store/group/phys_higgs/HLepRare/skim_2024_v2/Run3_2022/GluGluHTo2Tau_UncorrelatedDecay_SM_Filtered_ProdAndDecay)
+Traceback (most recent call last):
+  File "/afs/cern.ch/user/m/mwitt/public/CPinHToTauTau/modules/columnflow/modules/law/law/decorator.py", line 281, in log
+    ret = fn(task, *args, **kwargs)
+  File "/afs/cern.ch/user/m/mwitt/public/CPinHToTauTau/modules/columnflow/modules/law/law/decorator.py", line 231, in wrapper
+    result = call(state)
+  File "/afs/cern.ch/user/m/mwitt/public/CPinHToTauTau/modules/columnflow/modules/law/law/decorator.py", line 303, in call
+    return fn(task, *args, **kwargs)
+  File "/afs/cern.ch/user/m/mwitt/public/CPinHToTauTau/modules/columnflow/columnflow/tasks/framework/remote.py", line 51, in run
+    self.bundle(bundle)
+  File "/afs/cern.ch/user/m/mwitt/public/CPinHToTauTau/modules/columnflow/modules/law/law/contrib/git/__init__.py", line 99, in bundle
+    code = interruptable_popen(cmd, shell=True, executable="/bin/bash")[0]
+  File "/afs/cern.ch/user/m/mwitt/public/CPinHToTauTau/modules/columnflow/modules/law/law/util.py", line 1367, in interruptable_popen
+    out, err = p.communicate(stdin_data)
+  File "/eos/user/m/mwitt/CPinHToTauTauData/conda/lib/python3.9/subprocess.py", line 1126, in communicate
+    self.wait()
+  File "/eos/user/m/mwitt/CPinHToTauTauData/conda/lib/python3.9/subprocess.py", line 1189, in wait
+    return self._wait(timeout=timeout)
+  File "/eos/user/m/mwitt/CPinHToTauTauData/conda/lib/python3.9/subprocess.py", line 1933, in _wait
+    (pid, sts) = self._try_wait(0)
+  File "/eos/user/m/mwitt/CPinHToTauTauData/conda/lib/python3.9/subprocess.py", line 1891, in _try_wait
+    (pid, sts) = os.waitpid(self.pid, wait_flags)
+KeyboardInterrupt
+Creating custom get_dataset_lfns for run3_2022_preEE_nano_cp_tau_v14
+lfn basedir:WLCGDirectoryTarget(fs=wlcg_fs_eoscms_redirector, path=/eos/cms/store/group/phys_higgs/HLepRare/skim_2024_v2/Run3_2022/GluGluHTo2Tau_UncorrelatedDecay_MM_Filtered_ProdAndDecay)
+Creating custom get_dataset_lfns for run3_2022_preEE_nano_cp_tau_v14
+lfn basedir:WLCGDirectoryTarget(fs=wlcg_fs_eoscms_redirector, path=/eos/cms/store/group/phys_higgs/HLepRare/skim_2024_v2/Run3_2022/GluGluHTo2Tau_UncorrelatedDecay_CPodd_Filtered_ProdAndDecay)
+Creating custom get_dataset_lfns for run3_2022_preEE_nano_cp_tau_v14
+lfn basedir:WLCGDirectoryTarget(fs=wlcg_fs_eoscms_redirector, path=/eos/cms/store/group/phys_higgs/HLepRare/skim_2024_v2/Run3_2022/GluGluHTo2Tau_UncorrelatedDecay_SM_Filtered_ProdAndDecay)
+Creating custom get_dataset_lfns for run3_2022_preEE_nano_cp_tau_v14
+Creating custom get_dataset_lfns for run3_2022_preEE_nano_cp_tau_v14
+lfn basedir:WLCGDirectoryTarget(fs=wlcg_fs_eoscms_redirector, path=/eos/cms/store/group/phys_higgs/HLepRare/skim_2024_v2/Run3_2022/GluGluHTo2Tau_UncorrelatedDecay_MM_Filtered_ProdAndDecay)
+lfn basedir:WLCGDirectoryTarget(fs=wlcg_fs_eoscms_redirector, path=/eos/cms/store/group/phys_higgs/HLepRare/skim_2024_v2/Run3_2022/GluGluHTo2Tau_UncorrelatedDecay_CPodd_Filtered_ProdAndDecay)

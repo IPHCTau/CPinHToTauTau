@@ -1,0 +1,12 @@
+<tool name="libungif" version="4.1.4-6b4f3e28660c3a9d4e75854eb8da0012">
+  <info url="http://sourceforge.net/projects/libungif"/>
+  <lib name="ungif"/>
+  <client>
+    <environment name="LIBUNGIF_BASE" default="/cvmfs/cms.cern.ch/el9_amd64_gcc11/external/libungif/4.1.4-6b4f3e28660c3a9d4e75854eb8da0012"/>
+    <environment name="LIBDIR" default="$LIBUNGIF_BASE/lib"/>
+    <environment name="INCLUDE" default="$LIBUNGIF_BASE/include"/>
+  </client>
+  <runtime name="ROOT_INCLUDE_PATH" value="$INCLUDE" type="path"/>
+  <use name="root_cxxdefaults"/>
+  <use name="zlib"/>
+</tool>

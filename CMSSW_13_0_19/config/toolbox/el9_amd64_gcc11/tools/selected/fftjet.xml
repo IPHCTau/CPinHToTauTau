@@ -1,0 +1,10 @@
+<tool name="fftjet" version="1.5.0-1cd7b7c71b42be65b840b68281156a1e">
+  <lib name="fftjet"/>
+  <client>
+    <environment name="FFTJET_BASE" default="/cvmfs/cms.cern.ch/el9_amd64_gcc11/external/fftjet/1.5.0-1cd7b7c71b42be65b840b68281156a1e"/>
+    <environment name="LIBDIR" default="$FFTJET_BASE/lib"/>
+    <environment name="INCLUDE" default="$FFTJET_BASE/include"/>
+  </client>
+  <runtime name="ROOT_INCLUDE_PATH" value="$INCLUDE" type="path"/>
+  <use name="root_cxxdefaults"/>
+</tool>

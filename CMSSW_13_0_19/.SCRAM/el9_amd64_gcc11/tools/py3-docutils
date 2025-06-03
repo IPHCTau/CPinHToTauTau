@@ -1,0 +1,13 @@
+{
+  "PY3_DOCUTILS_BASE": "/cvmfs/cms.cern.ch/el9_amd64_gcc11/external/py3-docutils/0.19-2165b1c85e75e84a6940a34c55c65131",
+  "RUNTIME": {
+    "PATH:PATH": [
+      "/cvmfs/cms.cern.ch/el9_amd64_gcc11/external/py3-docutils/0.19-2165b1c85e75e84a6940a34c55c65131/bin"
+    ]
+  },
+  "TOOLNAME": "py3-docutils",
+  "TOOLVERSION": "0.19-2165b1c85e75e84a6940a34c55c65131",
+  "VARIABLES": [
+    "PY3_DOCUTILS_BASE"
+  ]
+}

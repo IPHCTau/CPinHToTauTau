@@ -1,0 +1,27 @@
+{
+  "INCLUDE": [
+    "/cvmfs/cms.cern.ch/el9_amd64_gcc11/external/libunwind/1.6.2-master-da573a24e8497382f776d9f95ef48336/include"
+  ],
+  "LIB": [
+    "unwind"
+  ],
+  "LIBDIR": [
+    "/cvmfs/cms.cern.ch/el9_amd64_gcc11/external/libunwind/1.6.2-master-da573a24e8497382f776d9f95ef48336/lib"
+  ],
+  "LIBUNWIND_BASE": "/cvmfs/cms.cern.ch/el9_amd64_gcc11/external/libunwind/1.6.2-master-da573a24e8497382f776d9f95ef48336",
+  "RUNTIME": {
+    "PATH:ROOT_INCLUDE_PATH": [
+      "/cvmfs/cms.cern.ch/el9_amd64_gcc11/external/libunwind/1.6.2-master-da573a24e8497382f776d9f95ef48336/include"
+    ]
+  },
+  "TOOLNAME": "libunwind",
+  "TOOLVERSION": "1.6.2-master-da573a24e8497382f776d9f95ef48336",
+  "USE": [
+    "root_cxxdefaults"
+  ],
+  "VARIABLES": [
+    "LIBUNWIND_BASE",
+    "INCLUDE",
+    "LIBDIR"
+  ]
+}

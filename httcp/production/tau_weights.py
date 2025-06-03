@@ -563,7 +563,8 @@ def tauspinner_weights(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     for (wt_name, branch) in weight_map:
         _name = ""
         if wt_name == "nom":
-            weight = (events.TauSpinner.weight_cp_0p5 + events.TauSpinner.weight_cp_0)/2.
+            #weight = (events.TauSpinner.weight_cp_0p5 + events.TauSpinner.weight_cp_0)/2.
+            weight = events.TauSpinner.weight_cp_0p25 # set nominal to maximal mixing
         else:
             _name = f"_{wt_name}"
             weight = events.TauSpinner[branch]

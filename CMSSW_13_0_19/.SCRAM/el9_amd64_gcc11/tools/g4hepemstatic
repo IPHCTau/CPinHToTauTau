@@ -1,0 +1,18 @@
+{
+  "G4HEPEMSTATIC_BASE": "/cvmfs/cms.cern.ch/el9_amd64_gcc11/external/g4hepem/20221014-7267d0044c03f73d979697ff84064193",
+  "LIB": [
+    "g4hepem-static"
+  ],
+  "LIBDIR": [
+    "/cvmfs/cms.cern.ch/el9_amd64_gcc11/external/g4hepem/20221014-7267d0044c03f73d979697ff84064193/lib64/archive"
+  ],
+  "TOOLNAME": "g4hepemstatic",
+  "TOOLVERSION": "20221014-7267d0044c03f73d979697ff84064193",
+  "USE": [
+    "g4hepem_interface"
+  ],
+  "VARIABLES": [
+    "G4HEPEMSTATIC_BASE",
+    "LIBDIR"
+  ]
+}

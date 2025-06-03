@@ -1,0 +1,10 @@
+<tool name="google-benchmark" version="1.4.x-c77e5f08281e2b8b61ac86d962c74824">
+  <info url="https://github.com/google/benchmark"/>
+  <lib name="benchmark"/>
+  <client>
+    <environment name="GOOGLE_BENCHMARK_BASE" default="/cvmfs/cms.cern.ch/el9_amd64_gcc11/external/google-benchmark/1.4.x-c77e5f08281e2b8b61ac86d962c74824"/>
+    <environment name="LIBDIR"       default="$GOOGLE_BENCHMARK_BASE/lib"/>
+    <environment name="INCLUDE"      default="$GOOGLE_BENCHMARK_BASE/include"/>
+  </client>
+  <use name="sockets"/>
+</tool>

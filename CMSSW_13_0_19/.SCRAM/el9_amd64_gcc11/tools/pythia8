@@ -1,0 +1,39 @@
+{
+  "FLAGS": {
+    "SYSTEM_INCLUDE": [
+      "1"
+    ]
+  },
+  "INCLUDE": [
+    "/cvmfs/cms.cern.ch/el9_amd64_gcc11/external/pythia8/306-687274b5349576f1777e8bb247ec5a88/include"
+  ],
+  "LIB": [
+    "pythia8"
+  ],
+  "LIBDIR": [
+    "/cvmfs/cms.cern.ch/el9_amd64_gcc11/external/pythia8/306-687274b5349576f1777e8bb247ec5a88/lib"
+  ],
+  "PYTHIA8_BASE": "/cvmfs/cms.cern.ch/el9_amd64_gcc11/external/pythia8/306-687274b5349576f1777e8bb247ec5a88",
+  "RUNTIME": {
+    "PATH:ROOT_INCLUDE_PATH": [
+      "/cvmfs/cms.cern.ch/el9_amd64_gcc11/external/pythia8/306-687274b5349576f1777e8bb247ec5a88/include"
+    ],
+    "PYTHIA8DATA": [
+      "/cvmfs/cms.cern.ch/el9_amd64_gcc11/external/pythia8/306-687274b5349576f1777e8bb247ec5a88/share/Pythia8/xmldoc"
+    ]
+  },
+  "TOOLNAME": "pythia8",
+  "TOOLVERSION": "306-687274b5349576f1777e8bb247ec5a88",
+  "USE": [
+    "root_cxxdefaults",
+    "cxxcompiler",
+    "hepmc3",
+    "hepmc",
+    "lhapdf"
+  ],
+  "VARIABLES": [
+    "PYTHIA8_BASE",
+    "LIBDIR",
+    "INCLUDE"
+  ]
+}

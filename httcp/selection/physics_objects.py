@@ -74,8 +74,7 @@ def muon_selection(
         "muon_dz_0p2"         : abs(muons.dz) < 0.2,
         "muon_iso_0p15"       : muons.pfRelIso04_all < 0.15,
         "muon_ipsig_safe"     : muons.IPsig > ipsig_dummy,
-        # not before applying correction from IPsig calibration
-        "muon_ipsig_1p0"      : np.abs(muons.IPsig) > 1.0,
+        "muon_ipsig_1p5"      : np.abs(muons.IPsig) > 1.25,
     }
     single_veto_selections = {
         "muon_pt_10"          : muons.pt > 10,
@@ -583,7 +582,7 @@ def gentau_selection(
         **kwargs
 ) -> tuple[ak.Array, SelectionResult]:
     """
-    Selecting the generator level taus only, no martching here
+    Selecting the generator level taus only, no matching here
     select the gen tau decay products as well
     
     References:

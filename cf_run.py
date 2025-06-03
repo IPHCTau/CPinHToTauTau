@@ -65,7 +65,7 @@ datetime_tag = datetime.datetime.now().strftime("%Y%m%d_%H%M%S")
 ListOfMainFuncs = ['CalibrateEvents',
                    'SelectEvents',
                    'ReduceEvents',
-                   'PlotCutFlow',
+                   'PlotCutflow',
                    'ProduceColumns',
                    'CreateHistograms',
                    'PlotVariables1D', 'PlotVariables2D',

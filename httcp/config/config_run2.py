@@ -28,7 +28,7 @@ from columnflow.config_util import (
 ak = maybe_import("awkward")
 
 #thisdir = os.path.dirname(os.path.abspath(__file__))
-thisdir = "/afs/cern.ch/work/g/gsaha/public/IPHC/Work/ColumnFlowAnalyses/CPinHToTauTau/httcp/config"
+thisdir = "/afs/cern.ch/user/m/mwitt/public/CPinHToTauTau/httcp/config"
 #print(f"thisdir: {thisdir}")
 corrdir = os.path.join(os.path.dirname(thisdir), "data")
 #print(f"corrdir: {corrdir}")

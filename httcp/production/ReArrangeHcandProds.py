@@ -6,6 +6,7 @@ from columnflow.production import Producer, producer
 #from httcp.production.ReconstructPi0 import reconstructPi0
 
 from httcp.util import getGenTauDecayMode
+#from columnflow.columnar_util import EMPTY_FLOAT, Route, set_ak_column, optional_column as optional
 
 np = maybe_import("numpy")
 ak = maybe_import("awkward")
@@ -305,7 +306,11 @@ def reArrangeDecayProducts(
     uses={
         "channel_id",
         "GenTau.*",
-        "GenTauProd.*"
+        "GenTauProd.*",
+        #optional("hcand.pt_fastMTT"),
+        #optional("hcand.eta_fastMTT"),
+        #optional("hcand.phi_fastMTT"),
+        #optional("hcand.mass_fastMTT"),
     },
     #produces={
     #    "GenTau.decayMode",

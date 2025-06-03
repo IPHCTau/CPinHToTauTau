@@ -1,0 +1,6 @@
+  <tool name="llvm-f77compiler" version="12.0.1-34ef258eea96cb5b111081adc51a827d" type="compiler">
+    <use name="gcc-f77compiler"/>
+    <client>
+      <environment name="FC" default="/cvmfs/cms.cern.ch/el9_amd64_gcc11/external/gcc/11.2.1-f9b9dfdd886f71cd63f5538223d8f161/bin/gfortran"/>
+    </client>
+  </tool>

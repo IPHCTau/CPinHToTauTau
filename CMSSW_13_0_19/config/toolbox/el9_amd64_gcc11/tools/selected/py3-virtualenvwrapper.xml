@@ -1,0 +1,6 @@
+<tool name="py3-virtualenvwrapper" version="4.8.4-1485b9f28b5116275aac3eb46d0fe3ae">
+  <client>
+    <environment name="PY3_VIRTUALENVWRAPPER_BASE" default="/cvmfs/cms.cern.ch/el9_amd64_gcc11/external/py3-virtualenvwrapper/4.8.4-1485b9f28b5116275aac3eb46d0fe3ae"/>
+  </client>
+  <runtime name="PATH" value="$PY3_VIRTUALENVWRAPPER_BASE/bin" type="path"/>
+</tool>

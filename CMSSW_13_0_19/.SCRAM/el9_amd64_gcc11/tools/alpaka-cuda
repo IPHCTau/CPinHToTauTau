@@ -1,0 +1,22 @@
+{
+  "FLAGS": {
+    "CUDA_FLAGS": [
+      "-DALPAKA_ACC_GPU_CUDA_ENABLED",
+      "-UALPAKA_HOST_ONLY"
+    ],
+    "CXXFLAGS": [
+      "-DALPAKA_ACC_GPU_CUDA_ENABLED",
+      "-DALPAKA_HOST_ONLY"
+    ],
+    "GENREFLEX_CPPFLAGS": [
+      "-DALPAKA_ACC_GPU_CUDA_ENABLED",
+      "-DALPAKA_HOST_ONLY"
+    ]
+  },
+  "TOOLNAME": "alpaka-cuda",
+  "TOOLVERSION": "develop-20230621-c24a22ec5c5d0e67ae2ff41d221065df",
+  "USE": [
+    "alpaka",
+    "cuda"
+  ]
+}

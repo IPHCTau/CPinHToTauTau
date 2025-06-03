@@ -1,0 +1,13 @@
+{
+  "PY3_HEPDATA_VALIDATOR_BASE": "/cvmfs/cms.cern.ch/el9_amd64_gcc11/external/py3-hepdata-validator/0.3.3-9be64b2394d9136d64deb2e8adf9487a",
+  "RUNTIME": {
+    "PATH:PATH": [
+      "/cvmfs/cms.cern.ch/el9_amd64_gcc11/external/py3-hepdata-validator/0.3.3-9be64b2394d9136d64deb2e8adf9487a/bin"
+    ]
+  },
+  "TOOLNAME": "py3-hepdata-validator",
+  "TOOLVERSION": "0.3.3-9be64b2394d9136d64deb2e8adf9487a",
+  "VARIABLES": [
+    "PY3_HEPDATA_VALIDATOR_BASE"
+  ]
+}

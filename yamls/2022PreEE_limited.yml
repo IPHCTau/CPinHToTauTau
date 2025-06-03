@@ -5,30 +5,37 @@ era     : 2022
 postfix : PreEE
 wrapper : true
 limited : true
-workers : 3
+workers : 6
 
 args:
-  config    : run3_2022_preEE_nano_cp_tau_v12_limited
+  config    : run3_2022_preEE_nano_cp_tau_v14_limited
   workflow  : local
-  branch    : -1
-  version   : dummy 
+  branch    : 1
+  version   : testGenMass #Run3_preEE_2022_limited_fastMTT_4MeV_18_mars_1737 #Run3_preEE_2022_limited_fastMTT_0p01mH_8_mars #Run3_preEE_2022_limited_fastMTT_4MeV_3_mars
 
   datasets  :
     #- data_e_C
     #- data_mu_C
-    - data_tau_C
-    - dy_lep_m50_madgraph
-    - wj_incl_madgraph
-    - tt_sl
-    - tt_fh
+    #- data_tau_C
+    #- dy_lep_m50_madgraph
+    #- wj_incl_madgraph
+    #- tt_sl
+    #- tt_fh
     #- h_ggf_tautau_prod_cp_even_sm
+    #- h_ggf_tautau_uncorrelatedDecay_CPodd_Filtered_ProdAndDecay
+    #- h_ggf_tautau_uncorrelatedDecay_MM_Filtered_ProdAndDecay
+    #- h_ggf_tautau_uncorrelatedDecay_SM_Filtered_ProdAndDecay
+    #- h_ggf_tautau_uncorrelated_filter #inclusive sample (6 root files)
+    #- zh_tautau_uncorrelatedDecay_Filtered
+    - h_vbf_tautau_UncorrelatedDecay_Filtered
 
   processes :
-    - data
-    - dy_m50toinf
-    - w_lnu
-    - tt
-    #- h_ggf_tautau
+    #- data
+    #- dy_m50toinf
+    #- w_lnu
+    #- tt
+    #- h_ggf_htt
+    - h_vbf_htt
 
   categories:
     #- etau
@@ -40,7 +47,7 @@ args:
     #- etau__lepB1
     #- etau__lepC
     #- etau__lepD
-    #- mutau
+    #- mutau*
     #- mutau_lepA
     #- mutau__lepB
     #- mutau__lepA0
@@ -48,14 +55,20 @@ args:
     #- mutau__lepA1
     #- mutau__lepB1
     #- mutau__lepC
-    #- mutau__lepD
-    - tautau*
+    - mutau__lepD
+    - mutau__lepD__a1dm10_2
+    #- mutau__lepD__a1dm2_2
+    #- mutau__lepD__a1dm11_2
+    #- mutau__lepD__pi_2
+    #- mutau__lepD__rho_2
+    #- tautau*
     #- tautau__hadA
     #- tautau__hadB
     #- tautau__hadA0
     #- tautau__hadB0
     #- tautau__hadC
-    #- tautau__hadD
+    #- tautau__real_1__hadD
+    #- tautau__hadD*
     #- tautau__hadC0
     #- tautau__hadD0
 
@@ -69,22 +82,102 @@ args:
     #- tau_1_pt
     #- tau_1_eta
     #- tau_1_phi
+    #- hcand_1_decayMode
     #- tau_2_pt
     #- tau_2_eta
     #- tau_2_phi
-    - hcand_1_pt
+    #- hcand_1_pt
     #- hcand_1_eta
+    #- hcand_1_phi
     #- hcand_2_pt
     #- hcand_2_eta
+    #- hcand_2_phi
+    #- hcand_2_decayMode
     #- hcand_dr
     #- hcand_invm
+    - hcand_invm_fastMTT
+    - GenHiggs_mass
+    - hcand_1_pt_fastMTT
+    - hcand_1_eta_fastMTT
+    - hcand_1_phi_fastMTT
+    - hcand_1_mass_fastMTT
+    - hcand_2_pt_fastMTT
+    - hcand_2_eta_fastMTT
+    - hcand_2_phi_fastMTT
+    - hcand_2_mass_fastMTT
+    #- hcand_resolution_rel__gen_to_reco__px_1
+    #- hcand_resolution_abs__gen_to_reco__px_1
+    #- hcand_resolution_rel__gen_to_fastMTT__px_1
+    #- hcand_resolution_abs__gen_to_fastMTT__px_1
+    #- hcand_resolution_rel__reco_to_fastMTT__px_1
+    #- hcand_resolution_abs__reco_to_fastMTT__px_1
+    #- hcand_resolution_rel__gen_to_reco__py_1
+    #- hcand_resolution_abs__gen_to_reco__py_1
+    #- hcand_resolution_rel__gen_to_fastMTT__py_1
+    #- hcand_resolution_abs__gen_to_fastMTT__py_1
+    #- hcand_resolution_rel__reco_to_fastMTT__py_1
+    #- hcand_resolution_abs__reco_to_fastMTT__py_1
+    #- hcand_resolution_rel__gen_to_reco__pz_1
+    #- hcand_resolution_abs__gen_to_reco__pz_1
+    #- hcand_resolution_rel__gen_to_fastMTT__pz_1
+    #- hcand_resolution_abs__gen_to_fastMTT__pz_1
+    #- hcand_resolution_rel__reco_to_fastMTT__pz_1
+    #- hcand_resolution_abs__reco_to_fastMTT__pz_1
+    #- hcand_resolution_rel__gen_to_reco__pt_1
+    #- hcand_resolution_abs__gen_to_reco__pt_1
+    #- hcand_resolution_rel__gen_to_fastMTT__pt_1
+    #- hcand_resolution_abs__gen_to_fastMTT__pt_1
+    #- hcand_resolution_rel__reco_to_fastMTT__pt_1
+    #- hcand_resolution_abs__reco_to_fastMTT__pt_1
+    #- hcand_resolution_rel__gen_to_reco__eta_1
+    #- hcand_resolution_rel__gen_to_fastMTT__eta_1
+    #- hcand_resolution_rel__reco_to_fastMTT__eta_1
+    #- hcand_resolution_rel__gen_to_reco__phi_1
+    #- hcand_resolution_rel__gen_to_fastMTT__phi_1
+    #- hcand_resolution_rel__reco_to_fastMTT__phi_1
+    #- hcand_resolution_rel__gen_to_reco__px_2
+    #- hcand_resolution_abs__gen_to_reco__px_2
+    #- hcand_resolution_rel__gen_to_fastMTT__px_2
+    #- hcand_resolution_abs__gen_to_fastMTT__px_2
+    #- hcand_resolution_rel__reco_to_fastMTT__px_2
+    #- hcand_resolution_abs__reco_to_fastMTT__px_2
+    #- hcand_resolution_rel__gen_to_reco__py_2
+    #- hcand_resolution_abs__gen_to_reco__py_2
+    #- hcand_resolution_rel__gen_to_fastMTT__py_2
+    #- hcand_resolution_abs__gen_to_fastMTT__py_2
+    #- hcand_resolution_rel__reco_to_fastMTT__py_2
+    #- hcand_resolution_abs__reco_to_fastMTT__py_2
+    #- hcand_resolution_rel__gen_to_reco__pz_2
+    #- hcand_resolution_abs__gen_to_reco__pz_2
+    #- hcand_resolution_rel__gen_to_fastMTT__pz_2
+    #- hcand_resolution_abs__gen_to_fastMTT__pz_2
+    #- hcand_resolution_rel__reco_to_fastMTT__pz_2
+    #- hcand_resolution_abs__reco_to_fastMTT__pz_2
+    #- hcand_resolution_rel__gen_to_reco__pt_2
+    #- hcand_resolution_abs__gen_to_reco__pt_2
+    #- hcand_resolution_rel__gen_to_fastMTT__pt_2
+    #- hcand_resolution_abs__gen_to_fastMTT__pt_2
+    #- hcand_resolution_rel__reco_to_fastMTT__pt_2
+    #- hcand_resolution_abs__reco_to_fastMTT__pt_2
+    #- hcand_resolution_rel__gen_to_reco__eta_2
+    #- hcand_resolution_rel__gen_to_fastMTT__eta_2
+    #- hcand_resolution_rel__reco_to_fastMTT__eta_2
+    #- hcand_resolution_rel__gen_to_reco__phi_2
+    #- hcand_resolution_rel__gen_to_fastMTT__phi_2
+    #- hcand_resolution_rel__reco_to_fastMTT__phi_2
     #- puppi_met_pt
     #- puppi_met_phi
     #- PhiCP_IPIP
     #- PhiCP_DPDP
     #- PhiCP_IPDP
+    #- PhiCPGen_IPIP   
+    #- PhiCPGen_DPDP
+    #- PhiCPGen_IPDP       
     #- pu_weight
     #- pu_weight_log
+    #- npvs
+    #- pu_nTrue_Int
+    #- nPU
     #- muon_id_weight
     #- muon_id_weight_log
     #- muon_iso_weight
@@ -102,5 +195,5 @@ args:
     #- tau_trigger
     #- tau_trigger_log
 
-  #extras:
-  #  - process-settings "h_ggf_tautau,unstack,10000"
+  extras:
+    - process-settings "h_ggf_tautau,unstack,10:h_vbf_tautau,unstack,10"

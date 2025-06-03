@@ -1,0 +1,5 @@
+<tool name="cuda-nvrtc" version="11.5.2-91421d5831fe9d02c7a55c817b17889e">
+  <info url="https://docs.nvidia.com/cuda/nvrtc/index.html"/>
+  <use name="cuda"/>
+  <lib name="nvrtc"/>
+</tool>

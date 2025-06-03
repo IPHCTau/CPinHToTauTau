@@ -26,6 +26,8 @@ logger = law.logger.get_logger(__name__)
         "channel_id",
         "hcand.pt","hcand.eta", "hcand.phi", "hcand.mass", "hcand.decayMode", "hcand.charge",
         "hcand.IPx", "hcand.IPy", "hcand.IPz",
+        #"hcand.pt_fastMTT", 
+        #"hcand.eta_fastMTT", "hcand.phi_fastMTT", "hcand.mass_fastMTT", "hcand_invm_fastMTT",
         "hcandprod.pt","hcandprod.eta", "hcandprod.phi", "hcandprod.mass", "hcandprod.pdgId",
         optional("GenTau.pt"), optional("GenTau.eta"), optional("GenTau.phi"), optional("GenTau.mass"),
         optional("GenTau.IPx"), optional("GenTau.IPy"), optional("GenTau.IPz"),
@@ -161,45 +163,58 @@ def ProducePhiCP(
     
 
     ##################################################################################
-    #                                      PVPVP                                     #
+    #                                      PVPV                                     #
     #                         Only possible for tau-tau channel                      #
     ##################################################################################
-    logger.info("PV-PV")
+    logger.info("PV-PV <-- using fastMTT")
     
+    # ########## #
+
+    p4hcandinfo_fastMTT = p4hcandinfo.copy()
+    
+    keys_list = list(p4hcandinfo_fastMTT.keys())  # = ['p4h1', 'p4h1pi', 'p4h1pi0', 'p4h2', 'p4h2pi', 'p4h2pi0']
+    
+    for key in keys_list:
+        if "pt_fastMTT" in p4hcandinfo_fastMTT[key].fields:
+            p4hcandinfo_fastMTT[key] = ak.without_field(p4hcandinfo_fastMTT[key], "pt")
+            p4hcandinfo_fastMTT[key] = ak.with_field(p4hcandinfo_fastMTT[key], p4hcandinfo_fastMTT[key].pt_fastMTT, "pt")
+            p4hcandinfo_fastMTT[key] = ak.without_field(p4hcandinfo_fastMTT[key], "pt_fastMTT")
+
+
     # -- pi-pi
-    PhiCP_PVPV = ak.where(mask_pi_pi,   GetPhiCP(PrepareP4(p4hcandinfo, mask_pi_pi  ), "PV", "PV", "pi",  "pi" ), dummyPhiCP)
+    PhiCP_PVPV = ak.where(mask_pi_pi,   GetPhiCP(PrepareP4(p4hcandinfo_fastMTT, mask_pi_pi  ), "PV", "PV", "pi",  "pi" ), dummyPhiCP)
     # -- pi-rho
-    PhiCP_PVPV = ak.where(mask_pi_rho,  GetPhiCP(PrepareP4(p4hcandinfo, mask_pi_rho ), "PV", "PV", "pi",  "rho"), PhiCP_PVPV)
+    PhiCP_PVPV = ak.where(mask_pi_rho,  GetPhiCP(PrepareP4(p4hcandinfo_fastMTT, mask_pi_rho ), "PV", "PV", "pi",  "rho"), PhiCP_PVPV)
     # -- rho-pi
-    PhiCP_PVPV = ak.where(mask_rho_pi,  GetPhiCP(PrepareP4(p4hcandinfo, mask_rho_pi ), "PV", "PV", "rho", "pi" ), PhiCP_PVPV)
+    PhiCP_PVPV = ak.where(mask_rho_pi,  GetPhiCP(PrepareP4(p4hcandinfo_fastMTT, mask_rho_pi ), "PV", "PV", "rho", "pi" ), PhiCP_PVPV)
     # -- rho-rho
-    PhiCP_PVPV = ak.where(mask_rho_rho, GetPhiCP(PrepareP4(p4hcandinfo, mask_rho_rho), "PV", "PV", "rho", "rho"), PhiCP_PVPV)
+    PhiCP_PVPV = ak.where(mask_rho_rho, GetPhiCP(PrepareP4(p4hcandinfo_fastMTT, mask_rho_rho), "PV", "PV", "rho", "rho"), PhiCP_PVPV)
     # -- pi-a1
-    PhiCP_PVPV = ak.where(mask_pi_a1DM2,   GetPhiCP(PrepareP4(p4hcandinfo, mask_pi_a1DM2  ), "PV", "PV", "pi",  "rho"), PhiCP_PVPV) # DM2 -> DM1
-    PhiCP_PVPV = ak.where(mask_pi_a1DM10,  GetPhiCP(PrepareP4(p4hcandinfo, mask_pi_a1DM10 ), "PV", "PV", "pi",  "a1" ), PhiCP_PVPV)
-    PhiCP_PVPV = ak.where(mask_pi_a1DM11,  GetPhiCP(PrepareP4(p4hcandinfo, mask_pi_a1DM11 ), "PV", "PV", "pi",  "a1" ), PhiCP_PVPV) # DM11 -> DM10
+    PhiCP_PVPV = ak.where(mask_pi_a1DM2,   GetPhiCP(PrepareP4(p4hcandinfo_fastMTT, mask_pi_a1DM2  ), "PV", "PV", "pi",  "rho"), PhiCP_PVPV) # DM2 -> DM1
+    PhiCP_PVPV = ak.where(mask_pi_a1DM10,  GetPhiCP(PrepareP4(p4hcandinfo_fastMTT, mask_pi_a1DM10 ), "PV", "PV", "pi",  "a1" ), PhiCP_PVPV)
+    PhiCP_PVPV = ak.where(mask_pi_a1DM11,  GetPhiCP(PrepareP4(p4hcandinfo_fastMTT, mask_pi_a1DM11 ), "PV", "PV", "pi",  "a1" ), PhiCP_PVPV) # DM11 -> DM10
     # -- a1-pi
-    PhiCP_PVPV = ak.where(mask_a1DM2_pi,   GetPhiCP(PrepareP4(p4hcandinfo, mask_a1DM2_pi  ), "PV", "PV", "rho", "pi" ), PhiCP_PVPV) # DM2 -> DM1
-    PhiCP_PVPV = ak.where(mask_a1DM10_pi,  GetPhiCP(PrepareP4(p4hcandinfo, mask_a1DM10_pi ), "PV", "PV", "a1",  "pi" ), PhiCP_PVPV)
-    PhiCP_PVPV = ak.where(mask_a1DM11_pi,  GetPhiCP(PrepareP4(p4hcandinfo, mask_a1DM11_pi ), "PV", "PV", "a1",  "pi" ), PhiCP_PVPV) # DM11 -> DM10
+    PhiCP_PVPV = ak.where(mask_a1DM2_pi,   GetPhiCP(PrepareP4(p4hcandinfo_fastMTT, mask_a1DM2_pi  ), "PV", "PV", "rho", "pi" ), PhiCP_PVPV) # DM2 -> DM1
+    PhiCP_PVPV = ak.where(mask_a1DM10_pi,  GetPhiCP(PrepareP4(p4hcandinfo_fastMTT, mask_a1DM10_pi ), "PV", "PV", "a1",  "pi" ), PhiCP_PVPV)
+    PhiCP_PVPV = ak.where(mask_a1DM11_pi,  GetPhiCP(PrepareP4(p4hcandinfo_fastMTT, mask_a1DM11_pi ), "PV", "PV", "a1",  "pi" ), PhiCP_PVPV) # DM11 -> DM10
     # -- rho-a1
-    PhiCP_PVPV = ak.where(mask_rho_a1DM2,  GetPhiCP(PrepareP4(p4hcandinfo, mask_rho_a1DM2 ), "PV", "PV", "rho", "rho"), PhiCP_PVPV) # DM2 -> DM1
-    PhiCP_PVPV = ak.where(mask_rho_a1DM10, GetPhiCP(PrepareP4(p4hcandinfo, mask_rho_a1DM10), "PV", "PV", "rho", "a1" ),  PhiCP_PVPV)
-    PhiCP_PVPV = ak.where(mask_rho_a1DM11, GetPhiCP(PrepareP4(p4hcandinfo, mask_rho_a1DM11), "PV", "PV", "rho", "a1" ),  PhiCP_PVPV) # DM11 -> DM10
+    PhiCP_PVPV = ak.where(mask_rho_a1DM2,  GetPhiCP(PrepareP4(p4hcandinfo_fastMTT, mask_rho_a1DM2 ), "PV", "PV", "rho", "rho"), PhiCP_PVPV) # DM2 -> DM1
+    PhiCP_PVPV = ak.where(mask_rho_a1DM10, GetPhiCP(PrepareP4(p4hcandinfo_fastMTT, mask_rho_a1DM10), "PV", "PV", "rho", "a1" ),  PhiCP_PVPV)
+    PhiCP_PVPV = ak.where(mask_rho_a1DM11, GetPhiCP(PrepareP4(p4hcandinfo_fastMTT, mask_rho_a1DM11), "PV", "PV", "rho", "a1" ),  PhiCP_PVPV) # DM11 -> DM10
     # -- a1-rho
-    PhiCP_PVPV = ak.where(mask_a1DM2_rho,  GetPhiCP(PrepareP4(p4hcandinfo, mask_a1DM2_rho ), "PV", "PV", "rho", "rho"), PhiCP_PVPV) # DM2 -> DM1
-    PhiCP_PVPV = ak.where(mask_a1DM10_rho, GetPhiCP(PrepareP4(p4hcandinfo, mask_a1DM10_rho), "PV", "PV", "a1",  "rho"), PhiCP_PVPV)
-    PhiCP_PVPV = ak.where(mask_a1DM11_rho, GetPhiCP(PrepareP4(p4hcandinfo, mask_a1DM11_rho), "PV", "PV", "a1",  "rho"), PhiCP_PVPV) # DM11 -> DM10
+    PhiCP_PVPV = ak.where(mask_a1DM2_rho,  GetPhiCP(PrepareP4(p4hcandinfo_fastMTT, mask_a1DM2_rho ), "PV", "PV", "rho", "rho"), PhiCP_PVPV) # DM2 -> DM1
+    PhiCP_PVPV = ak.where(mask_a1DM10_rho, GetPhiCP(PrepareP4(p4hcandinfo_fastMTT, mask_a1DM10_rho), "PV", "PV", "a1",  "rho"), PhiCP_PVPV)
+    PhiCP_PVPV = ak.where(mask_a1DM11_rho, GetPhiCP(PrepareP4(p4hcandinfo_fastMTT, mask_a1DM11_rho), "PV", "PV", "a1",  "rho"), PhiCP_PVPV) # DM11 -> DM10
     # -- a1-a1
-    PhiCP_PVPV = ak.where(mask_a1DM2_a1DM2,  GetPhiCP(PrepareP4(p4hcandinfo, mask_a1DM2_a1DM2 ), "PV", "PV", "rho", "rho" ), PhiCP_PVPV) # DM2 -> DM1
-    PhiCP_PVPV = ak.where(mask_a1DM2_a1DM10, GetPhiCP(PrepareP4(p4hcandinfo, mask_a1DM2_a1DM10), "PV", "PV", "rho",  "a1" ), PhiCP_PVPV) # DM11 -> DM10
-    PhiCP_PVPV = ak.where(mask_a1DM10_a1DM2, GetPhiCP(PrepareP4(p4hcandinfo, mask_a1DM10_a1DM2), "PV", "PV", "a1",  "rho" ), PhiCP_PVPV) # DM11 -> DM10
-    PhiCP_PVPV = ak.where(mask_a1DM2_a1DM11, GetPhiCP(PrepareP4(p4hcandinfo, mask_a1DM2_a1DM11), "PV", "PV", "rho",  "a1" ), PhiCP_PVPV) # DM2 -> DM1
-    PhiCP_PVPV = ak.where(mask_a1DM11_a1DM2, GetPhiCP(PrepareP4(p4hcandinfo, mask_a1DM11_a1DM2), "PV", "PV", "a1",  "rho" ), PhiCP_PVPV) # DM2 -> DM1
-    PhiCP_PVPV = ak.where(mask_a1DM10_a1DM10,GetPhiCP(PrepareP4(p4hcandinfo, mask_a1DM10_a1DM10),"PV", "PV",  "a1",  "a1" ), PhiCP_PVPV) # DM2 -> DM1
-    PhiCP_PVPV = ak.where(mask_a1DM10_a1DM11,GetPhiCP(PrepareP4(p4hcandinfo, mask_a1DM10_a1DM11),"PV", "PV",  "a1",  "a1" ), PhiCP_PVPV) # DM2 -> DM1
-    PhiCP_PVPV = ak.where(mask_a1DM11_a1DM10,GetPhiCP(PrepareP4(p4hcandinfo, mask_a1DM11_a1DM10),"PV", "PV",  "a1",  "a1" ), PhiCP_PVPV) # DM2 -> DM1
-    PhiCP_PVPV = ak.where(mask_a1DM11_a1DM11,GetPhiCP(PrepareP4(p4hcandinfo, mask_a1DM11_a1DM11),"PV", "PV",  "a1",  "a1" ), PhiCP_PVPV) # DM2 -> DM1
+    PhiCP_PVPV = ak.where(mask_a1DM2_a1DM2,  GetPhiCP(PrepareP4(p4hcandinfo_fastMTT, mask_a1DM2_a1DM2 ), "PV", "PV", "rho", "rho" ), PhiCP_PVPV) # DM2 -> DM1
+    PhiCP_PVPV = ak.where(mask_a1DM2_a1DM10, GetPhiCP(PrepareP4(p4hcandinfo_fastMTT, mask_a1DM2_a1DM10), "PV", "PV", "rho",  "a1" ), PhiCP_PVPV) # DM11 -> DM10
+    PhiCP_PVPV = ak.where(mask_a1DM10_a1DM2, GetPhiCP(PrepareP4(p4hcandinfo_fastMTT, mask_a1DM10_a1DM2), "PV", "PV", "a1",  "rho" ), PhiCP_PVPV) # DM11 -> DM10
+    PhiCP_PVPV = ak.where(mask_a1DM2_a1DM11, GetPhiCP(PrepareP4(p4hcandinfo_fastMTT, mask_a1DM2_a1DM11), "PV", "PV", "rho",  "a1" ), PhiCP_PVPV) # DM2 -> DM1
+    PhiCP_PVPV = ak.where(mask_a1DM11_a1DM2, GetPhiCP(PrepareP4(p4hcandinfo_fastMTT, mask_a1DM11_a1DM2), "PV", "PV", "a1",  "rho" ), PhiCP_PVPV) # DM2 -> DM1
+    PhiCP_PVPV = ak.where(mask_a1DM10_a1DM10,GetPhiCP(PrepareP4(p4hcandinfo_fastMTT, mask_a1DM10_a1DM10),"PV", "PV",  "a1",  "a1" ), PhiCP_PVPV) # DM2 -> DM1
+    PhiCP_PVPV = ak.where(mask_a1DM10_a1DM11,GetPhiCP(PrepareP4(p4hcandinfo_fastMTT, mask_a1DM10_a1DM11),"PV", "PV",  "a1",  "a1" ), PhiCP_PVPV) # DM2 -> DM1
+    PhiCP_PVPV = ak.where(mask_a1DM11_a1DM10,GetPhiCP(PrepareP4(p4hcandinfo_fastMTT, mask_a1DM11_a1DM10),"PV", "PV",  "a1",  "a1" ), PhiCP_PVPV) # DM2 -> DM1
+    PhiCP_PVPV = ak.where(mask_a1DM11_a1DM11,GetPhiCP(PrepareP4(p4hcandinfo_fastMTT, mask_a1DM11_a1DM11),"PV", "PV",  "a1",  "a1" ), PhiCP_PVPV) # DM2 -> DM1
     
 
 
@@ -236,34 +251,32 @@ def ProducePhiCP(
     #                                      IPPV                                      #
     #                Only possible for (e/mu/pi)-(pi/rho/a1) channel                 #
     ##################################################################################
-    logger.info("IP-PV")
+    logger.info("IP-PV <-- using fastMTT")
     
     # -- e-pi
-    PhiCP_IPPV = ak.where(mask_e_pi,    GetPhiCP(PrepareP4(p4hcandinfo, mask_e_pi    ), "IP", "PV", "e",  "pi"),   dummyPhiCP)    
+    PhiCP_IPPV = ak.where(mask_e_pi,    GetPhiCP(PrepareP4(p4hcandinfo_fastMTT, mask_e_pi    ), "IP", "PV", "e",  "pi"),   dummyPhiCP)    
     # -- e-rho
-    PhiCP_IPPV = ak.where(mask_e_rho,   GetPhiCP(PrepareP4(p4hcandinfo, mask_e_rho   ), "IP", "PV", "e",   "rho"), PhiCP_IPPV)
+    PhiCP_IPPV = ak.where(mask_e_rho,   GetPhiCP(PrepareP4(p4hcandinfo_fastMTT, mask_e_rho   ), "IP", "PV", "e",   "rho"), PhiCP_IPPV)
     # -- e-a1
-    PhiCP_IPPV = ak.where(mask_e_a1DM2, GetPhiCP(PrepareP4(p4hcandinfo, mask_e_a1DM2 ), "IP", "PV", "e",   "rho"), PhiCP_IPPV) # treat DM2 as rho
-    PhiCP_IPPV = ak.where(mask_e_a1DM10,GetPhiCP(PrepareP4(p4hcandinfo, mask_e_a1DM10), "IP", "PV", "e",   "a1" ), PhiCP_IPPV)
-    PhiCP_IPPV = ak.where(mask_e_a1DM11,GetPhiCP(PrepareP4(p4hcandinfo, mask_e_a1DM11), "IP", "PV", "e",   "a1" ), PhiCP_IPPV) # treat DM11 as a1 
+    PhiCP_IPPV = ak.where(mask_e_a1DM2, GetPhiCP(PrepareP4(p4hcandinfo_fastMTT, mask_e_a1DM2 ), "IP", "PV", "e",   "rho"), PhiCP_IPPV) # treat DM2 as rho
+    PhiCP_IPPV = ak.where(mask_e_a1DM10,GetPhiCP(PrepareP4(p4hcandinfo_fastMTT, mask_e_a1DM10), "IP", "PV", "e",   "a1" ), PhiCP_IPPV)
+    PhiCP_IPPV = ak.where(mask_e_a1DM11,GetPhiCP(PrepareP4(p4hcandinfo_fastMTT, mask_e_a1DM11), "IP", "PV", "e",   "a1" ), PhiCP_IPPV) # treat DM11 as a1 
     # -- mu-pi
-    PhiCP_IPPV = ak.where(mask_mu_pi,   GetPhiCP(PrepareP4(p4hcandinfo, mask_mu_pi   ), "IP", "PV", "mu",  "pi"),  PhiCP_IPPV)
+    PhiCP_IPPV = ak.where(mask_mu_pi,   GetPhiCP(PrepareP4(p4hcandinfo_fastMTT, mask_mu_pi   ), "IP", "PV", "mu",  "pi"),  PhiCP_IPPV)
     # -- mu-rho
-    PhiCP_IPPV = ak.where(mask_mu_rho,  GetPhiCP(PrepareP4(p4hcandinfo, mask_mu_rho ), "IP", "PV", "mu",  "rho"), PhiCP_IPPV)
+    PhiCP_IPPV = ak.where(mask_mu_rho,  GetPhiCP(PrepareP4(p4hcandinfo_fastMTT, mask_mu_rho ), "IP", "PV", "mu",  "rho"), PhiCP_IPPV)
     # -- mu-a1
-    PhiCP_IPPV = ak.where(mask_mu_a1DM2, GetPhiCP(PrepareP4(p4hcandinfo, mask_mu_a1DM2 ),"IP", "PV", "mu",  "rho"), PhiCP_IPPV) # treat DM2 as rho
-    PhiCP_IPPV = ak.where(mask_mu_a1DM10,GetPhiCP(PrepareP4(p4hcandinfo, mask_mu_a1DM10),"IP", "PV", "mu",  "a1"),  PhiCP_IPPV)
-    PhiCP_IPPV = ak.where(mask_mu_a1DM11,GetPhiCP(PrepareP4(p4hcandinfo, mask_mu_a1DM11),"IP", "PV", "mu",  "a1"),  PhiCP_IPPV) # treat DM11 as a1
+    PhiCP_IPPV = ak.where(mask_mu_a1DM2, GetPhiCP(PrepareP4(p4hcandinfo_fastMTT, mask_mu_a1DM2 ),"IP", "PV", "mu",  "rho"), PhiCP_IPPV) # treat DM2 as rho
+    PhiCP_IPPV = ak.where(mask_mu_a1DM10,GetPhiCP(PrepareP4(p4hcandinfo_fastMTT, mask_mu_a1DM10),"IP", "PV", "mu",  "a1"),  PhiCP_IPPV)
+    PhiCP_IPPV = ak.where(mask_mu_a1DM11,GetPhiCP(PrepareP4(p4hcandinfo_fastMTT, mask_mu_a1DM11),"IP", "PV", "mu",  "a1"),  PhiCP_IPPV) # treat DM11 as a1
     # -- pi-pi
-    PhiCP_IPPV = ak.where(mask_pi_pi,    GetPhiCP(PrepareP4(p4hcandinfo, mask_pi_pi ), "IP", "PV", "pi",  "pi"), PhiCP_IPPV)        
+    PhiCP_IPPV = ak.where(mask_pi_pi,    GetPhiCP(PrepareP4(p4hcandinfo_fastMTT, mask_pi_pi ), "IP", "PV", "pi",  "pi"), PhiCP_IPPV)        
     # -- pi-rho
-    PhiCP_IPPV = ak.where(mask_pi_rho,  GetPhiCP(PrepareP4(p4hcandinfo, mask_pi_rho ), "IP", "PV", "pi",  "rho"), PhiCP_IPPV)
+    PhiCP_IPPV = ak.where(mask_pi_rho,  GetPhiCP(PrepareP4(p4hcandinfo_fastMTT, mask_pi_rho ), "IP", "PV", "pi",  "rho"), PhiCP_IPPV)
     # -- pi-a1
-    PhiCP_IPPV = ak.where(mask_pi_a1DM2,GetPhiCP(PrepareP4(p4hcandinfo, mask_pi_a1DM2  ), "IP", "PV", "pi",  "rho" ), PhiCP_IPPV) # treat DM2 as rho
-    PhiCP_IPPV = ak.where(mask_pi_a1DM10,GetPhiCP(PrepareP4(p4hcandinfo, mask_pi_a1DM10), "IP", "PV", "pi",  "a1" ),  PhiCP_IPPV)
-    PhiCP_IPPV = ak.where(mask_pi_a1DM11,GetPhiCP(PrepareP4(p4hcandinfo, mask_pi_a1DM11), "IP", "PV", "pi",  "a1" ),  PhiCP_IPPV) # treat DM11 as a1
-
-    
+    PhiCP_IPPV = ak.where(mask_pi_a1DM2,GetPhiCP(PrepareP4(p4hcandinfo_fastMTT, mask_pi_a1DM2  ), "IP", "PV", "pi",  "rho" ), PhiCP_IPPV) # treat DM2 as rho
+    PhiCP_IPPV = ak.where(mask_pi_a1DM10,GetPhiCP(PrepareP4(p4hcandinfo_fastMTT, mask_pi_a1DM10), "IP", "PV", "pi",  "a1" ),  PhiCP_IPPV)
+    PhiCP_IPPV = ak.where(mask_pi_a1DM11,GetPhiCP(PrepareP4(p4hcandinfo_fastMTT, mask_pi_a1DM11), "IP", "PV", "pi",  "a1" ),  PhiCP_IPPV) # treat DM11 as a1
     
     return events, PhiCP_IPIP, PhiCP_DPDP, PhiCP_PVPV, PhiCP_IPDP, PhiCP_IPPV
 
@@ -373,8 +386,6 @@ def ProduceGenPhiCP(
     events, PhiCP_IPIP, PhiCP_DPDP, PhiCP_PVPV, PhiCP_IPDP, PhiCP_IPPV = self[ProducePhiCP](events, p4hcandinfo)
 
     dummy = PhiCP_IPIP[:,:0]
-
-    #from IPython import embed; embed()
     
     #psi_IPIP = ak.where(ak.num(PhiCP_IPIP, axis=1) == 1, psi, dummy)
     PhiCP_IPIP_alpha_lt_piby4 = ak.where(with_alpha_lt_piby4, PhiCP_IPIP, dummy)

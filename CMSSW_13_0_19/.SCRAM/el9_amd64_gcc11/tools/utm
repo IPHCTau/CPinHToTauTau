@@ -1,0 +1,34 @@
+{
+  "INCLUDE": [
+    "/cvmfs/cms.cern.ch/el9_amd64_gcc11/external/utm/utm_0.11.2-f53b43dd28a187aa608b8d058fcc755c/include"
+  ],
+  "LIB": [
+    "tmeventsetup",
+    "tmtable",
+    "tmxsd",
+    "tmgrammar",
+    "tmutil"
+  ],
+  "LIBDIR": [
+    "/cvmfs/cms.cern.ch/el9_amd64_gcc11/external/utm/utm_0.11.2-f53b43dd28a187aa608b8d058fcc755c/lib"
+  ],
+  "RUNTIME": {
+    "PATH:ROOT_INCLUDE_PATH": [
+      "/cvmfs/cms.cern.ch/el9_amd64_gcc11/external/utm/utm_0.11.2-f53b43dd28a187aa608b8d058fcc755c/include"
+    ],
+    "UTM_XSD_DIR": [
+      "/cvmfs/cms.cern.ch/el9_amd64_gcc11/external/utm/utm_0.11.2-f53b43dd28a187aa608b8d058fcc755c"
+    ]
+  },
+  "TOOLNAME": "utm",
+  "TOOLVERSION": "utm_0.11.2-f53b43dd28a187aa608b8d058fcc755c",
+  "USE": [
+    "root_cxxdefaults"
+  ],
+  "UTM_BASE": "/cvmfs/cms.cern.ch/el9_amd64_gcc11/external/utm/utm_0.11.2-f53b43dd28a187aa608b8d058fcc755c",
+  "VARIABLES": [
+    "UTM_BASE",
+    "LIBDIR",
+    "INCLUDE"
+  ]
+}

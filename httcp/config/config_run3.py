@@ -106,6 +106,7 @@ def add_config (ana: od.Analysis,
         "multiboson",
         ## Signal
         "h_ggf_htt",
+        "h_vbf_htt",
         "zh_htt",
         "wh_htt",
         ##QCD
@@ -203,7 +204,6 @@ def add_config (ana: od.Analysis,
         "st_tw_tb_fh",
         "st_schannel_t",
         "st_schannel_tbar",
-
         ##Diboson
         "ww",
         "wz",
@@ -231,6 +231,7 @@ def add_config (ana: od.Analysis,
         #"wph_tautau_uncorrelatedDecay_UnFiltered",
         #"wmh_tautau_uncorrelatedDecay_Filtered",
         #"wmh_tautau_uncorrelatedDecay_UnFiltered",
+        #"h_vbf_tautau_UncorrelatedDecay_Filtered",
     ]
     
     datasets_data = []
@@ -284,6 +285,8 @@ def add_config (ana: od.Analysis,
             dataset.add_tag("is_w")
         elif re.match(r"^h_ggf_tautau.*$", dataset.name):
             dataset.add_tag("is_ggf_signal")
+        elif re.match(r"^h_vbf_tautau.*$", dataset.name):
+            dataset.add_tag("is_vbf_signal")
         elif re.match(r"^(.*)h_tautau(.*)Filtered$", dataset.name):
             dataset.add_tag("is_vh_signal")
         
@@ -1358,7 +1361,7 @@ def add_config (ana: od.Analysis,
             "tau"                     : False,
         },
         "selection": {
-            "main"                    : False,
+            "main"                    : True,
             "trigobject_matching"     : False,
             "extra_lep_veto"          : False,
             "dilep_veto"              : False,
@@ -1371,7 +1374,7 @@ def add_config (ana: od.Analysis,
 
 
     cfg.x.extra_tags = DotDict.wrap({
-        "genmatch"       : False,
+        "genmatch"       : True, #here2#
     })
 
 
@@ -1379,5 +1382,5 @@ def add_config (ana: od.Analysis,
     cfg.x.channel_specific_info = DotDict.wrap({
         "etau"   : False,
         "mutau"  : False,
-        "tautau" : True,
+        "tautau" : False,
     })

@@ -1,0 +1,22 @@
+{
+  "INCLUDE": [
+    "/cvmfs/cms.cern.ch/el9_amd64_gcc11/external/vecgeom/v1.1.17-10b2db97d6b1736305b7b352fc807529/include",
+    "/cvmfs/cms.cern.ch/el9_amd64_gcc11/external/vecgeom/v1.1.17-10b2db97d6b1736305b7b352fc807529/include/VecGeom"
+  ],
+  "RUNTIME": {
+    "PATH:ROOT_INCLUDE_PATH": [
+      "/cvmfs/cms.cern.ch/el9_amd64_gcc11/external/vecgeom/v1.1.17-10b2db97d6b1736305b7b352fc807529/include",
+      "/cvmfs/cms.cern.ch/el9_amd64_gcc11/external/vecgeom/v1.1.17-10b2db97d6b1736305b7b352fc807529/include/VecGeom"
+    ]
+  },
+  "TOOLNAME": "vecgeom_interface",
+  "TOOLVERSION": "v1.1.17-10b2db97d6b1736305b7b352fc807529",
+  "USE": [
+    "root_cxxdefaults"
+  ],
+  "VARIABLES": [
+    "VECGEOM_INTERFACE_BASE",
+    "INCLUDE"
+  ],
+  "VECGEOM_INTERFACE_BASE": "/cvmfs/cms.cern.ch/el9_amd64_gcc11/external/vecgeom/v1.1.17-10b2db97d6b1736305b7b352fc807529"
+}

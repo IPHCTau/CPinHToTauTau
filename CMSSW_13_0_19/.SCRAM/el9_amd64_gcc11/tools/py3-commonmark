@@ -1,0 +1,13 @@
+{
+  "PY3_COMMONMARK_BASE": "/cvmfs/cms.cern.ch/el9_amd64_gcc11/external/py3-commonmark/0.9.1-e930cc24b7e1f7a0621699960ae97c1d",
+  "RUNTIME": {
+    "PATH:PATH": [
+      "/cvmfs/cms.cern.ch/el9_amd64_gcc11/external/py3-commonmark/0.9.1-e930cc24b7e1f7a0621699960ae97c1d/bin"
+    ]
+  },
+  "TOOLNAME": "py3-commonmark",
+  "TOOLVERSION": "0.9.1-e930cc24b7e1f7a0621699960ae97c1d",
+  "VARIABLES": [
+    "PY3_COMMONMARK_BASE"
+  ]
+}

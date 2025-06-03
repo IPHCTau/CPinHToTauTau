@@ -1,0 +1,11 @@
+{
+  "LIB": [
+    "Hist",
+    "Matrix"
+  ],
+  "TOOLNAME": "roothistmatrix",
+  "TOOLVERSION": "6.26.11-43b2b4148365ed22373c74503805094a",
+  "USE": [
+    "rootcore"
+  ]
+}
