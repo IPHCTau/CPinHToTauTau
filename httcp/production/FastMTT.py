@@ -312,8 +312,12 @@ class Likelihood:
         return value
 
 class FastMTT(Likelihood):
-    def __init__(self, calculate_uncertainties = False):
-        self.myLikelihood = Likelihood()
+    def __init__(self,
+                 enable_BW = False,
+                 enable_window = False,
+                 calculate_uncertainties = False):
+        self.myLikelihood = Likelihood(enable_BW = False,
+                                       enable_window = False)
         self.BestLikelihood = 0.0
         self.BestX = np.array([0.0, 0.0])
         self.bestP4 = 0.0
@@ -390,11 +394,10 @@ class FastMTT(Likelihood):
         end_real_time = time.time()
         end_cpu_time = time.process_time()
         
-        real_time_elapsed = end_real_time - start_real_time
-        cpu_time_elapsed = end_cpu_time - start_cpu_time
+        real_time_elapsed = round(end_real_time - start_real_time, 3)
+        cpu_time_elapsed = round(end_cpu_time - start_cpu_time, 3)
 
-        logger.info(f"Real time elapsed: {real_time_elapsed} seconds")
-        logger.info(f"CPU time elapsed: {cpu_time_elapsed} seconds")
+        logger.info(f"Time elapsed : CPU - {cpu_time_elapsed} & Real - {real_time_elapsed} seconds")
     
     #lepton[0]: decay_type:
     #1 - TauToHad

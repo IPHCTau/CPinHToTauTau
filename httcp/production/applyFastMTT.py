@@ -157,20 +157,49 @@ def apply_fastMTT(
     hcand_phi_fastMTT = ak.concatenate([p4_h1_reg.phi, p4_h2_reg.phi], axis=1)
     h1_mass = p4_h1_reg.mass
     #from IPython import embed; embed()
-    logger.critical("check regressed mass for leptonic channel, many nan values found for etau channel with ww dataset though")
+    mass_check = ak.nan_to_num(ak.firsts(h1_mass, axis=1), nan=-100.0)
+    nan_mass_mask = mass_check < 0.0
+    nan_mass_mask_et = nan_mass_mask[events.channel_id == etau_id]
+    nan_mass_mask_mt = nan_mass_mask[events.channel_id == mutau_id]
+    nan_mass_mask_tt = nan_mass_mask[events.channel_id == tautau_id]
+    logger.info("Checking h1 mass")
+    logger.critical("in general: check h1 regressed mass for leptonic channel, many nan values found for etau channel with WW dataset though")
+    logger.critical(f"Out of {len(h1_mass)} events, {ak.sum(nan_mass_mask)} events have unphysical values for fastMTT h1 mass")
+    logger.critical(f"Channel wise, e-tau has {ak.sum(nan_mass_mask_et)}, mu-tau has {ak.sum(nan_mass_mask_mt)}, and tau-tau has {ak.sum(nan_mass_mask_tt)} events with unphysical values")
     h1_mass = ak.where(events.channel_id == etau_id,
                        ak.nan_to_num(h1_mass, nan=0.00051),
                        ak.where(events.channel_id == mutau_id,
                                 ak.nan_to_num(h1_mass, nan=0.10566),
                                 h1_mass))
 
-    hcand_mass_fastMTT = ak.concatenate([h1_mass, p4_h2_reg.mass], axis=1)
+    h2_mass = p4_h2_reg.mass
+    #from IPython import embed; embed()
+    mass_check = ak.nan_to_num(ak.firsts(h2_mass, axis=1), nan=-100.0)
+    nan_mass_mask = mass_check < -99.0
+    nan_mass_mask_et = nan_mass_mask[events.channel_id == etau_id]
+    nan_mass_mask_mt = nan_mass_mask[events.channel_id == mutau_id]
+    nan_mass_mask_tt = nan_mass_mask[events.channel_id == tautau_id]
+    logger.info("Checking h2 mass")
+    logger.critical(f"Out of {len(h1_mass)} events, {ak.sum(nan_mass_mask)} events have unphysical values for fastMTT h2 mass")
+    logger.critical(f"Channel wise, e-tau has {ak.sum(nan_mass_mask_et)}, mu-tau has {ak.sum(nan_mass_mask_mt)}, and tau-tau has {ak.sum(nan_mass_mask_tt)} events with unphysical values")
+    
+    hcand_mass_fastMTT = ak.concatenate([h1_mass, h2_mass], axis=1)
 
     events = set_ak_column(events, "hcand.pt_fastMTT",   hcand_pt_fastMTT)
     events = set_ak_column(events, "hcand.eta_fastMTT",  hcand_eta_fastMTT)
     events = set_ak_column(events, "hcand.phi_fastMTT",  hcand_phi_fastMTT)
     events = set_ak_column(events, "hcand.mass_fastMTT", hcand_mass_fastMTT)
 
+    # any nan fastMTT mass?
+    mass_check = ak.nan_to_num(ak.firsts(mass_h, axis=1), nan=-100.0)
+    nan_mass_mask = mass_check < -99.0
+    nan_mass_mask_et = nan_mass_mask[events.channel_id == etau_id]
+    nan_mass_mask_mt = nan_mass_mask[events.channel_id == mutau_id]
+    nan_mass_mask_tt = nan_mass_mask[events.channel_id == tautau_id]
+    logger.info("Checking fastMTT mass")
+    logger.critical(f"Out of {len(mass_h)} events, {ak.sum(nan_mass_mask)} events have unphysical values for fastMTT mass")
+    logger.critical(f"Channel wise, e-tau has {ak.sum(nan_mass_mask_et)}, mu-tau has {ak.sum(nan_mass_mask_mt)}, and tau-tau has {ak.sum(nan_mass_mask_tt)} events with unphysical values")
+        
     events = set_ak_column_f32(events, "hcand_invm_fastMTT", mass_h)
 
     return events
