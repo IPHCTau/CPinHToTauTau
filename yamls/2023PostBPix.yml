@@ -5,33 +5,33 @@ FULL: &full_
   era     : 2023
   postfix : PostBPix
   wrapper : true
-  workers : 10
+  workers : 7
   tasks_per_job  : 2
 
   args: &args_
     config    : run3_2023_postBPix_nano_cp_tau_v14
-    workflow  : htcondor
+    workflow  : local
     branch    : -1
     # if dummy, version will be set automatically 
-    version   : Run3_2023PostBPix_full_20250527_v1
+    version   : Run3_2023PostBPix_full_20250523_v1
 
     datasets  : &datasets_
       ## == data ==
       - data_tau_D
-      - data_mu0_D
-      - data_mu1_D
+      #- data_mu0_D
+      #- data_mu1_D
       #- data_e0_D
       #- data_e1_D
       ## == wj ==
-      #- wj_incl_amcatnlo
-      #- wj_0j_amcatnlo
-      #- wj_1j_amcatnlo
-      #- wj_2j_amcatnlo
+      ##- wj_incl_amcatnlo
+      ##- wj_0j_amcatnlo
+      ##- wj_1j_amcatnlo
+      ##- wj_2j_amcatnlo
       - wj_incl_madgraph
-      #- wj_1j_madgraph
-      #- wj_2j_madgraph
-      #- wj_3j_madgraph
-      #- wj_4j_madgraph    
+      ##- wj_1j_madgraph
+      ##- wj_2j_madgraph
+      ##- wj_3j_madgraph
+      ##- wj_4j_madgraph    
       ## == dy ==
       - dy_lep_m10to50_madgraph
       - dy_lep_m50_madgraph
@@ -39,21 +39,21 @@ FULL: &full_
       - dy_lep_m50_2j_madgraph
       - dy_lep_m50_3j_madgraph
       - dy_lep_m50_4j_madgraph    
-      #- dy_lep_m10to50_amcatnlo
-      #- dy_lep_m50_amcatnlo
-      #- dy_lep_m50_0j_amcatnlo
-      #- dy_lep_m50_1j_amcatnlo
-      #- dy_lep_m50_2j_amcatnlo
-      #- dy_lep_m50_1j_pt40to100_amcatnlo
-      #- dy_lep_m50_2j_pt40to100_amcatnlo
-      #- dy_lep_m50_1j_pt100to200_amcatnlo
-      #- dy_lep_m50_2j_pt100to200_amcatnlo
-      #- dy_lep_m50_1j_pt200to400_amcatnlo
-      #- dy_lep_m50_2j_pt200to400_amcatnlo
-      #- dy_lep_m50_1j_pt400to600_amcatnlo
-      #- dy_lep_m50_2j_pt400to600_amcatnlo
-      #- dy_lep_m50_1j_pt600toInf_amcatnlo
-      #- dy_lep_m50_2j_pt600toInf_amcatnlo
+      ##- dy_lep_m10to50_amcatnlo
+      ##- dy_lep_m50_amcatnlo
+      ##- dy_lep_m50_0j_amcatnlo
+      ##- dy_lep_m50_1j_amcatnlo
+      ##- dy_lep_m50_2j_amcatnlo
+      ##- dy_lep_m50_1j_pt40to100_amcatnlo
+      ##- dy_lep_m50_2j_pt40to100_amcatnlo
+      ##- dy_lep_m50_1j_pt100to200_amcatnlo
+      ##- dy_lep_m50_2j_pt100to200_amcatnlo
+      ##- dy_lep_m50_1j_pt200to400_amcatnlo
+      ##- dy_lep_m50_2j_pt200to400_amcatnlo
+      ##- dy_lep_m50_1j_pt400to600_amcatnlo
+      ##- dy_lep_m50_2j_pt400to600_amcatnlo
+      ##- dy_lep_m50_1j_pt600toInf_amcatnlo
+      ##- dy_lep_m50_2j_pt600toInf_amcatnlo
       ## == tt ==
       - tt_dl
       - tt_sl
@@ -79,13 +79,13 @@ FULL: &full_
       - wzz
       - zzz
       ## == signal ==
-      - h_ggf_tautau_uncorrelated_filter
-      #- h_ggf_tautau_uncorrelatedDecay_CPodd_Filtered_ProdAndDecay
-      #- h_ggf_tautau_uncorrelatedDecay_MM_Filtered_ProdAndDecay
-      #- h_ggf_tautau_uncorrelatedDecay_SM_Filtered_ProdAndDecay
-      #- zh_tautau_uncorrelatedDecay_Filtered
-      #- wph_tautau_uncorrelatedDecay_Filtered
-      #- wmh_tautau_uncorrelatedDecay_Filtered
+      #- h_ggf_tautau_uncorrelated_filter
+      ##- h_ggf_tautau_uncorrelatedDecay_CPodd_Filtered_ProdAndDecay
+      ##- h_ggf_tautau_uncorrelatedDecay_MM_Filtered_ProdAndDecay
+      ##- h_ggf_tautau_uncorrelatedDecay_SM_Filtered_ProdAndDecay
+      ##- zh_tautau_uncorrelatedDecay_Filtered
+      ##- wph_tautau_uncorrelatedDecay_Filtered
+      ##- wmh_tautau_uncorrelatedDecay_Filtered
 
     processes : &processes_
       - data
@@ -104,14 +104,18 @@ FULL: &full_
       #- vv
       #- vvv
       - multiboson
-      - h_ggf_htt
+      #- h_ggf_htt
       #- zh_htt
       #- wh_htt
 
     categories: &categories_
       #- etau__real_2__*
       #- mutau__real_2__*
-      - tautau__real_1__*
+      #- tautau__real_1__*
+      - tautau__real_1__hadD
+      - tautau__real_1__hadD__nodeDY_tautau
+      - tautau__real_1__hadD__nodeFake_tautau
+      - tautau__real_1__hadD__nodeHiggs_tautau
 
     variables: &variables_
       ## -- electron -- #
@@ -139,28 +143,27 @@ FULL: &full_
       #- hcand_1_pt_binvar
       - hcand_1_eta
       - hcand_1_phi
-      - hcand_1_mass
       #- hcand_1_IPx
       #- hcand_1_IPy
       #- hcand_1_IPz
-      - hcand_1_IPsig
+      #- hcand_1_IPsig
       - hcand_1_decayMode
       - hcand_2_pt
       #- hcand_2_pt_binvar
       - hcand_2_eta
       - hcand_2_phi
-      - hcand_2_mass
       #- hcand_2_IPx
       #- hcand_2_IPy
       #- hcand_2_IPz
-      - hcand_2_IPsig
+      #- hcand_2_IPsig
       - hcand_2_decayMode
       - hcand_dr
+      - hcand_dphi
       - hcand_invm
       - dphi_met_h1
       - dphi_met_h2
-      - met_var_qcd_h1
-      - met_var_qcd_h2
+      #- met_var_qcd_h1
+      #- met_var_qcd_h2
       ## -- jet -- #
       - n_jet
       - jet_1_pt
@@ -170,18 +173,24 @@ FULL: &full_
       - jet_2_eta
       - jet_2_phi
       #- hT
-      ## -- met -- #
+      - pt_vis
+      - pt_tt
+      - mt_1
+      - mt_2
+      - mt_lep
+      - mt_tot
+      ### -- met -- #
       - puppi_met_pt
       - puppi_met_phi
       ## -- angular variables -- #
       #- Alpha
-      - PhiCP_IPIP
+      #- PhiCP_IPIP
       #- PhiCP_IPIP_alpha_lt_piby4
       #- PhiCP_IPIP_alpha_gt_piby4
-      - PhiCP_DPDP
+      #- PhiCP_DPDP
       #- PhiCP_PVPV
       #- PhiCP_IPPV
-      - PhiCP_IPDP
+      #- PhiCP_IPDP
       #- PhiCP_IPDP_alpha_lt_piby4
       #- PhiCP_IPDP_alpha_gt_piby4
       ## -- Y vs. pT -- ##
@@ -214,6 +223,10 @@ FULL: &full_
       #- dphi_met_h1-hcand_dr
       #- jet_1_pt-hcand_dr
       #- jet_2_pt-hcand_dr
+      - bdt_score_dy
+      - bdt_score_higgs
+      - bdt_score_fake
+      - hcand_invm_fastMTT
 
     shifts: &shifts_
       #- minbias_xs
