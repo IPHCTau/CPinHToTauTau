@@ -208,6 +208,32 @@ def add_highlevel_features(cfg: od.Config) -> None:
         unit="GeV",
         x_title=r"$m_{vis}$",
     )
+    # classifier scores
+    cfg.add_variable(
+        name="bdt_score_dy",
+        expression="classifier_score[:,0]",
+        null_value=EMPTY_FLOAT,
+        binning=(50, 0.0, 1.0),
+        unit="",
+        x_title="BDT Score (DYTau node)",
+    )
+    cfg.add_variable(
+        name="bdt_score_higgs",
+        expression="classifier_score[:,1]",
+        null_value=EMPTY_FLOAT,
+        binning=(50, 0.0, 1.0),
+        unit="",
+        x_title="BDT Score (Higgs node)",
+    )
+    cfg.add_variable(
+        name="bdt_score_fake",
+        expression="classifier_score[:,2]",
+        null_value=EMPTY_FLOAT,
+        binning=(50, 0.0, 1.0),
+        unit="",
+        x_title="BDT Score (Fake node)",
+    )
+
     
     
 
@@ -440,6 +466,62 @@ def add_hcand_features(cfg: od.Config) -> None:
         binning=(40, 0.0, 5.0),
         x_title=r"$\Delta R(h1,h2)$",
     )
+    cfg.add_variable(
+        name="hcand_dphi",
+        expression="hcand_dphi",
+        null_value=EMPTY_FLOAT,
+        binning=(32, 0.0, 3.2),
+        x_title=r"$\Delta \phi(h1,h2)$",
+    )
+    cfg.add_variable(
+        name="pt_vis",
+        expression="pt_vis",
+        null_value=EMPTY_FLOAT,
+        binning=(50, 0.0, 200.0),
+        unit="GeV",
+        x_title=r"$p_{T}$ (visible)",
+    )
+    cfg.add_variable(
+        name="pt_tt",
+        expression="pt_tt",
+        null_value=EMPTY_FLOAT,
+        binning=(50, 0.0, 200.0),
+        unit="GeV",
+        x_title=r"$p_{T}$ (transverse)",
+    )
+    cfg.add_variable(
+        name="mt_1",
+        expression="mt_1",
+        null_value=EMPTY_FLOAT,
+        binning=(50, 0.0, 200.0),
+        unit="GeV",
+        x_title=r"$m_{T} ~(\tau_{1}, E_{T})$",
+    )
+    cfg.add_variable(
+        name="mt_2",
+        expression="mt_2",
+        null_value=EMPTY_FLOAT,
+        binning=(50, 0.0, 200.0),
+        unit="GeV",
+        x_title=r"$m_{T} ~(\tau_{2}, E_{T})$",
+    )
+    cfg.add_variable(
+        name="mt_lep",
+        expression="mt_lep",
+        null_value=EMPTY_FLOAT,
+        binning=(50, 0.0, 200.0),
+        unit="GeV",
+        x_title=r"$m_{T} ~(\tau_{1}, \tau_{2})$",
+    )
+    cfg.add_variable(
+        name="mt_tot",
+        expression="mt_tot",
+        null_value=EMPTY_FLOAT,
+        binning=(50, 0.0, 200.0),
+        unit="GeV",
+        x_title=r"$m_{T} ~(\tau_{1}, \tau_{2}, E_{T})$",
+    )
+    
     # PhiCP - Det
     cfg.add_variable(
         name="PhiCP_IPIP",

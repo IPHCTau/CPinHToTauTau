@@ -244,6 +244,25 @@ def cat_mutau_fake_2(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.
     ch_mask = events["channel_id"] == ch.id
     return events, ch_mask & events.is_fake_2
 
+# ---------------------------------------------------------- #
+#                   CLASSIFIER [tau-tau]                     #
+# ---------------------------------------------------------- #
+
+# Tau or DY (Z to TauTau)
+@categorizer(uses={"is_tautau_dy"})
+def cat_tautau_node_dy(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
+    return events, events.is_tautau_dy
+
+# Fake
+@categorizer(uses={"is_tautau_fake"})
+def cat_tautau_node_fake(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
+    return events, events.is_tautau_fake
+
+# Higgs
+@categorizer(uses={"is_tautau_higgs"})
+def cat_tautau_node_higgs(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
+    return events, events.is_tautau_higgs
+
 
 # ---------------------------------------------------------- #
 #                          For ABCD                          #

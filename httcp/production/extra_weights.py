@@ -1,3 +1,4 @@
+import law
 import re
 import functools
 from columnflow.production import Producer, producer
@@ -9,12 +10,14 @@ from httcp.util import get_trigger_id_map
 
 ak     = maybe_import("awkward")
 np     = maybe_import("numpy")
+pd     = maybe_import("pandas")
 coffea = maybe_import("coffea")
 warn   = maybe_import("warnings")
 
 # helper
 set_ak_column_f32 = functools.partial(set_ak_column, value_type=np.float32)
 
+logger = law.logger.get_logger(__name__)
 
 # ------------------------------------------------- #
 # Assign MC weight [gen Weight / LHEWeight]
@@ -507,3 +510,177 @@ def top_pt_weight(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
         events = set_ak_column(events, f"top_pt_weight{variation}", ak.fill_none(weight, 1.0))
 
     return events
+
+
+# ------------------------------------------------- #
+# Calculate Classifier Score
+# ------------------------------------------------- #
+
+@producer(
+    uses={
+        "channel_id",
+        "hcand.*", "PuppiMET.*",
+        "dphi_met_h1", "dphi_met_h2",
+        "hcand_dr", "hcand_invm", "hcand_dphi",
+        "pt_tt", "pt_vis",
+        "Jet.*",
+        "bJet.pt",
+        "hcand_invm_fastMTT",
+    },
+    produces={
+        "classifier_score",
+    },
+    #sandbox=dev_sandbox("bash::$HTTCP_BASE/sandboxes/venv_columnar_xgb.sh"),
+    mc_only=False,
+)
+def classify_events(
+        self: Producer,
+        events: ak.Array,
+        **kwargs,
+) :
+    is_even = events.event % 2 == 0
+    is_odd  = ~is_even
+
+    is_etau = events.channel_id == 1
+    is_mutau = events.channel_id == 2
+    is_tautau = events.channel_id == 4
+
+    is_etau_even = ak.to_numpy(is_etau & is_even)
+    is_etau_odd  = ak.to_numpy(is_etau & is_odd)
+    is_mutau_even = ak.to_numpy(is_mutau & is_even)
+    is_mutau_odd  = ak.to_numpy(is_mutau & is_odd)
+    is_tautau_even = ak.to_numpy(is_tautau & is_even)
+    is_tautau_odd  = ak.to_numpy(is_tautau & is_odd)
+
+
+    # add more Jet features
+    default_val = -9999.0
+    njets = ak.num(events.Jet.pt, axis=1)
+    nbjets = ak.num(events.bJet.pt, axis=1)
+    
+    jets = ak.with_name(events.Jet, "PtEtaPhiMLorentzVector")
+    jet1 = jets[:,0:1]
+    jet2 = jets[:,1:2]
+    # dummyp4
+    dummyp4 = jet1[:,:0]
+    # make two jets array the same structure
+    jet1 = ak.where(njets >= 2, jet1, dummyp4)
+    jet2 = ak.where(njets >= 2, jet2, dummyp4)
+
+    dijet = jet1 + jet2
+    
+    jpt_1 = ak.from_regular(ak.fill_none(ak.firsts(jet1.pt, axis=1), default_val)[:,None])
+    jpt_2 = ak.from_regular(ak.fill_none(ak.firsts(jet1.pt, axis=1), default_val)[:,None])
+    jeta_1 = ak.from_regular(ak.fill_none(ak.firsts(jet1.eta, axis=1), default_val)[:,None])
+    jeta_2 = ak.from_regular(ak.fill_none(ak.firsts(jet1.eta, axis=1), default_val)[:,None])
+    # mjj
+    mjj = (jet1 + jet2).mass
+    mjj = ak.fill_none(ak.firsts(mjj, axis=1), default_val)
+    mjj = ak.from_regular(ak.where(njets >= 2, mjj, default_val)[:,None])
+    # jdeta
+    jdeta = np.abs(jet1.eta - jet2.eta)
+    jdeta = ak.fill_none(ak.firsts(jdeta, axis=1), default_val)
+    jdeta = ak.from_regular(ak.where(njets >= 2, jdeta, default_val)[:,None])
+
+    # dijetpt
+    dijetpt = ak.fill_none(ak.firsts(dijet.pt, axis=1), default_val)
+    dijetpt = ak.from_regular(ak.where(njets >= 2, dijetpt, default_val)[:,None])
+
+    
+    # Create fartures
+    features = {
+        "pt_1"         : events.hcand.pt[:,0:1],
+        "pt_2"         : events.hcand.pt[:,1:2],
+        "met_pt"       : events.PuppiMET.pt[:,None],
+        "met_dphi_1"   : events.dphi_met_h1,
+        "met_dphi_2"   : events.dphi_met_h2,
+        "dR"           : events.hcand_dr,
+        "dphi"         : events.hcand_dphi,
+        "pt_tt"        : events.pt_tt,
+        "m_vis"        : events.hcand_invm,
+        "pt_vis"       : events.pt_vis,
+        "FastMTT_mass" : events.hcand_invm_fastMTT,
+        "mt_1"         : events.mt_1,
+        "mt_2"         : events.mt_2,
+        "mt_lep"       : events.mt_lep,
+        "mt_tot"       : events.mt_tot,
+        "jpt_1"        : jpt_1,
+        "jpt_2"        : jpt_2,
+        "jeta_1"       : jeta_1,
+        "jeta_2"       : jeta_2,
+        "mjj"          : mjj,
+        "jdeta"        : jdeta,
+        "dijetpt"      : dijetpt,
+        "n_jets"       : njets[:,None],
+        "n_bjets"      : nbjets[:,None],
+    }
+    # create arrays of feats
+    x_flat_feats = {f: ak.to_numpy(a).flatten() for f,a in features.items()}
+    # create pd df
+    df = pd.DataFrame(x_flat_feats)
+
+    # categorize events
+    df_tautau_even = df[is_tautau_even].copy()
+    df_tautau_odd  = df[is_tautau_odd].copy()
+    
+    #from IPython import embed; embed()
+
+    #score_tautau = -99.9 * np.ones((np.array(events.channel_id).shape[0], score_tautau_even.shape[-1]), dtype=float)
+    score_tautau = -99.9 * np.ones((np.array(events.channel_id).shape[0], 3), dtype=float)
+    
+    # Evaluation
+    if df_tautau_even.shape[0] > 0:
+        score_tautau_even = self.model_even.predict_proba(df_tautau_even)
+        score_tautau[is_tautau_even] = score_tautau_even
+    else:
+        logger.warning(f"0 events in df_tautau_even")
+
+    if df_tautau_odd.shape[0] > 0:
+        score_tautau_odd  = self.model_odd.predict_proba(df_tautau_odd)
+        score_tautau[is_tautau_odd]  = score_tautau_odd
+    else:
+        logger.warning(f"0 events in df_tautau_odd")
+        
+    #score_tautau[is_tautau_even] = score_tautau_even
+    #score_tautau[is_tautau_odd]  = score_tautau_odd
+    
+    # Score tautau
+    # 0: tau, 1: higgs, 2: fake
+    score_tautau = ak.from_regular(ak.Array(score_tautau))
+    score_dummy = score_tautau[:,:0]
+
+    # DO the same for mutau and etau
+
+    score = ak.where(is_tautau, score_tautau, score_dummy)
+    events = set_ak_column(events, "classifier_score", score)
+
+    return events
+
+
+@classify_events.requires
+def classify_events_requires(self: Producer, reqs: dict) -> None:
+    if "external_files" in reqs:
+        return
+    
+    from columnflow.tasks.external import BundleExternalFiles
+    reqs["external_files"] = BundleExternalFiles.req(self.task)
+
+@classify_events.setup
+def classify_events_setup(
+    self: Producer,
+    reqs: dict,
+    inputs: dict,
+    reader_targets: InsertableDict,
+) -> None:
+    bundle = reqs["external_files"]
+
+    model_tautau_even_json = bundle.files.model_tt_EVEN.path
+    model_tautau_odd_json  = bundle.files.model_tt_ODD.path
+
+    import xgboost as xgb
+
+    self.model_even = xgb.XGBClassifier()
+    self.model_even.load_model(model_tautau_even_json)
+
+    self.model_odd = xgb.XGBClassifier()
+    self.model_odd.load_model(model_tautau_odd_json)

@@ -591,6 +591,8 @@ def add_config (ana: od.Analysis,
         #"btag_sf_corr": (f"{json_mirror}/POG/BTV/{year}_Summer{year2}{year_postfix}/btagging.json.gz",                "v1"),
         #"met_phi_corr": (f"{json_mirror}/POG/JME/2018_UL/met.json.gz",                                                "v1"), #met phi, unavailable Run3
         "met_recoil"        : (f"{external_path_parent}/Run3/Recoil_corrections.json.gz",                              "v1"),
+        "model_tt_EVEN"     : (f"{external_path_parent}/Run3/ClassifierModels/model_tt_EVEN.json",                       ""),
+        "model_tt_ODD"      : (f"{external_path_parent}/Run3/ClassifierModels/model_tt_ODD.json",                        ""),
     })
 
     # --------------------------------------------------------------------------------------------- #
@@ -1125,7 +1127,7 @@ def add_config (ana: od.Analysis,
         "muon_xtrig_weight"                     : [], #get_shifts("mu_xtrig"),
         "tau_weight"                            : [], #get_shifts("tau"),
         "tau_trigger_weight"                    : [], #get_shifts("tau_trig"),
-        #"ff_weight"                             : [],
+        "ff_weight"                             : [],
         #"ff_ext_corr_weight"                    : [],
         #"tes_weight"                           : [], #get_shifts("tes"),
         "tauspinner_weight"                     : get_shifts("tauspinner"),
@@ -1449,7 +1451,7 @@ def add_config (ana: od.Analysis,
     # Adding hist hooks
     # --------------------------------------------------------------------------------------------- #
 
-    cfg.x.regions_to_extrapolate_fake = "AB" # "AB" or "CD" or "C0D0"
+    cfg.x.regions_to_extrapolate_fake = "CD" # "AB" or "CD" or "C0D0"
     from httcp.config.hist_hooks import add_hist_hooks
     add_hist_hooks(cfg)
 

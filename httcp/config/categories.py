@@ -113,6 +113,14 @@ def add_ABCD_categories(config: od.Config) -> None:
     add_category(config,name="SR",     id=8000,  selection="cat_os_iso1_iso2_lowmt",         label="sr",       tags={"os","iso1",    "iso2", "lowmt" })
     
 
+@call_once_on_config()
+def add_classifier_categories(config: od.Config) -> None:
+    # hardonic
+    add_category(config,name="nodeDY_tautau",    id=100,  selection="cat_tautau_node_dy",      label="DY_node",    tags={"dy_node"})
+    add_category(config,name="nodeFake_tautau",  id=300,  selection="cat_tautau_node_fake",    label="Fake_node",  tags={"fake_node"})
+    add_category(config,name="nodeHiggs_tautau", id=500,  selection="cat_tautau_node_higgs",   label="Higgs_node", tags={"higgs_node"})    
+
+
     
 @call_once_on_config()
 def add_DM_categories(config: od.Config) -> None:
@@ -164,7 +172,7 @@ def add_etau_mutau_categories(config: od.Config) -> None:
     }
     """
     categories = {
-        "channel": [config.get_category("mutau")],
+        "channel": [config.get_category("mutau"), config.get_category("etau")],
         "RorF"   : [config.get_category("real_2")],
         "abcd"   : [
             config.get_category("DRnum"),
@@ -236,16 +244,21 @@ def add_tautau_real_categories(config: od.Config) -> None:
         "channel": [config.get_category("tautau")],
         "RorF"   : [config.get_category("real_1")],
         "abcd"   : [
-            config.get_category("hadA"),  config.get_category("hadB"),
-            config.get_category("hadA0"), config.get_category("hadB0"),
-            config.get_category("hadC0"), config.get_category("hadD0"),
+            #config.get_category("hadA"),  config.get_category("hadB"),
+            #config.get_category("hadA0"), config.get_category("hadB0"),
+            #config.get_category("hadC0"), config.get_category("hadD0"),
             config.get_category("hadC"),  config.get_category("hadD"),
         ],
         "nj"     : [
             config.get_category("has_0j"),
             config.get_category("has_1j"),
             config.get_category("has_2j"),
-        ],        
+        ],
+        "xgb"    : [
+            config.get_category("nodeDY_tautau"),
+            config.get_category("nodeFake_tautau"),
+            config.get_category("nodeHiggs_tautau"),
+        ],
         "dm"     : [
             config.get_category("pi_1"),
             config.get_category("rho_1"),
@@ -341,6 +354,8 @@ def add_categories(config: od.Config) -> None:
     add_ABCD_categories(config)
     add_DM_categories(config)
 
+    add_classifier_categories(config)
+    
     add_etau_mutau_categories(config)
     #add_tautau_categories(config)
     add_tautau_real_categories(config)

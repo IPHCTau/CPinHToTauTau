@@ -32,7 +32,7 @@ from columnflow.config_util import get_events_from_categories
 from httcp.production.ReArrangeHcandProds import reArrangeDecayProducts, reArrangeGenDecayProducts
 from httcp.production.PhiCP_Producer import ProduceDetPhiCP, ProduceGenPhiCP
 #from httcp.production.weights import tauspinner_weight
-from httcp.production.extra_weights import zpt_reweight, zpt_reweight_v2, ff_weight, met_recoil_corr, top_pt_weight
+from httcp.production.extra_weights import zpt_reweight, zpt_reweight_v2, ff_weight, met_recoil_corr, top_pt_weight, classify_events
 from httcp.production.muon_weights import muon_id_weights, muon_iso_weights, muon_trigger_weights, muon_xtrigger_weights
 from httcp.production.electron_weights import electron_idiso_weights, electron_trigger_weights, electron_xtrigger_weights
 from httcp.production.tau_weights import tau_all_weights, tauspinner_weights
@@ -49,7 +49,7 @@ from httcp.production.columnvalid import make_column_valid
 #from httcp.production.angular_features import ProduceDetCosPsi, ProduceGenCosPsi
 
 from httcp.util import IF_DATASET_HAS_LHE_WEIGHTS, IF_DATASET_IS_DY, IF_DATASET_IS_W, IF_DATASET_IS_SIGNAL, IF_DATASET_IS_TT
-from httcp.util import IF_RUN2, IF_RUN3, IF_ALLOW_STITCHING, IF_GENMATCH_ON_FOR_SIGNAL
+from httcp.util import IF_RUN2, IF_RUN3, IF_ALLOW_STITCHING, IF_GENMATCH_ON_FOR_SIGNAL, transverse_mass
 
 from httcp.production.applyFastMTT import apply_fastMTT
 
@@ -75,19 +75,20 @@ logger = law.logger.get_logger(__name__)
         IF_GENMATCH_ON_FOR_SIGNAL(reArrangeGenDecayProducts),
         IF_GENMATCH_ON_FOR_SIGNAL(ProduceGenPhiCP), ####ProduceGenCosPsi, 
         ProduceDetPhiCP, ####ProduceDetCosPsi,
-        #apply_fastMTT,
+        apply_fastMTT,
     },
     produces={
         # new columns
         "hcand_invm",
-        "hcand_dr",
+        "hcand_dr", "hcand_dphi",
         "n_jet",
         IF_GENMATCH_ON_FOR_SIGNAL(ProduceGenPhiCP), ####ProduceGenCosPsi,
         ProduceDetPhiCP, ####ProduceDetCosPsi,
         "dphi_met_h1", "dphi_met_h2",
         "met_var_qcd_h1", "met_var_qcd_h2",
-        "hT",
-        #apply_fastMTT,
+        "hT", "pt_tt", "pt_vis",
+        "mt_1", "mt_2", "mt_lep", "mt_tot",
+        apply_fastMTT,
     },
 )
 def hcand_features(
@@ -100,10 +101,13 @@ def hcand_features(
     hcand1 = hcand_[:,0:1]
     hcand2 = hcand_[:,1:2]
 
+    vis_p4 = hcand1 + hcand2
+    
     met = ak.with_name(events.PuppiMET, "PtEtaPhiMLorentzVector")
 
     mass = (hcand1 + hcand2).mass
     dr = hcand1.delta_r(hcand2)
+    dphi = hcand1.delta_phi(hcand2)
 
     # deltaPhi between MET and hcand1 & 2
     dphi_met_h1 = met.delta_phi(hcand1)
@@ -118,6 +122,7 @@ def hcand_features(
 
     events = set_ak_column_f32(events, "hcand_invm",  mass)
     events = set_ak_column_f32(events, "hcand_dr",    dr)
+    events = set_ak_column_f32(events, "hcand_dphi",  dphi)
     events = set_ak_column_f32(events, "dphi_met_h1", np.abs(dphi_met_h1))
     events = set_ak_column_f32(events, "dphi_met_h2", np.abs(dphi_met_h2))
     events = set_ak_column_f32(events, "met_var_qcd_h1", met_var_qcd_h1)
@@ -125,11 +130,28 @@ def hcand_features(
     
     events = set_ak_column_i32(events, "n_jet", ak.num(events.Jet.pt, axis=1))
 
+    # pt_ll
+    trasnverse_momentum = lambda obj1, obj2 : np.sqrt(obj1.pt**2 + obj2.pt**2 + 2 * obj1.pt * obj2.pt * np.cos(obj1.delta_phi(obj2)))
+
+    pt_vis = trasnverse_momentum(hcand1, hcand2)
+    events = set_ak_column_f32(events, "pt_vis", pt_vis)
+    pt_tt  = trasnverse_momentum(vis_p4, met)
+    events = set_ak_column_f32(events, "pt_tt", pt_tt)
+
+    mt_1 = transverse_mass(hcand1, met)
+    mt_2 = transverse_mass(hcand2, met)
+    mt_lep = transverse_mass(hcand1, hcand2)
+    mt_tot = np.sqrt(mt_1**2 + mt_2**2 + mt_lep**2)
+    events = set_ak_column_f32(events, "mt_1", mt_1)
+    events = set_ak_column_f32(events, "mt_2", mt_2)
+    events = set_ak_column_f32(events, "mt_lep", mt_lep)
+    events = set_ak_column_f32(events, "mt_tot", mt_tot)
+        
     # ################## #
     #     Run FastMTT    #
     # ################## #
-    #logger.warning(" >>>--- FastMTT-Wiktors --->>> [Not as fast as you think]")
-    #events = self[apply_fastMTT](events, **kwargs)
+    logger.info(" >>>--- FastMTT-Wiktors --->>> [Not as fast as you think]")
+    events = self[apply_fastMTT](events, **kwargs)
     
     # ########################### #
     # -------- For PhiCP -------- #
@@ -181,8 +203,9 @@ def hcand_features(
         category_ids,
         build_abcd_masks,
         "channel_id",
-        #ff_weight,
+        ff_weight,
         "process_id",
+        classify_events,
     },
     produces={
         make_column_valid,
@@ -215,8 +238,9 @@ def hcand_features(
         #"trigger_ids",
         category_ids,
         build_abcd_masks,
-        #ff_weight,
+        ff_weight,
         "process_id",
+        classify_events,        
     },
 )
 def main(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
@@ -230,13 +254,15 @@ def main(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
         events = self[met_recoil_corr](events, **kwargs)
 
     events = self[hcand_features](events, **kwargs)       
+
+    logger.info(" >>>--- Evaluate Classifier Models (IC) --->>> [In extra_weights.py and processes.py]")
+    events = self[classify_events](events, **kwargs)
     
     logger.warning("NO b-veto cut for tautau categories : Imperial")
     events = self[build_abcd_masks](events, **kwargs)
     # building category ids
     events, category_ids_debug_dict = self[category_ids](events, debug=False)
 
-    #from IPython import embed; embed()
     
     # debugging categories
     if self.config_inst.x.verbose.production.main:
@@ -314,13 +340,11 @@ def main(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
         if self.has_dep(top_pt_weight):
             events = self[top_pt_weight](events, **kwargs)
 
-    #events = self[ff_weight](events, **kwargs)        
+    events = self[ff_weight](events, **kwargs)        
 
     # features
     events = self[hcand_mass](events, **kwargs)
     # events = self[mT](events, **kwargs)
-
-    #from IPython import embed; embed()
     #events_cat = self[get_events_from_categories](events, ["tautau","real_1","hadD","has_1j","rho_1"], self.config_inst)
-        
+    
     return events

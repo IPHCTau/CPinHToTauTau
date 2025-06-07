@@ -38,6 +38,7 @@ set_ak_column_i64 = functools.partial(set_ak_column, value_type=np.int64)
         "Jet.pt", "bJet.pt",
         IF_RUN2("MET.pt", "MET.phi"),
         IF_RUN3("PuppiMET.pt", "PuppiMET.phi"),
+        "classifier_score",
     },
     produces={
         "is_os",
@@ -55,6 +56,16 @@ set_ak_column_i64 = functools.partial(set_ak_column, value_type=np.int64)
         "is_a1_3pr_1pi0_1", "is_a1_3pr_1pi0_2",
         "is_ipsig_0to1_1",
         "has_0jet","has_1jet","has_2jet",
+        # classifier based columns
+        "is_tautau_dy",
+        "is_tautau_fake",
+        "is_tautau_higgs",
+        # futher binning of higgs node
+        "is_tautau_higgs_bin_1",
+        "is_tautau_higgs_bin_2",
+        "is_tautau_higgs_bin_3",
+        "is_tautau_higgs_bin_4",
+        "is_tautau_higgs_bin_5",
     },
     exposed=False,
 )
@@ -239,8 +250,33 @@ def build_abcd_masks(
     events = set_ak_column(events, "has_0jet", has_0jet)
     events = set_ak_column(events, "has_1jet", has_1jet)
     events = set_ak_column(events, "has_2jet", has_2jet)
+
+    max_idx = ak.fill_none(ak.argmax(events.classifier_score, axis=1), -1)
+
+    is_tautau_dy    = max_idx == 0
+    is_tautau_higgs = max_idx == 1
+    is_tautau_fake  = max_idx == 2
     
+    events = set_ak_column(events, "is_tautau_dy",    is_tautau_dy)
+    events = set_ak_column(events, "is_tautau_fake",  is_tautau_fake)    
+    events = set_ak_column(events, "is_tautau_higgs", is_tautau_higgs)
+
+    # further categories with Higgs BDT score
+    tautau_higgs_score = ak.fill_none(ak.firsts(events.classifier_score[:,1:2], axis=1), -99.9)
     
-    
+    is_tautau_higgs_bin_1 = (tautau_higgs_score >= 0.0)  & (tautau_higgs_score < 0.55)
+    is_tautau_higgs_bin_2 = (tautau_higgs_score >= 0.55) & (tautau_higgs_score < 0.65)
+    is_tautau_higgs_bin_3 = (tautau_higgs_score >= 0.65) & (tautau_higgs_score < 0.80)
+    is_tautau_higgs_bin_4 = (tautau_higgs_score >= 0.80) & (tautau_higgs_score < 0.90)
+    is_tautau_higgs_bin_5 = (tautau_higgs_score >= 0.90) & (tautau_higgs_score <= 1.0)
+
+    events = set_ak_column(events, "is_tautau_higgs_bin_1", is_tautau_higgs_bin_1)
+    events = set_ak_column(events, "is_tautau_higgs_bin_2", is_tautau_higgs_bin_2)
+    events = set_ak_column(events, "is_tautau_higgs_bin_3", is_tautau_higgs_bin_3)
+    events = set_ak_column(events, "is_tautau_higgs_bin_4", is_tautau_higgs_bin_4)
+    events = set_ak_column(events, "is_tautau_higgs_bin_5", is_tautau_higgs_bin_5)
+
+    #from IPython import embed; embed()
+
     return events
 
