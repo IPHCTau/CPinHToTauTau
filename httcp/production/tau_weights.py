@@ -567,7 +567,8 @@ def tauspinner_weights(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     for (wt_name, branch) in weight_map:
         _name = ""
         if wt_name == "nom":
-            weight = (events.TauSpinner.weight_cp_0p5 + events.TauSpinner.weight_cp_0)/2.
+            #weight = (events.TauSpinner.weight_cp_0p5 + events.TauSpinner.weight_cp_0)/2.
+            weight = events.TauSpinner.weight_cp_0p25
         else:
             _name = f"_{wt_name}"
             weight = events.TauSpinner[branch]
@@ -578,7 +579,8 @@ def tauspinner_weights(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
         #    buf[np.isnan(buf)] = 0
         #    weight = buf
 
-        weight = ak.nan_to_num(weight, nan=0.0)
+        weight = ak.nan_to_num(weight, nan=0.0) # probably creating problems while producing datacards
+        #weight = ak.nan_to_num(weight, nan=0.001) # Setting very low value to get same rate in all spinner shgfts
         nan_wts = ak.sum((weight == 0.0))
         if nan_wts > 0:
             logger.critical(f"{nan_wts} events with NaN values of {wt_name} out of {len(events)} events, and those NaNs are replaced by 0.0")
