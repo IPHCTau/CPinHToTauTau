@@ -78,7 +78,6 @@ def add_config (ana: od.Analysis,
         processes=[procs.n.tt, procs.n.st],
     )
     
-    
     # --------------------------------------------------------------------------------------------- #
     # add processes we are interested in
     # --------------------------------------------------------------------------------------------- #
@@ -103,8 +102,9 @@ def add_config (ana: od.Analysis,
         #"multiboson",
         ## Signal
         "h_ggf_htt",
-        "zh_htt",
-        "wh_htt",
+        #"vh_htt",
+        #"wh_htt",
+        #"h_vbf_htt",
         ##QCD
         "qcd",
     ]
@@ -217,20 +217,14 @@ def add_config (ana: od.Analysis,
 
         ##Signal
         #"h_ggf_tautau_uncorrelated_filter",
-        "h_ggf_tautau_uncorrelatedDecay_CPodd_Filtered_ProdAndDecay",
-        #"h_ggf_tautau_uncorrelatedDecay_CPodd_UnFiltered_ProdAndDecay",
-        "h_ggf_tautau_uncorrelatedDecay_MM_Filtered_ProdAndDecay",
-        #"h_ggf_tautau_uncorrelatedDecay_MM_UnFiltered_ProdAndDecay",
+        #"h_ggf_tautau_uncorrelatedDecay_CPodd_Filtered_ProdAndDecay",
+        #"h_ggf_tautau_uncorrelatedDecay_MM_Filtered_ProdAndDecay",
         "h_ggf_tautau_uncorrelatedDecay_SM_Filtered_ProdAndDecay",
-        #"h_ggf_tautau_uncorrelatedDecay_SM_UnFiltered_ProdAndDecay",
-        #"h_ggf_tautau_M125_amcatnloFXFX",
-        #"h_ggf_tautau_prod_cp_even_sm",
         #"zh_tautau_uncorrelatedDecay_Filtered",
-        #"zh_tautau_uncorrelatedDecay_UnFiltered",
         #"wph_tautau_uncorrelatedDecay_Filtered",
-        #"wph_tautau_uncorrelatedDecay_UnFiltered",
         #"wmh_tautau_uncorrelatedDecay_Filtered",
-        #"wmh_tautau_uncorrelatedDecay_UnFiltered",
+        #"h_vbf_tautau_uncorrelatedDecay_Filtered",
+        "qcd",
     ]
     
     datasets_data = []
@@ -284,6 +278,8 @@ def add_config (ana: od.Analysis,
             dataset.add_tag("is_w")
         elif re.match(r"^h_ggf_tautau.*$", dataset.name):
             dataset.add_tag("is_ggf_signal")
+        elif re.match(r"^h_vbf_tautau.*$", dataset.name):
+            dataset.add_tag("is_vbf_signal")
         elif re.match(r"^(.*)h_tautau(.*)Filtered$", dataset.name):
             dataset.add_tag("is_vh_signal")
         elif dataset.name.startswith("tt_"):
@@ -309,7 +305,7 @@ def add_config (ana: od.Analysis,
     cfg.x.default_selector        = "main"
     cfg.x.default_producer        = "main"
     cfg.x.default_ml_model        = None
-    cfg.x.default_inference_model = "example"
+    cfg.x.default_inference_model = "main"
     cfg.x.default_categories      = ("incl",)
     #cfg.x.default_variables = ("n_jet", "jet1_pt")
     cfg.x.default_variables       = ("event","channel_id")
@@ -371,10 +367,6 @@ def add_config (ana: od.Analysis,
     # whether to validate the number of obtained LFNs in GetDatasetLFNs
     # (currently set to false because the number of files per dataset is truncated to 2)
     cfg.x.validate_dataset_lfns = False
-
-    # fastMTT helper
-    cfg.x.enable_fastMTT = True
-    cfg.x.enable_fastMTT_for_phiCP = True # PV only + should be False automatically if not cfg.x.enable_fastMTT
 
     
     # define inclusive datasets for the stitched process identification with corresponding leaf processes
@@ -582,7 +574,9 @@ def add_config (ana: od.Analysis,
         # https://indico.cern.ch/event/1360909/contributions/6000616/attachments/2875911/5036473/HLepRare_24.06.12.pdf
         # https://indico.cern.ch/event/489921/contributions/2000259/attachments/1248156/1839106/Recoil_20160323.pdf
         # /afs/cern.ch/user/d/dmroy/public/DY_pTll_recoil_corrections.json.gz
-        "zpt_rewt_v2_sf"    : (f"{external_path_parent}/Run3/Zpt/DY_pTll_recoil_corrections.json.gz",                  "v1"), # Zpt Rewt
+        #"zpt_rewt_v2_sf"    : (f"{external_path_parent}/Run3/Zpt/DY_pTll_recoil_corrections.json.gz",                  "v1"), # Zpt Rewt
+        "zpt_rewt_v2_sf"    : (f"{external_path_parent}/Run3/Zpt/DY_pTll_weights_v3.json.gz",                           "v1"), # Zpt Rewt        
+        #"tautau_ff"         : (f"{external_path}/Fake_tautau/fake_factor_{year}_{postfix}.json",                       "v1"),
         #"tautau_ff"         : (f"{external_path}/Fake_tautau/fake_factor_{year}_{postfix}.json",                       "v1"),
         #"tautau_ff"         : (f"{external_path_parent}/FF_TauTau_combined/fake_factor_20222023.json",                 "v1"),
         "tautau_ff"         : (f"{external_path_parent}/Run3/fake_factor_2023_HPS_DM_0_to_10.json",                    "v1"),
@@ -1117,7 +1111,7 @@ def add_config (ana: od.Analysis,
     get_shifts = functools.partial(get_shifts_from_sources, cfg)
     cfg.x.event_weights = DotDict({
         "normalization_weight"                  : [],
-        "pu_weight"                             : [], #get_shifts("minbias_xs"),
+        "pu_weight"                             : get_shifts("minbias_xs"),
         "electron_idiso_weight"                 : [], #get_shifts("e"),
         "electron_Ele30_WPTight_trigger_weight" : [], #get_shifts("e_xtrig"),
         "electron_xtrig_weight"                 : [], #get_shifts("e_xtrig"),
@@ -1125,7 +1119,7 @@ def add_config (ana: od.Analysis,
         "muon_iso_weight"                       : [], #get_shifts("mu_iso"),
         "muon_IsoMu24_trigger_weight"           : [], #get_shifts("mu_trig"),
         "muon_xtrig_weight"                     : [], #get_shifts("mu_xtrig"),
-        "tau_weight"                            : [], #get_shifts("tau"),
+        "tau_weight"                            : get_shifts("tau"),
         "tau_trigger_weight"                    : [], #get_shifts("tau_trig"),
         "ff_weight"                             : [],
         #"ff_ext_corr_weight"                    : [],
@@ -1442,8 +1436,11 @@ def add_config (ana: od.Analysis,
             "tauspinner_weight_cpodd",     # 0.5
             "tauspinner_weight_cpodd_alt", # 0.5
             "hcand.*", "hcandprod.*", "TauProd.*",
+            "hcand_invm_fastMTT",
             "GenTau.*", "GenTauProd.*",
             "process_id", "category_ids",
+            "PhiCP*",
+            
         },
     })
 
@@ -1455,7 +1452,9 @@ def add_config (ana: od.Analysis,
     from httcp.config.hist_hooks import add_hist_hooks
     add_hist_hooks(cfg)
 
-
+    # fastMTT helper
+    cfg.x.enable_fastMTT = True
+    cfg.x.enable_fastMTT_for_phiCP = False # PV only + should be False automatically if not cfg.x.enable_fastMTT
     
     #---------------------------------------------------------------------------------------------#
     # Helper switch for debugging

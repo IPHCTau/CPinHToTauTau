@@ -131,21 +131,21 @@ def add_DM_categories(config: od.Config) -> None:
     add_category(config, name="a1dm10_1",      id=7,  selection="cat_a1dm10_1",        label=r"$\tau_{h}^{1}\to a_{1}(3\pi-0\pi^{0})$",       tags={"tau1a1DM10"     })  # h1 -> a1
     add_category(config, name="a1dm11_1",      id=9,  selection="cat_a1dm11_1",        label=r"$\tau_{h}^{1}\to a_{1}(3\pi-1\pi^{0})$",       tags={"tau1a1DM11"     })  # h1 -> a1
     #add_category(config, name="pi_rho_1",      id=11, selection="cat_pi_rho_1",        label=r"$\pi/\rho$",                            tags={"tau1piorrho"    })  # h1 -> a1
-    add_category(config, name="pi_pi",         id=11, selection="cat_pi_pi",           label=r"$\tau_{h}\to\pi-\tau_{h}\to\pi$",                             tags={"pi","pi"        })  # 
-    add_category(config, name="pi_rho",        id=13, selection="cat_pi_rho",          label=r"$\tau_{h}\to\pi-\tau_{h}\to\rho$",                            tags={"pi","rho"       })  # 
-    add_category(config, name="pi_a1dm2",      id=15, selection="cat_pi_a1dm2",        label=r"$\tau_{h}\to\pi-\tau_{h}\to a_{1}(1\pi-2\pi^{0})$",           tags={"pi","a1DM2"     })  # 
-    add_category(config, name="pi_a1dm10",     id=17, selection="cat_pi_a1dm10",       label=r"$\tau_{h}\to\pi-\tau_{h}\to a_{1}(3\pi-0\pi^{0})$",           tags={"pi","a1DM10"    })  # 
-    add_category(config, name="pi_a1dm11",     id=19, selection="cat_pi_a1dm11",       label=r"$\tau_{h}\to\pi-\tau_{h}\to a_{1}(3\pi-1\pi^{0})$",           tags={"pi","a1DM11"    })  # 
-    add_category(config, name="rho_rho",       id=21, selection="cat_rho_rho",         label=r"$\tau_{h}\to\rho-\tau_{h}\to\rho$",                           tags={"rho","rho"      })  # 
-    add_category(config, name="rho_a1dm2",     id=23, selection="cat_rho_a1dm2",       label=r"$\tau_{h}\to\rho-\tau_{h}\to a_{1}(1\pi-2\pi^{0})$",          tags={"rho","a1DM2"    })  # 
-    add_category(config, name="rho_a1dm10",    id=25, selection="cat_rho_a1dm10",      label=r"$\tau_{h}\to\rho-\tau_{h}\to a_{1}(3\pi-0\pi^{0})$",          tags={"rho","a1DM10"   })  # 
-    add_category(config, name="rho_a1dm11",    id=27, selection="cat_rho_a1dm11",      label=r"$\tau_{h}\to\rho-\tau_{h}\to a_{1}(3\pi-1\pi^{0})$",          tags={"rho","a1DM11"   })  # 
-    add_category(config, name="a1dm2_a1dm2",   id=29, selection="cat_a1dm2_a1dm2",     label=r"$\tau_{h}\to a_{1}(1\pi-2\pi^{0})-\tau_{h}\to a_{1}(1\pi-2\pi^{0})$",   tags={"a1DM2","a1DM2"  })  # 
-    add_category(config, name="a1dm2_a1dm10",  id=31, selection="cat_a1dm2_a1dm10",    label=r"$\tau_{h}\to a_{1}(1\pi-2\pi^{0})-\tau_{h}\to a_{1}(3\pi-0\pi^{0})$",   tags={"a1DM2","a1DM10" })  # 
-    add_category(config, name="a1dm2_a1dm11",  id=33, selection="cat_a1dm2_a1dm11",    label=r"$\tau_{h}\to a_{1}(1\pi-2\pi^{0})-\tau_{h}\to a_{1}(3\pi-1\pi^{0})$",   tags={"a1DM2","a1DM11" })  # 
-    add_category(config, name="a1dm10_a1dm10", id=35, selection="cat_a1dm10_a1dm10",   label=r"$\tau_{h}\to a_{1}(3\pi-0\pi^{0})-\tau_{h}\to a_{1}(3\pi-0\pi^{0})$",   tags={"a1DM10","a1DM10"})  # 
-    add_category(config, name="a1dm10_a1dm11", id=37, selection="cat_a1dm10_a1dm11",   label=r"$\tau_{h}\to a_{1}(3\pi-0\pi^{0})-\tau_{h}\to a_{1}(3\pi-1\pi^{0})$",   tags={"a1DM10","a1DM11"})  # 
-    add_category(config, name="a1dm11_a1dm11", id=39, selection="cat_a1dm11_a1dm11",   label=r"$\tau_{h}\to a_{1}(3\pi-1\pi^{0})-\tau_{h}\to a_{1}(3\pi-1\pi^{0})$",   tags={"a1DM11","a1DM11"})  # 
+    add_category(config, name="pi_pi",         id=11, selection="cat_pi_pi",           label=r"$\tau_{h}\to\pi-\tau_{h}\to\pi$",                                       tags={"pi_pi"        })  # 
+    add_category(config, name="pi_rho",        id=13, selection="cat_pi_rho",          label=r"$\tau_{h}\to\pi-\tau_{h}\to\rho$",                                      tags={"pi_rho"       })  # 
+    add_category(config, name="pi_a1dm2",      id=15, selection="cat_pi_a1dm2",        label=r"$\tau_{h}\to\pi-\tau_{h}\to a_{1}(1\pi-2\pi^{0})$",                     tags={"pi_a1DM2"     })  # 
+    add_category(config, name="pi_a1dm10",     id=17, selection="cat_pi_a1dm10",       label=r"$\tau_{h}\to\pi-\tau_{h}\to a_{1}(3\pi-0\pi^{0})$",                     tags={"pi_a1DM10"    })  # 
+    add_category(config, name="pi_a1dm11",     id=19, selection="cat_pi_a1dm11",       label=r"$\tau_{h}\to\pi-\tau_{h}\to a_{1}(3\pi-1\pi^{0})$",                     tags={"pi_a1DM11"    })  # 
+    add_category(config, name="rho_rho",       id=21, selection="cat_rho_rho",         label=r"$\tau_{h}\to\rho-\tau_{h}\to\rho$",                                     tags={"rho_rho"      })  # 
+    add_category(config, name="rho_a1dm2",     id=23, selection="cat_rho_a1dm2",       label=r"$\tau_{h}\to\rho-\tau_{h}\to a_{1}(1\pi-2\pi^{0})$",                    tags={"rho_a1DM2"    })  # 
+    add_category(config, name="rho_a1dm10",    id=25, selection="cat_rho_a1dm10",      label=r"$\tau_{h}\to\rho-\tau_{h}\to a_{1}(3\pi-0\pi^{0})$",                    tags={"rho_a1DM10"   })  # 
+    add_category(config, name="rho_a1dm11",    id=27, selection="cat_rho_a1dm11",      label=r"$\tau_{h}\to\rho-\tau_{h}\to a_{1}(3\pi-1\pi^{0})$",                    tags={"rho_a1DM11"   })  # 
+    add_category(config, name="a1dm2_a1dm2",   id=29, selection="cat_a1dm2_a1dm2",     label=r"$\tau_{h}\to a_{1}(1\pi-2\pi^{0})-\tau_{h}\to a_{1}(1\pi-2\pi^{0})$",   tags={"a1DM2_a1DM2"  })  # 
+    add_category(config, name="a1dm2_a1dm10",  id=31, selection="cat_a1dm2_a1dm10",    label=r"$\tau_{h}\to a_{1}(1\pi-2\pi^{0})-\tau_{h}\to a_{1}(3\pi-0\pi^{0})$",   tags={"a1DM2_a1DM10" })  # 
+    add_category(config, name="a1dm2_a1dm11",  id=33, selection="cat_a1dm2_a1dm11",    label=r"$\tau_{h}\to a_{1}(1\pi-2\pi^{0})-\tau_{h}\to a_{1}(3\pi-1\pi^{0})$",   tags={"a1DM2_a1DM11" })  # 
+    add_category(config, name="a1dm10_a1dm10", id=35, selection="cat_a1dm10_a1dm10",   label=r"$\tau_{h}\to a_{1}(3\pi-0\pi^{0})-\tau_{h}\to a_{1}(3\pi-0\pi^{0})$",   tags={"a1DM10_a1DM10"})  # 
+    add_category(config, name="a1dm10_a1dm11", id=37, selection="cat_a1dm10_a1dm11",   label=r"$\tau_{h}\to a_{1}(3\pi-0\pi^{0})-\tau_{h}\to a_{1}(3\pi-1\pi^{0})$",   tags={"a1DM10_a1DM11"})  # 
+    add_category(config, name="a1dm11_a1dm11", id=39, selection="cat_a1dm11_a1dm11",   label=r"$\tau_{h}\to a_{1}(3\pi-1\pi^{0})-\tau_{h}\to a_{1}(3\pi-1\pi^{0})$",   tags={"a1DM11_a1DM11"})  # 
     # leptonic
     add_category(config, name="pi_2",          id=2,  selection="cat_pi_2",            label=r"$\tau_{h}\to\pi$",                                    tags={"tau2pi"    }) # h2 -> pi
     add_category(config, name="rho_2",         id=4,  selection="cat_rho_2",           label=r"$\tau_{h}\to\rho$",                                   tags={"tau2rho"   }) # h2 -> rho
@@ -280,23 +280,37 @@ def add_tautau_real_categories(config: od.Config) -> None:
 @call_once_on_config()
 def add_tautau_phiCP_categories(config: od.Config) -> None:
     categories = {
-        "channel": [config.get_category("tautau")],
-        "abcd"   : [config.get_category("hadD")],
+        "channel": [
+            config.get_category("tautau"),
+        ],
+        "RorF"   : [
+            config.get_category("real_1"),
+        ],
+        "abcd"   : [
+            config.get_category("hadC"),
+            config.get_category("hadD"),
+        ],
+        "xgb"    : [
+            config.get_category("nodeDY_tautau"),
+            config.get_category("nodeFake_tautau"),
+            config.get_category("nodeHiggs_tautau"),
+        ],
         "cp"     : [
             config.get_category("pi_pi"),
             config.get_category("pi_rho"),
             config.get_category("pi_a1dm2"),
             config.get_category("pi_a1dm10"),
-            config.get_category("pi_a1dm11"),
+            #config.get_category("pi_a1dm11"),
             config.get_category("rho_rho"),
             config.get_category("rho_a1dm2"),
             config.get_category("rho_a1dm10"),
-            config.get_category("rho_a1dm11"),
+            #config.get_category("rho_a1dm11"),
+            config.get_category("a1dm2_a1dm2"),            
             config.get_category("a1dm2_a1dm10"),
-            config.get_category("a1dm2_a1dm11"),
+            #config.get_category("a1dm2_a1dm11"),
             config.get_category("a1dm10_a1dm10"),
-            config.get_category("a1dm10_a1dm11"),
-            config.get_category("a1dm11_a1dm11"),
+            #config.get_category("a1dm10_a1dm11"),
+            #config.get_category("a1dm11_a1dm11"),
         ],
     }
     
@@ -348,7 +362,7 @@ def add_categories(config: od.Config) -> None:
     """
     add_common_categories(config)
     
-    add_njet_categories(config)
+    #add_njet_categories(config)
     add_RealOrFake_categories(config)
     
     add_ABCD_categories(config)
@@ -356,10 +370,10 @@ def add_categories(config: od.Config) -> None:
 
     add_classifier_categories(config)
     
-    add_etau_mutau_categories(config)
-    #add_tautau_categories(config)
-    add_tautau_real_categories(config)
-    #add_tautau_phiCP_categories(config)
+    #add_etau_mutau_categories(config)
+    ##add_tautau_categories(config)
+    ##add_tautau_real_categories(config)
+    add_tautau_phiCP_categories(config)
     ###add_test_categories(config)
     
     #all_cats = [cat.name for cat, _, _ in config.walk_categories()]

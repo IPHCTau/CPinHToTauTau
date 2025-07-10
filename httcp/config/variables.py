@@ -215,7 +215,7 @@ def add_highlevel_features(cfg: od.Config) -> None:
         null_value=EMPTY_FLOAT,
         binning=(50, 0.0, 1.0),
         unit="",
-        x_title="BDT Score (DYTau node)",
+        x_title="BDT Score (DYTau prob)",
     )
     cfg.add_variable(
         name="bdt_score_higgs",
@@ -223,7 +223,7 @@ def add_highlevel_features(cfg: od.Config) -> None:
         null_value=EMPTY_FLOAT,
         binning=(50, 0.0, 1.0),
         unit="",
-        x_title="BDT Score (Higgs node)",
+        x_title="BDT Score (Higgs prob)",
     )
     cfg.add_variable(
         name="bdt_score_fake",
@@ -231,10 +231,8 @@ def add_highlevel_features(cfg: od.Config) -> None:
         null_value=EMPTY_FLOAT,
         binning=(50, 0.0, 1.0),
         unit="",
-        x_title="BDT Score (Fake node)",
+        x_title="BDT Score (Fake prob)",
     )
-
-    
     
 
 def add_weight_features(cfg: od.Config) -> None:
