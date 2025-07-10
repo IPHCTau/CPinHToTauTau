@@ -12,7 +12,7 @@ FULL: &full_
     config    : run3_2022_postEE_nano_cp_tau_v14
     workflow  : local
     branch    : -1
-    version   : Run3_2022PostEE_full_20250212_005903
+    version   : Run3_2022PostEE_full_20250523_v1
 
     datasets  : &datasets_
       # == data ==
@@ -62,34 +62,43 @@ FULL: &full_
       - wzz
       - zzz    
       # == signal ==
-      #- h_ggf_tautau_uncorrelatedDecay_CPodd_Filtered_ProdAndDecay
-      #- h_ggf_tautau_uncorrelatedDecay_MM_Filtered_ProdAndDecay
-      #- h_ggf_tautau_uncorrelatedDecay_SM_Filtered_ProdAndDecay
-      #- zh_tautau_uncorrelatedDecay_Filtered
-      #- wph_tautau_uncorrelatedDecay_Filtered
-      #- wmh_tautau_uncorrelatedDecay_Filtered
+      - h_ggf_tautau_uncorrelatedDecay_CPodd_Filtered_ProdAndDecay
+      - h_ggf_tautau_uncorrelatedDecay_MM_Filtered_ProdAndDecay
+      - h_ggf_tautau_uncorrelatedDecay_SM_Filtered_ProdAndDecay
+      - zh_tautau_uncorrelatedDecay_Filtered
+      - wph_tautau_uncorrelatedDecay_Filtered
+      - wmh_tautau_uncorrelatedDecay_Filtered
+      - h_vbf_tautau_uncorrelatedDecay_Filtered
 
     processes :
       - data
+      #- w
       - w_lnu
-      - dy
+      #- dy_m10to50
       #- dy_m50toinf_lep
       #- dy_m50toinf_tau
       #- dy_m50toinf_jet
-      - tt
-      - st
-      #- top
-      - vv
-      - vvv
-      #- multiboson
-      #- h_ggf_htt
-      #- zh_htt
-      #- wh_htt
+      - dy
+      #- tt
+      - top
+      ##- st_tchannel
+      ##- st_twchannel
+      #- st
+      #- vv
+      #- vvv
+      - multiboson
+      - h_ggf_htt
+      - zh_htt
+      - wh_htt
 
     categories:
-      #- etau__*
-      #- mutau__*
-      - tautau__real_1__hadA
+      #- etau__real_2__*
+      #- mutau__real_2__*
+      #- tautau__real_1__hadA
+      - tautau__real_1__hadD
+      - tautau__real_1__hadD__nodeDY_tautau
+      - tautau__real_1__hadD__nodeFake_tautau
+      - tautau__real_1__hadD__nodeHiggs_tautau
 
     variables:
       ## -- electron -- #

@@ -5,7 +5,7 @@ FULL: &full_
   era     : 2023
   postfix : PreBPix
   wrapper : true
-  workers : 10
+  workers : 5
   tasks_per_job  : 2
 
   args: &args_
@@ -80,12 +80,13 @@ FULL: &full_
       - zzz
       ## == signal ==
       #- h_ggf_tautau_uncorrelated_filter
-      ##- h_ggf_tautau_uncorrelatedDecay_CPodd_Filtered_ProdAndDecay
-      ##- h_ggf_tautau_uncorrelatedDecay_MM_Filtered_ProdAndDecay
-      ##- h_ggf_tautau_uncorrelatedDecay_SM_Filtered_ProdAndDecay
-      ##- zh_tautau_uncorrelatedDecay_Filtered
-      ##- wph_tautau_uncorrelatedDecay_Filtered
-      ##- wmh_tautau_uncorrelatedDecay_Filtered
+      - h_ggf_tautau_uncorrelatedDecay_CPodd_Filtered_ProdAndDecay
+      - h_ggf_tautau_uncorrelatedDecay_MM_Filtered_ProdAndDecay
+      - h_ggf_tautau_uncorrelatedDecay_SM_Filtered_ProdAndDecay
+      #- zh_tautau_uncorrelatedDecay_Filtered
+      #- wph_tautau_uncorrelatedDecay_Filtered
+      #- wmh_tautau_uncorrelatedDecay_Filtered
+      #- h_vbf_tautau_uncorrelatedDecay_Filtered
 
     processes : &processes_
       - data
@@ -96,17 +97,17 @@ FULL: &full_
       #- dy_m50toinf_tau
       #- dy_m50toinf_jet
       - dy
-      - tt
-      #- top
+      #- tt
+      - top
       ##- st_tchannel
       ##- st_twchannel
-      - st
-      - vv
-      - vvv
-      #- multiboson
-      #- h_ggf_htt
-      #- zh_htt
-      #- wh_htt
+      #- st
+      #- vv
+      #- vvv
+      - multiboson
+      - h_ggf_htt
+      - zh_htt
+      - wh_htt
 
     categories: &categories_
       #- etau__real_2__*

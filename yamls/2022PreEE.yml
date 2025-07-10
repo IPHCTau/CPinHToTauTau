@@ -5,7 +5,7 @@ FULL: &full_
   era     : 2022
   postfix : PreEE
   wrapper : true
-  workers : 8
+  workers : 10
   tasks_per_job  : 2
 
   args: &args_
@@ -13,17 +13,17 @@ FULL: &full_
     workflow  : htcondor
     branch    : -1
     # if dummy, version will be set automatically 
-    version   : Run3_2022PreEE_full_signals #Run3_2022PreEE_full_20250212_005903 #dummy
+    version   : Run3_2022PreEE_full_20250523_v1
 
     datasets  : &datasets_
       ## == data ==
       - data_tau_C
       - data_tau_D
-      - data_mu_C
-      - data_mu_D
-      - data_single_mu_C
-      - data_e_C
-      - data_e_D
+      #- data_mu_C
+      #- data_mu_D
+      #- data_single_mu_C
+      #- data_e_C
+      #- data_e_D
       ## == wj ==
       #- wj_incl_amcatnlo
       #- wj_0j_amcatnlo
@@ -82,12 +82,13 @@ FULL: &full_
       - zzz
       ## == signal ==
       - h_ggf_tautau_uncorrelated_filter
-      #- h_ggf_tautau_uncorrelatedDecay_CPodd_Filtered_ProdAndDecay
-      #- h_ggf_tautau_uncorrelatedDecay_MM_Filtered_ProdAndDecay
-      #- h_ggf_tautau_uncorrelatedDecay_SM_Filtered_ProdAndDecay
-      #- zh_tautau_uncorrelatedDecay_Filtered
-      #- wph_tautau_uncorrelatedDecay_Filtered
-      #- wmh_tautau_uncorrelatedDecay_Filtered
+      - h_ggf_tautau_uncorrelatedDecay_CPodd_Filtered_ProdAndDecay
+      - h_ggf_tautau_uncorrelatedDecay_MM_Filtered_ProdAndDecay
+      - h_ggf_tautau_uncorrelatedDecay_SM_Filtered_ProdAndDecay
+      - zh_tautau_uncorrelatedDecay_Filtered
+      - wph_tautau_uncorrelatedDecay_Filtered
+      - wmh_tautau_uncorrelatedDecay_Filtered
+      - h_vbf_tautau_uncorrelatedDecay_Filtered
 
     processes : &processes_
       - data
@@ -98,22 +99,26 @@ FULL: &full_
       #- dy_m50toinf_tau
       #- dy_m50toinf_jet
       - dy
-      - tt
-      #- top
+      #- tt
+      - top
       ##- st_tchannel
       ##- st_twchannel
-      - st
-      - vv
-      - vvv
-      #- multiboson
-      #- h_ggf_htt
-      #- zh_htt
-      #- wh_htt
+      #- st
+      #- vv
+      #- vvv
+      - multiboson
+      - h_ggf_htt
+      - zh_htt
+      - wh_htt
 
     categories: &categories_
-      - etau__real_2__lepD
-      - mutau__real_2__lepD
-      #- tautau__real_1__lepA
+      #- etau__real_2__*
+      #- mutau__real_2__*
+      #- tautau__real_1__hadA
+      - tautau__real_1__hadD
+      - tautau__real_1__hadD__nodeDY_tautau
+      - tautau__real_1__hadD__nodeFake_tautau
+      - tautau__real_1__hadD__nodeHiggs_tautau
 
     variables: &variables_
       ## -- electron -- #

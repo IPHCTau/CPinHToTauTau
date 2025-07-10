@@ -5,7 +5,7 @@ FULL: &full_
   era     : 2023
   postfix : PostBPix
   wrapper : true
-  workers : 7
+  workers : 10
   tasks_per_job  : 2
 
   args: &args_
@@ -13,15 +13,15 @@ FULL: &full_
     workflow  : local
     branch    : -1
     # if dummy, version will be set automatically 
-    version   : Run3_2023PostBPix_full_20250523_v1
+    version   : Run3_2023PostBPix_full_20250625
 
     datasets  : &datasets_
       ## == data ==
       - data_tau_D
-      #- data_mu0_D
-      #- data_mu1_D
-      #- data_e0_D
-      #- data_e1_D
+      ##- data_mu0_D
+      ##- data_mu1_D
+      ##- data_e0_D
+      ##- data_e1_D
       ## == wj ==
       ##- wj_incl_amcatnlo
       ##- wj_0j_amcatnlo
@@ -80,23 +80,24 @@ FULL: &full_
       - zzz
       ## == signal ==
       #- h_ggf_tautau_uncorrelated_filter
-      ##- h_ggf_tautau_uncorrelatedDecay_CPodd_Filtered_ProdAndDecay
-      ##- h_ggf_tautau_uncorrelatedDecay_MM_Filtered_ProdAndDecay
-      ##- h_ggf_tautau_uncorrelatedDecay_SM_Filtered_ProdAndDecay
-      ##- zh_tautau_uncorrelatedDecay_Filtered
-      ##- wph_tautau_uncorrelatedDecay_Filtered
-      ##- wmh_tautau_uncorrelatedDecay_Filtered
+      - h_ggf_tautau_uncorrelatedDecay_CPodd_Filtered_ProdAndDecay
+      - h_ggf_tautau_uncorrelatedDecay_MM_Filtered_ProdAndDecay
+      - h_ggf_tautau_uncorrelatedDecay_SM_Filtered_ProdAndDecay
+      - zh_tautau_uncorrelatedDecay_Filtered
+      - wph_tautau_uncorrelatedDecay_Filtered
+      - wmh_tautau_uncorrelatedDecay_Filtered
+      - h_vbf_tautau_uncorrelatedDecay_Filtered
 
     processes : &processes_
       - data
-      #- w
+      ##- w
       - w_lnu
-      #- dy_m10to50
-      #- dy_m50toinf_lep
-      #- dy_m50toinf_tau
-      #- dy_m50toinf_jet
+      ##- dy_m10to50
+      ##- dy_m50toinf_lep
+      ##- dy_m50toinf_tau
+      ##- dy_m50toinf_jet
       - dy
-      #- tt
+      ##- tt
       - top
       ##- st_tchannel
       ##- st_twchannel
@@ -104,18 +105,22 @@ FULL: &full_
       #- vv
       #- vvv
       - multiboson
-      #- h_ggf_htt
-      #- zh_htt
-      #- wh_htt
+      - h_ggf_htt
+      - vh_htt
+      - h_vbf_htt
 
     categories: &categories_
-      #- etau__real_2__*
-      #- mutau__real_2__*
-      #- tautau__real_1__*
-      - tautau__real_1__hadD
+      ##- etau__real_2__*
+      ##- mutau__real_2__*
+      ##- tautau__real_1__*
+      #- tautau__real_1__hadD
+      #- tautau__real_1__hadD__nodeDY_tautau
+      #- tautau__real_1__hadD__nodeFake_tautau
+      #- tautau__real_1__hadD__nodeHiggs_tautau
       - tautau__real_1__hadD__nodeDY_tautau
       - tautau__real_1__hadD__nodeFake_tautau
       - tautau__real_1__hadD__nodeHiggs_tautau
+      - tautau__real_1__hadD__nodeHiggs_tautau__*
 
     variables: &variables_
       ## -- electron -- #
@@ -162,8 +167,8 @@ FULL: &full_
       - hcand_invm
       - dphi_met_h1
       - dphi_met_h2
-      #- met_var_qcd_h1
-      #- met_var_qcd_h2
+      - met_var_qcd_h1
+      - met_var_qcd_h2
       ## -- jet -- #
       - n_jet
       - jet_1_pt
@@ -184,13 +189,13 @@ FULL: &full_
       - puppi_met_phi
       ## -- angular variables -- #
       #- Alpha
-      #- PhiCP_IPIP
+      - PhiCP_IPIP
       #- PhiCP_IPIP_alpha_lt_piby4
       #- PhiCP_IPIP_alpha_gt_piby4
-      #- PhiCP_DPDP
-      #- PhiCP_PVPV
-      #- PhiCP_IPPV
-      #- PhiCP_IPDP
+      - PhiCP_DPDP
+      - PhiCP_PVPV
+      - PhiCP_IPPV
+      - PhiCP_IPDP
       #- PhiCP_IPDP_alpha_lt_piby4
       #- PhiCP_IPDP_alpha_gt_piby4
       ## -- Y vs. pT -- ##
