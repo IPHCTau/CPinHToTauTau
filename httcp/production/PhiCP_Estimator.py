@@ -87,12 +87,12 @@ def PrepareVecsForPhiCP(
     Steps:
       Prepare input vectors for PhiCP calculation
     """
-    p4h1    = p4hcandinfodict["p4h1"]
-    p4h1pi  = p4hcandinfodict["p4h1pi"]
-    p4h1pi0 = p4hcandinfodict["p4h1pi0"]
-    p4h2    = p4hcandinfodict["p4h2"]
-    p4h2pi  = p4hcandinfodict["p4h2pi"]
-    p4h2pi0 = p4hcandinfodict["p4h2pi0"]
+    p4h1    = _to_cartesian(p4hcandinfodict["p4h1"])
+    p4h1pi  = _to_cartesian(p4hcandinfodict["p4h1pi"])
+    p4h1pi0 = _to_cartesian(p4hcandinfodict["p4h1pi0"])
+    p4h2    = _to_cartesian(p4hcandinfodict["p4h2"])
+    p4h2pi  = _to_cartesian(p4hcandinfodict["p4h2pi"])
+    p4h2pi0 = _to_cartesian(p4hcandinfodict["p4h2pi0"])
     
     _P1, _R1, _y1, _c1 = _prepareVecs(p4h1, p4h1pi, p4h1pi0, method_leg1, mode_leg1)
     _P2, _R2, _y2, _c2 = _prepareVecs(p4h2, p4h2pi, p4h2pi0, method_leg2, mode_leg2)
@@ -115,6 +115,37 @@ def PrepareVecsForPhiCP(
             "P2" : P2, "R2" : R2,
             "Y1" : y1, "Y2" : y2,
             "C1" : _c1, "C2": _c2}
+
+
+def _to_cartesian(p4):
+    pt = p4.pt
+    eta = p4.eta
+    phi = p4.phi
+    mass = p4.mass
+    charge = p4.charge if "charge" in p4.fields else ak.zeros_like(mass)
+    ipx = p4.IPx if "IPx" in p4.fields else ak.zeros_like(mass)
+    ipy = p4.IPy if "IPy" in p4.fields else ak.zeros_like(mass)
+    ipz = p4.IPz if "IPz" in p4.fields else ak.zeros_like(mass)
+
+    
+    px = pt * np.cos(phi)
+    py = pt * np.sin(phi)
+    pz = pt * np.sinh(eta)
+    E = np.sqrt(mass**2 + pt**2 * (np.cosh(eta)**2))
+
+    cartesian_p4 = ak.zip({
+        'x': ak.where(px == np.nan, -9999.0, px),
+        'y': ak.where(py == np.nan, -9999.0, py),
+        'z': ak.where(pz == np.nan, -9999.0, pz),
+        't': ak.where(E == np.nan, -9999.0, E),
+        'charge': charge,
+        'IPx': ipx,
+        'IPy': ipy,
+        'IPz': ipz,
+    }, with_name="LorentzVector", behavior=coffea.nanoevents.methods.vector.behavior)
+    
+    return cartesian_p4
+    
 
 
 def _boostVec_and_PV(
@@ -140,7 +171,8 @@ def _boostVec_and_PV(
         pi0 = p4_hcand_pi0.boost(boostv.negative())
         q   = pi.subtract(pi0)
         N   = P.subtract(pi.add(pi0))
-        pv  = (((2*(q.dot(N))*q.pvec).subtract(q.mass2*N.pvec)))
+        #pv  = (((2*(q.dot(N))*q.pvec).subtract(q.mass2*N.pvec)))
+        pv  = ( 2*  ( ( q.energy*N.energy ) - (q.dot(N)) )*q.pvec)  - (q.mass2*N.pvec)
         R = pv #.unit
     elif mode_leg == "a1":
         os_pi_HRF   = p4_hcand_pi[:, 0:1].boost(boostv.negative())
