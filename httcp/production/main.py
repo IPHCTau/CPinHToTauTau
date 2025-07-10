@@ -80,13 +80,15 @@ logger = law.logger.get_logger(__name__)
     produces={
         # new columns
         "hcand_invm",
-        "hcand_dr", "hcand_dphi",
+        "hcand_dr",
+        "hcand_dphi",
         "n_jet",
         IF_GENMATCH_ON_FOR_SIGNAL(ProduceGenPhiCP), ####ProduceGenCosPsi,
         ProduceDetPhiCP, ####ProduceDetCosPsi,
         "dphi_met_h1", "dphi_met_h2",
         "met_var_qcd_h1", "met_var_qcd_h2",
-        "hT", "pt_tt", "pt_vis",
+        "hT",
+        "pt_tt", "pt_vis",
         "mt_1", "mt_2", "mt_lep", "mt_tot",
         apply_fastMTT,
     },
@@ -151,7 +153,7 @@ def hcand_features(
     #     Run FastMTT    #
     # ################## #
     logger.info(" >>>--- FastMTT-Wiktors --->>> [Not as fast as you think]")
-    events = self[apply_fastMTT](events, **kwargs)
+    events = self[apply_fastMTT](events, run_fmtt=self.config_inst.x.enable_fastMTT, **kwargs)
     
     # ########################### #
     # -------- For PhiCP -------- #

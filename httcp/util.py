@@ -105,7 +105,9 @@ def IF_DATASET_IS_SIGNAL(
 ) -> Any | set[Any]:
     if getattr(func, "dataset_inst", None) is None:
         return self.get()
-    return None if not (func.dataset_inst.has_tag("is_ggf_signal") | func.dataset_inst.has_tag("is_vh_signal")) else self.get()
+    return None if not (func.dataset_inst.has_tag("is_ggf_signal")
+                        | func.dataset_inst.has_tag("is_vh_signal")
+                        | func.dataset_inst.has_tag("is_vbf_signal")) else self.get()
 
 @deferred_column
 def IF_ALLOW_STITCHING(
