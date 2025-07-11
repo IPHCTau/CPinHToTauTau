@@ -121,7 +121,8 @@ def higgscand(
 
 
 def select_tauprods(hcand_idx, tauprods):
-    hcand_idx_brdcst, tauprod_tauIdx = ak.broadcast_arrays(ak.firsts(hcand_idx,axis=1), tauprods.tauIdx)
+    #hcand_idx_brdcst, tauprod_tauIdx = ak.broadcast_arrays(ak.firsts(hcand_idx,axis=1), tauprods.tauIdx)
+    hcand_idx_brdcst, tauprod_tauIdx = ak.broadcast_arrays(ak.fill_none(ak.firsts(hcand_idx,axis=1),-1), tauprods.tauIdx)
     hcandprod_mask                   = tauprod_tauIdx == hcand_idx_brdcst
     hcandprods                       = tauprods[hcandprod_mask]
 

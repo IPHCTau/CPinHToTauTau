@@ -92,7 +92,7 @@ def main_init(self: WeightProducer) -> None:
                 shift_inst.has_tag("tauspinner_weight")
                 for shift_inst in self.config_inst.x.event_weights[weight_name] 
             )
-            if not (self.dataset_inst.has_tag("is_ggf_signal") or self.dataset_inst.has_tag("is_vh_signal")):
+            if not (self.dataset_inst.has_tag("is_ggf_signal") or self.dataset_inst.has_tag("is_vh_signal") or self.dataset_inst.has_tag("is_vbf_signal")):
                 if weight_name in ["tauspinner_weight"] or is_tauspinner_weight:
                     continue
 
