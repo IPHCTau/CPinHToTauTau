@@ -1,0 +1,9 @@
+{
+    "era": "2022_preEE",
+    "correction_type": "extrapolation_correction",
+    "variable": "met_var_qcd_h1",
+    "input_base_path": "script_FF/fake_factor_derivation/src/test",
+    "hist_name": "ratio",
+    "dm":[-1],
+    "n_jets": [-1]
+}

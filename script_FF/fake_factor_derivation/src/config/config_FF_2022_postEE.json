@@ -1,0 +1,10 @@
+{
+    "era": "2022_postEE",
+    "correction_type": "fake_factors",
+    "variable": "hcand_1_pt",
+    "input_base_path": "/eos/project/i/iphctau/public/gsaha/CPinHToTauTauOutput/cf_store/analysis_httcp/cf.PlotVariables1D/run3_2022_postEE_nano_cp_tau_v14/FF",
+    "hist_name": "ratio",
+    "dm":["tau1a1DM10", "tau1a1DM11", "tau1a1DM2", "tau1pi", "tau1rho"],
+    "n_jets": ["has0j", "has1j", "has2j"],
+    "luminosity": 26.671
+}

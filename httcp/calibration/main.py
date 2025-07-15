@@ -37,7 +37,7 @@ logger = law.logger.get_logger(__name__)
         "RawPuppiMET.*",
         "PuppiMET.*",
         jets,
-        electron_smearing_scaling,
+        electron_smearing_scaling, # comment for 2023
         tau_energy_scale,
     } | {optional("GenJet.*")} | {attach_coffea_behavior},
     produces={
@@ -45,9 +45,9 @@ logger = law.logger.get_logger(__name__)
         "Jet.pt_no_corr", "Jet.phi_no_corr", "Jet.eta_no_corr", "Jet.mass_no_corr",
         "Jet.isgenmatched",
         "PuppiMET.pt_no_corr", "PuppiMET.phi_no_corr",
-        "Electron.pt_no_ss",
+        "Electron.pt_no_ss", # comment for 2023
         jets,
-        electron_smearing_scaling,
+        electron_smearing_scaling, # comment for 2023
         tau_energy_scale,
     },
 )
@@ -93,7 +93,7 @@ def main(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array:
         events = self[tau_energy_scale](events, **kwargs)
 
     # electron scale and smearing correction
-    events = set_ak_column_f32(events, "Electron.pt_no_ss", events.Electron.pt)
-    events = self[electron_smearing_scaling](events, **kwargs)
+    events = set_ak_column_f32(events, "Electron.pt_no_ss", events.Electron.pt) # comment for 2023
+    events = self[electron_smearing_scaling](events, **kwargs) # comment for 2023
         
     return events
