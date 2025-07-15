@@ -244,6 +244,25 @@ def cat_mutau_fake_2(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.
     ch_mask = events["channel_id"] == ch.id
     return events, ch_mask & events.is_fake_2
 
+# ---------------------------------------------------------- #
+#                   CLASSIFIER [tau-tau]                     #
+# ---------------------------------------------------------- #
+
+# Tau or DY (Z to TauTau)
+@categorizer(uses={"is_tautau_dy"})
+def cat_tautau_node_dy(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
+    return events, events.is_tautau_dy
+
+# Fake
+@categorizer(uses={"is_tautau_fake"})
+def cat_tautau_node_fake(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
+    return events, events.is_tautau_fake
+
+# Higgs
+@categorizer(uses={"is_tautau_higgs"})
+def cat_tautau_node_higgs(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
+    return events, events.is_tautau_higgs
+
 
 # ---------------------------------------------------------- #
 #                          For ABCD                          #
@@ -383,6 +402,27 @@ def cat_os_iso2_bveto_lowmt(self: Categorizer, events: ak.Array, **kwargs) -> tu
 @categorizer(uses={"is_os", "is_iso_2", "is_b_veto", "is_low_mt"})
 def cat_os_noniso2_bveto_lowmt(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
     return events, events.is_os & ~events.is_iso_2 & events.is_b_veto & events.is_low_mt
+
+
+# DESY (Stepan)
+# SR
+@categorizer(uses={"is_os", "is_iso_1", "is_iso_2", "is_low_mt"})
+def cat_os_iso1_iso2_lowmt(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
+    return events, events.is_os & events.is_iso_1 & events.is_iso_2 & events.is_low_mt 
+# AR
+@categorizer(uses={"is_os", "is_iso_1", "is_iso_2", "is_low_mt"})
+def cat_ss_iso1_iso2_lowmt(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
+    return events, ~events.is_os & events.is_iso_1 & events.is_iso_2 & events.is_low_mt 
+# DR_Num
+@categorizer(uses={"is_os", "is_iso_1", "is_iso_2", "is_low_mt"})
+def cat_os_noniso1_iso2_lowmt(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
+    return events, events.is_os & ~events.is_iso_1 & events.is_iso_2 & events.is_low_mt 
+# DR_Den
+@categorizer(uses={"is_os", "is_iso_1", "is_iso_2", "is_low_mt"})
+def cat_ss_noniso1_iso2_lowmt(self: Categorizer, events: ak.Array, **kwargs) -> tuple[ak.Array, ak.Array]:
+    return events, ~events.is_os & ~events.is_iso_1 & events.is_iso_2 & events.is_low_mt
+
+
 
 
 

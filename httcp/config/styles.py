@@ -18,8 +18,8 @@ def stylize_processes(config: od.Config) -> None:
     # recommended cms colors
     cfg.x.colors = DotDict(
         col_h_ggf_htt="#690301",
-        col_zh_htt="#1b07f0",
-        col_wh_htt="#014d06",
+        col_vh_htt="#1b07f0",
+        col_h_vbf_htt="#014d06",
         col_tt="#998ec3",
         col_st="#5ab4ac",
         col_vv="#5a3a1a",
@@ -55,14 +55,14 @@ def stylize_processes(config: od.Config) -> None:
         p.color1 = cfg.x.colors.col_h_ggf_htt
         p.label = r"$H_{ggf} \rightarrow \tau\tau$"
 
-    if (p := config.get_process("zh_htt", default=None)):
-        p.color1 = cfg.x.colors.col_zh_htt
-        p.label = r"$(Z)H \rightarrow \tau\tau$"
+    if (p := config.get_process("h_vbf_htt", default=None)):
+        p.color1 = cfg.x.colors.col_h_vbf_htt
+        p.label = r"$H_{vbf} \rightarrow \tau\tau$"
+        
+    if (p := config.get_process("vh_htt", default=None)):
+        p.color1 = cfg.x.colors.col_vh_htt
+        p.label = r"$(V)H \rightarrow \tau\tau$"
 
-    if (p := config.get_process("wh_htt", default=None)):
-        p.color1 = cfg.x.colors.col_wh_htt
-        p.label = r"$(W)H \rightarrow \tau\tau$"
-                
     if (p := config.get_process("h", default=None)):
         p.color1 = cfg.x.colors.col_h
         p.label = r"$Higgs$"

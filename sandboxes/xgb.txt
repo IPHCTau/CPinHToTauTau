@@ -1,0 +1,6 @@
+# version 4
+
+-r ../modules/columnflow/sandboxes/columnar.txt
+
+scikit-learn==1.4.2
+xgboost==2.1.0

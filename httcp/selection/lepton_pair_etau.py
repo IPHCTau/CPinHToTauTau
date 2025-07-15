@@ -114,7 +114,6 @@ def match_trigobjs(
     cross_el_trigobj_matched_mask = (cross_el_trigobj_matched_mask_leg1 & cross_el_trigobj_matched_mask_leg2)
 
     
-    #from IPython import embed; embed()
 
     single_el_trigobj_matched_mask_evt_level = ak.fill_none(ak.firsts(ak.any(single_el_trigobj_matched_mask, axis=1), axis=1), False)
     cross_el_trigobj_matched_mask_evt_level = ak.fill_none(ak.firsts(ak.any(cross_el_trigobj_matched_mask, axis=1), axis=1), False) 
@@ -229,8 +228,9 @@ def etau_selection(
     vs_jet_wp       = self.config_inst.x.deep_tau_info[tau_tagger].vs_j["etau"]
 
     is_good_tau     = (
+        (taus.pt > 20.0)
         #(taus.idDeepTau2018v2p5VSjet   >= tau_tagger_wps.vs_j[vs_jet_wp])
-        (taus.idDeepTau2018v2p5VSe   >= tau_tagger_wps.vs_e[vs_e_wp])
+        & (taus.idDeepTau2018v2p5VSe   >= tau_tagger_wps.vs_e[vs_e_wp])
         & (taus.idDeepTau2018v2p5VSmu  >= tau_tagger_wps.vs_m[vs_mu_wp])
     )
 
@@ -256,6 +256,7 @@ def etau_selection(
     
     lep1, lep2         = ak.unzip(leps_pair)
 
+        
     preselection = {
         #"etau_is_os"         : (lep1.charge * lep2.charge) < 0,
         "etau_dr_0p5"        : (1*lep1).delta_r(1*lep2) > 0.5,
@@ -279,6 +280,8 @@ def etau_selection(
     # sort the pairs if many
     leps_pair = ak.where(npair > 1, sort_pairs(leps_pair), leps_pair)
 
+    #from IPython import embed; embed()
+    
     # match trigger objects for all pairs
     leps_pair, trigIds, trigTypes = match_trigobjs(leps_pair, trigger_results)
 

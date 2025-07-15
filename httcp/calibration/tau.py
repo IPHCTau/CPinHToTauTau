@@ -3,6 +3,7 @@
 """
 Exemplary calibration methods.
 """
+import law
 import time
 import functools
 import itertools
@@ -17,6 +18,8 @@ np = maybe_import("numpy")
 ak = maybe_import("awkward")
 
 set_ak_column_f32 = functools.partial(set_ak_column, value_type=np.float32)
+
+logger = law.logger.get_logger(__name__)
 
 @calibrator(
     uses={f"Tau.{var}" for var in [
@@ -47,7 +50,6 @@ def tau_energy_scale(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array:
     syst = "nom" # TODO define this systematics inside config file
     #Get working points of the DeepTau tagger
     deep_tau_tagger    = self.config_inst.x.deep_tau_tagger
-    #deep_tau = self.config_inst.x.deep_tau
    
     #Create get energy scale correction for each tau
     tes_nom = np.ones_like(pt, dtype=np.float32)
@@ -55,27 +57,39 @@ def tau_energy_scale(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array:
     # pt, eta, dm, genmatch, deep_tau_id, jet_wp, e_wp, syst
 
     arr_shape = ak.num(events.Tau.pt, axis=1)
-        
-    mask2prong = ((dm != 5) & (dm != 6))
-    tes_args = lambda events, mask, deep_tau_tagger, syst: (pt[mask],
-                                                            abseta[mask],
-                                                            dm[mask],
-                                                            match[mask],
-                                                            deep_tau_tagger,
-                                                            self.config_inst.x.deep_tau_info[deep_tau_tagger].vs_j["etau"],
-                                                            self.config_inst.x.deep_tau_info[deep_tau_tagger].vs_e["etau"],
-                                                            syst)
-    tes_nom[mask2prong] = self.tes_corrector.evaluate(*tes_args(events, mask2prong, deep_tau_tagger, syst))
-    tes_nom     = np.asarray(tes_nom)
-    tau_pt      = np.asarray(ak.flatten(events.Tau.pt))
-    tau_mass    = np.asarray(ak.flatten(events.Tau.mass))
     
-    events = set_ak_column_f32(events, "Tau.pt_no_tes", ak.unflatten(tau_pt, arr_shape))
-    events = set_ak_column_f32(events, "Tau.mass_no_tes", ak.unflatten(tau_mass, arr_shape))
+    mask2prong = ((dm != 5) & (dm != 6))
 
-    events = set_ak_column_f32(events, "Tau.pt_mutau", ak.unflatten(tau_pt * tes_nom, arr_shape))
-    events = set_ak_column_f32(events, "Tau.mass_mutau", ak.unflatten(tau_mass * tes_nom, arr_shape))
+    logger.critical("TES_Nom = 0 will be replaced by TES_Nom = 0.8 for safety == Bug in 2023PostBPix DM0 both WPs Tight for 20.0 < pT < 30.0 GeV")
 
+    tes_args = lambda events, mask, deep_tau_tagger, syst: (pt[mask],
+                                                            abseta[mask],
+                                                            dm[mask],
+                                                            match[mask],
+                                                            deep_tau_tagger,
+                                                            self.config_inst.x.deep_tau_info[deep_tau_tagger].vs_j["mutau"],
+                                                            self.config_inst.x.deep_tau_info[deep_tau_tagger].vs_e["mutau"],
+                                                            syst)
+    tes_nom[mask2prong] = self.tes_corrector.evaluate(*tes_args(events, mask2prong, deep_tau_tagger, syst))
+    tes_nom     = np.asarray(tes_nom)
+    #tau_pt      = np.asarray(ak.flatten(events.Tau.pt))
+    #tau_mass    = np.asarray(ak.flatten(events.Tau.mass))
+    mask_mutau_tes_0 = (pt > 20.0) & (tes_nom == 0)
+    n = np.sum(mask_mutau_tes_0)
+    if n > 0:
+        logger.warning(f"Calibration with mu-tau WPs : {n} taus with nom tes = 0 for tau pt > 20 GeV")
+    tes_nom = np.where(tes_nom == 0.0, 0.8, tes_nom)
+    
+    events = set_ak_column_f32(events, "Tau.pt_no_tes", ak.unflatten(pt, arr_shape))
+    events = set_ak_column_f32(events, "Tau.mass_no_tes", ak.unflatten(mass, arr_shape))
+
+    events = set_ak_column_f32(events, "Tau.pt_mutau", ak.unflatten(pt * tes_nom, arr_shape))
+    events = set_ak_column_f32(events, "Tau.mass_mutau", ak.unflatten(mass * tes_nom, arr_shape))
+    # CAREFUL
+    #events = set_ak_column_f32(events, "Tau.pt_mutau", ak.unflatten(pt, arr_shape))
+    #events = set_ak_column_f32(events, "Tau.mass_mutau", ak.unflatten(mass, arr_shape))
+
+    tes_nom = np.ones_like(pt, dtype=np.float32)
     tes_args = lambda events, mask, deep_tau_tagger, syst: (pt[mask],
                                                             abseta[mask],
                                                             dm[mask],
@@ -86,13 +100,21 @@ def tau_energy_scale(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array:
                                                             syst)
     tes_nom[mask2prong] = self.tes_corrector.evaluate(*tes_args(events, mask2prong, deep_tau_tagger, syst))
     tes_nom     = np.asarray(tes_nom)
-    tau_pt      = np.asarray(ak.flatten(events.Tau.pt))
-    tau_mass    = np.asarray(ak.flatten(events.Tau.mass))
+    #tau_pt      = np.asarray(ak.flatten(events.Tau.pt))
+    #tau_mass    = np.asarray(ak.flatten(events.Tau.mass))
+    mask_etau_tes_0 = (pt > 20.0) & (tes_nom == 0)
+    n = np.sum(mask_etau_tes_0)
+    if n > 0:
+        logger.warning(f"Calibration with e-tau WPs : {n} taus with nom tes = 0 for tau pt > 20 GeV")
+    tes_nom = np.where(tes_nom == 0.0, 0.8, tes_nom)
 
-    events = set_ak_column_f32(events, "Tau.pt_etau", ak.unflatten(tau_pt * tes_nom, arr_shape))
-    events = set_ak_column_f32(events, "Tau.mass_etau", ak.unflatten(tau_mass * tes_nom, arr_shape))
+    events = set_ak_column_f32(events, "Tau.pt_etau", ak.unflatten(pt * tes_nom, arr_shape))
+    events = set_ak_column_f32(events, "Tau.mass_etau", ak.unflatten(mass * tes_nom, arr_shape))
+    # CAREFUL
+    #events = set_ak_column_f32(events, "Tau.pt_etau", ak.unflatten(pt, arr_shape))
+    #events = set_ak_column_f32(events, "Tau.mass_etau", ak.unflatten(mass, arr_shape))
 
-
+    tes_nom = np.ones_like(pt, dtype=np.float32)
     tes_args = lambda events, mask, deep_tau_tagger, syst: (pt[mask],
                                                             abseta[mask],
                                                             dm[mask],
@@ -103,11 +125,19 @@ def tau_energy_scale(self: Calibrator, events: ak.Array, **kwargs) -> ak.Array:
                                                             syst)
     tes_nom[mask2prong] = self.tes_corrector.evaluate(*tes_args(events, mask2prong, deep_tau_tagger, syst))
     tes_nom     = np.asarray(tes_nom)
-    tau_pt      = np.asarray(ak.flatten(events.Tau.pt))
-    tau_mass    = np.asarray(ak.flatten(events.Tau.mass))
+    #tau_pt      = np.asarray(ak.flatten(events.Tau.pt))
+    #tau_mass    = np.asarray(ak.flatten(events.Tau.mass))
+    mask_tautau_tes_0 = (pt > 20.0) & (tes_nom == 0)
+    n = np.sum(mask_tautau_tes_0)
+    if n > 0:
+        logger.warning(f"Calibration with tau-tau WPs : {n} taus with nom tes = 0 for tau pt > 20 GeV")
+    tes_nom = np.where(tes_nom == 0.0, 0.8, tes_nom)
 
-    events = set_ak_column_f32(events, "Tau.pt_tautau", ak.unflatten(tau_pt * tes_nom, arr_shape))
-    events = set_ak_column_f32(events, "Tau.mass_tautau", ak.unflatten(tau_mass * tes_nom, arr_shape))
+    events = set_ak_column_f32(events, "Tau.pt_tautau", ak.unflatten(pt * tes_nom, arr_shape))
+    events = set_ak_column_f32(events, "Tau.mass_tautau", ak.unflatten(mass * tes_nom, arr_shape))
+    # CAREFUL
+    #events = set_ak_column_f32(events, "Tau.pt_tautau", ak.unflatten(pt, arr_shape))
+    #events = set_ak_column_f32(events, "Tau.mass_tautau", ak.unflatten(mass, arr_shape))
 
     stop = time.time()
     if self.config_inst.x.verbose.calibration.tau:

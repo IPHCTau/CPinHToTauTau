@@ -72,6 +72,15 @@ def IF_DATASET_HAS_LHE_WEIGHTS(
     return None if func.dataset_inst.has_tag("no_lhe_weights") else self.get()
 
 @deferred_column
+def IF_DATASET_IS_TT(
+    self: ArrayFunction.DeferredColumn,
+    func: ArrayFunction,
+) -> Any | set[Any]:
+    if getattr(func, "dataset_inst", None) is None:
+        return self.get()
+    return None if not func.dataset_inst.has_tag("is_tt") else self.get()
+
+@deferred_column
 def IF_DATASET_IS_DY(
     self: ArrayFunction.DeferredColumn,
     func: ArrayFunction,
@@ -96,7 +105,9 @@ def IF_DATASET_IS_SIGNAL(
 ) -> Any | set[Any]:
     if getattr(func, "dataset_inst", None) is None:
         return self.get()
-    return None if not (func.dataset_inst.has_tag("is_ggf_signal") | func.dataset_inst.has_tag("is_vh_signal")) else self.get()
+    return None if not (func.dataset_inst.has_tag("is_ggf_signal")
+                        | func.dataset_inst.has_tag("is_vh_signal")
+                        | func.dataset_inst.has_tag("is_vbf_signal")) else self.get()
 
 @deferred_column
 def IF_ALLOW_STITCHING(
@@ -109,6 +120,21 @@ def IF_ALLOW_STITCHING(
     allow_w  = func.dataset_inst.has_tag("is_w") & func.config_inst.x.allow_w_stitching
     #return None if not (func.dataset_inst.has_tag("is_w") | func.dataset_inst.has_tag("is_dy")) else self.get()
     return None if not (allow_dy | allow_w) else self.get()
+
+@deferred_column
+def IF_GENMATCH_ON_FOR_SIGNAL(
+    self: ArrayFunction.DeferredColumn,
+    func: ArrayFunction,
+) -> Any | set[Any]:
+    if getattr(func, "dataset_inst", None) is None:
+        return self.get()
+    dogenmatch = False
+    if "is_signal" in list(func.dataset_inst.aux.keys()):
+        if func.config_inst.x.extra_tags.genmatch == True:
+            dogenmatch = True
+    return self.get() if dogenmatch else None
+
+
 
 def transverse_mass(lepton: ak.Array, met: ak.Array) -> ak.Array:
     dphi_lep_met = lepton.delta_phi(met)
@@ -183,60 +209,6 @@ def trigger_matching_extra(
 
 
 
-
-
-#def trigger_object_matching_deep(
-#        vectors1: ak.Array,
-#        vectors2: ak.Array,
-#        legminpt: ak.Array,
-#        legmaxeta: ak.Array,
-#        checkpt: bool = True,
-#        threshold: float = 0.5,
-#        axis: int = 1,
-#) -> ak.Array:
-#    """
-#    trigger object matching with the reconstructed objects
-#    This function is named as deep because it makes sure of both dr and pt matching
-#    vectors1 would always be the p4s of e/mu/tau
-#    vectors2 would always be the p4s of trigger objects
-#    dr is calculated using metric_table which brings all combinatorics.
-#    Finally, if any of the trigger objects matches the e/mu/tau, it will be True
-#    Next, the trigger leg minpt is provided as another argument.
-#    the reco object pt should be greater than the above
-#    Finally, both of these conditions must be satisfied for the selection of the reco object
-#    """
-#    #from IPython import embed; embed()
-#    # delta_r for all combinations
-#    dr  = vectors1.metric_table(vectors2)  # 100000 * var * var * option[var * float32]
-#    match_dr = dr < threshold              # 100000 * var * var * option[var * bool]
-#    match_dr = ak.any(match_dr, axis=-1)   # 100000 * var * var * ?bool
-#
-#    # pt match
-#    if checkpt:
-#        obj_pt = vectors1.pt
-#        obj_eta = np.abs(vectors1.eta)
-#        obj_pt_brdcst, minpt_brdcst = ak.broadcast_arrays(obj_pt, legminpt[:,None], depth_limit=-1)
-#        obj_eta_brdcst, maxeta_brdcst = ak.broadcast_arrays(obj_eta, legmaxeta[:,None], depth_limit=-1)        
-#        #match_pt = (obj_pt_brdcst - minpt_brdcst) >= 0.0 # 100000 * var * var * ?bool
-#        match_pt  = obj_pt_brdcst >= minpt_brdcst   # 100000 * var * var * ?bool
-#        match_eta = obj_eta_brdcst <= maxeta_brdcst # 100000 * var * var * ?bool
-#        match_dr = match_dr & match_pt & match_eta
-#        
-#    match_dr = ak.fill_none(match_dr, False) # 100000 * var * var * bool
-#    match_dr = ak.enforce_type(ak.values_astype(match_dr, "bool"), "var * var * bool") # 100000 * var * var * bool
-#    
-#    #inmatch = match_dr & match_pt           # 100000 * var * var * ?bool
-#    #inmatch = ak.fill_none(inmatch, False)  # 100000 * var * var * bool
-#    #inmatch = ak.enforce_type(ak.values_astype(inmatch, "bool"), "var * var * bool") # 100000 * var * var * bool
-#    
-#    #return inmatch #match_dr
-#
-#    return match_dr
-
-
-
-
-
 def trigger_object_matching_deep(
         vectors1: ak.Array,
         vectors2: ak.Array,
@@ -284,6 +256,65 @@ def trigger_object_matching_deep(
 
 
 
+
+def trigger_object_matching_jets_deep(
+        vectors1: ak.Array,
+        vectors2: ak.Array,
+        legminpt: ak.Array,
+        legmaxeta: ak.Array,
+        checkdr: bool = True,
+        threshold: float = 0.5,
+        axis: int = 1,
+) -> ak.Array:
+    """
+    trigger object matching with the reconstructed objects
+    This function is named as deep because it makes sure of both dr and pt matching
+    vectors1 would always be the p4s of e/mu/tau
+    vectors2 would always be the p4s of trigger objects
+    dr is calculated using metric_table which brings all combinatorics.
+    Finally, if any of the trigger objects matches the e/mu/tau, it will be True
+    Next, the trigger leg minpt is provided as another argument.
+    the reco object pt should be greater than the above
+    Finally, both of these conditions must be satisfied for the selection of the reco object
+    """
+
+    # check leg min pt and leg max eta
+    obj_pt = vectors1.pt
+    obj_eta = np.abs(vectors1.eta)
+
+    obj_pt_brdcst, minpt_brdcst = ak.broadcast_arrays(obj_pt, legminpt[:,None], depth_limit=-1)
+    obj_eta_brdcst, maxeta_brdcst = ak.broadcast_arrays(obj_eta, legmaxeta[:,None], depth_limit=-1)        
+
+    match_pt  = obj_pt_brdcst >= minpt_brdcst   # 100000 * var * var * ?bool
+    match_eta = obj_eta_brdcst <= maxeta_brdcst # 100000 * var * var * ?bool
+    
+    match = match_pt & match_eta
+
+    match = ak.fill_none(ak.any(match, axis=-1), False)
+    
+    if checkdr:
+        vectors2 = ak.drop_none(vectors2)
+        # delta_r for all combinations
+        dr  = vectors1.metric_table(vectors2)  # 100000 * var * var * option[var * float32]
+        mindr = ak.fill_none(ak.min(ak.min(dr, axis=-1), axis=-1), 10.0)
+
+        match_dr = mindr < threshold
+        match = match & match_dr
+
+        mindr = mindr[match]
+        vectors1 = vectors1[match]
+
+        mindr_sort_idx = ak.argsort(mindr, ascending=True)        
+        vectors1 = vectors1[mindr_sort_idx]
+        
+    match = ak.fill_none(match, False) # 100000 * var * var * bool
+
+    return match, vectors1
+
+
+
+
+
 def get_dataset_lfns(
         dataset_inst: od.Dataset,
         shift_inst: od.Shift,
@@ -305,8 +336,10 @@ def getGenTauDecayMode(prod: ak.Array):
 
     is_ele  = np.abs(pids) == 11
     is_muon = np.abs(pids) == 13
-    is_charged = ((np.abs(pids) == 211) | (np.abs(pids) == 321)) # | (np.abs(pids) == 323) | (np.abs(pids) == 325) | (np.abs(pids) == 327) | (np.abs(pids) == 329) )
-    is_neutral = ((pids == 111) | (pids == 311) | (pids == 130) | (pids == 310)) # | (pids == 313) | (pids == 315) | (pids == 317) | (pids == 319))
+    #is_charged = ((np.abs(pids) == 211) | (np.abs(pids) == 321)) # | (np.abs(pids) == 323) | (np.abs(pids) == 325) | (np.abs(pids) == 327) | (np.abs(pids) == 329) )
+    #is_neutral = ((pids == 111) | (pids == 311) | (pids == 130) | (pids == 310)) # | (pids == 313) | (pids == 315) | (pids == 317) | (pids == 319))
+    is_charged = ((np.abs(pids) == 211) | (np.abs(pids) == 321) | (np.abs(pids) == 323) | (np.abs(pids) == 10321) | (np.abs(pids) == 10211))
+    is_neutral = ((pids == 111) | (pids == 311) | (pids == 130) | (pids == 310))
 
     edecay = ak.sum(is_ele,  axis=-1) > 0
     mdecay = ak.sum(is_muon, axis=-1) > 0
@@ -348,6 +381,7 @@ def enforce_hcand_type(hcand_pair_concat, field_type_dict):
 
         temp[field] = ak.enforce_type(ak.values_astype(ak.nan_to_num(field_in, 0.0),typename),
                                       f"var * var * {typename}")
+        #from IPython import embed; embed()
         
     hcand_array = ak.zip(temp)
     return hcand_array

@@ -39,16 +39,16 @@ def split_dy(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     h1_genflv = events.hcand.genPartFlav[:,0]
     h2_genflv = events.hcand.genPartFlav[:,1]
 
-    h2_match_m = (h2_genflv == tau_part_flav["prompt_mu"]) | (h2_genflv == tau_part_flav["mu->tau"])
-    h2_match_e = (h2_genflv == tau_part_flav["prompt_e"]) | (h2_genflv == tau_part_flav["e->tau"])
-    h2_match_j = (h2_genflv == tau_part_flav["unknown"]) | (h2_genflv == tau_part_flav["jet->tau"]) 
-    h2_genuine = h2_genflv == tau_part_flav["tau_had"]
-
+    h1_genuine =  h1_genflv == tau_part_flav["tau_had"]
     h1_match_m = (h1_genflv == tau_part_flav["prompt_mu"]) | (h1_genflv == tau_part_flav["mu->tau"])
     h1_match_e = (h1_genflv == tau_part_flav["prompt_e"]) | (h1_genflv == tau_part_flav["e->tau"])
     h1_match_j = (h1_genflv == tau_part_flav["unknown"]) | (h1_genflv == tau_part_flav["jet->tau"]) 
-    h1_genuine = h1_genflv == tau_part_flav["tau_had"]
     
+    h2_genuine = h2_genflv == tau_part_flav["tau_had"]
+    h2_match_m = (h2_genflv == tau_part_flav["prompt_mu"]) | (h2_genflv == tau_part_flav["mu->tau"])
+    h2_match_e = (h2_genflv == tau_part_flav["prompt_e"]) | (h2_genflv == tau_part_flav["e->tau"])
+    h2_match_j = (h2_genflv == tau_part_flav["unknown"]) | (h2_genflv == tau_part_flav["jet->tau"]) 
+
     
     # N.B. For tau-tau channel, lets assume the leading tau is true
     # hardcoded : BAD
@@ -56,9 +56,29 @@ def split_dy(self: Producer, events: ak.Array, **kwargs) -> ak.Array:
     z_t2tau_proc_id = 51098 # if the hcand2 i.e. tauh is true or not
     z_l2tau_proc_id = 51099 # if the hcand2 i.e. tauh is from e/mu or not
 
-    z_t2tau_mask = ak.where(events.channel_id == ch_tautau_id, h1_genuine, h2_genuine)
-    z_l2tau_mask = ak.where(events.channel_id == ch_tautau_id, (h1_match_m | h1_match_e), (h2_match_m | h2_match_e))
-    z_j2tau_mask = ak.where(events.channel_id == ch_tautau_id, h1_match_j, h2_match_j)
+    #z_t2tau_mask = ak.where(events.channel_id == ch_tautau_id, h1_genuine, h2_genuine)
+    #z_l2tau_mask = ak.where(events.channel_id == ch_tautau_id, (h1_match_m | h1_match_e), (h2_match_m | h2_match_e))
+    #z_j2tau_mask = ak.where(events.channel_id == ch_tautau_id, h1_match_j, h2_match_j)
+
+    ### =========== ###
+    #   channel                            processes                         #
+    #                   Z to tt         |    Z to ee/mm     |   Z to other genuine tau #
+    # ---------------------------------------------------------------------- #
+    #   etau        |   tau2 = 5        |    tau2 = 1/3     |
+    #   mutau       |   tau2 = 5        |    tau2 = 2/4     |
+    #   tautau      |tau1 = tau2 = 5    | tau1 = tau2 = 1/3 |
+    #                                   | tau1 = tau2 = 2/4 |
+    
+    z_t2tau_mask = ak.where(events.channel_id == ch_tautau_id, (h1_genuine & h2_genuine), h2_genuine)
+    z_l2tau_mask = ak.where(events.channel_id == ch_tautau_id,
+                            ((h1_match_m & h2_match_m) | (h1_match_e & h2_match_e) | (h1_match_m & h2_match_e) | (h1_match_e & h2_match_m)), # 
+                            ak.where(events.channel_id == ch_mutau_id,
+                                     h2_match_m,
+                                     h2_match_e))
+    z_j2tau_mask = ak.where(events.channel_id == ch_tautau_id,
+                            ((h1_genuine & (h2_match_m | h2_match_e)) | ((h1_match_m | h1_match_e) & h2_genuine)),
+                            #((h1_match_m | h1_match_e) & h2_genuine),
+                            h2_match_j)
     
     process_id = ak.where(z_l2tau_mask, z_l2tau_proc_id, events.process_id)
     process_id = ak.where(z_j2tau_mask, z_j2tau_proc_id, process_id)

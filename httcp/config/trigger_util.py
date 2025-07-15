@@ -31,7 +31,9 @@ class TriggerLeg(object):
             self,
             pdg_id: int | None = None,
             min_pt: float | int | None = None,
+            min_pt_online: float | int | None = None,            
             max_abseta: float | int | None = None,
+            max_abseta_online: float | int | None = None,            
             trigger_bits: int | Sequence[int] | None = None,
     ):
         super().__init__()
@@ -39,19 +41,23 @@ class TriggerLeg(object):
         # instance members
         self._pdg_id = None
         self._min_pt = None
+        self._min_pt_online = None
         self._max_abseta = None
+        self._max_abseta_online = None
         self._trigger_bits = None
 
         # set initial values
         self.pdg_id = pdg_id
         self.min_pt = min_pt
+        self.min_pt_online = min_pt_online
         self.max_abseta = max_abseta
+        self.max_abseta_online = max_abseta_online        
         self.trigger_bits = trigger_bits
 
     def __repr__(self):
         return (
             f"<{self.__class__.__name__} "
-            f"'pdg_id={self.pdg_id}, min_pt={self.min_pt}, max_abseta={self.max_abseta}, trigger_bits={self.trigger_bits}' "
+            f"'pdg_id={self.pdg_id}, min_pt={self.min_pt}, min_pt_online={self.min_pt_online}, max_abseta={self.max_abseta}, max_abseta_online={self.max_abseta_online}, trigger_bits={self.trigger_bits}' "
             f"at {hex(id(self))}>"
         )
 
@@ -78,6 +84,19 @@ class TriggerLeg(object):
         return min_pt
 
     @typed
+    def min_pt_online(self, min_pt_online: int | float | None) -> float | None:
+        if min_pt_online is None:
+            return None
+
+        if isinstance(min_pt_online, int):
+            min_pt_online = float(min_pt_online)
+        if not isinstance(min_pt_online, float):
+            raise TypeError(f"invalid min_pt_online: {min_pt_online}")
+
+        return min_pt_online
+
+    
+    @typed
     def max_abseta(self, max_abseta: int | float | None) -> float | None:
         if max_abseta is None:
             return None
@@ -88,6 +107,19 @@ class TriggerLeg(object):
             raise TypeError(f"invalid max_abseta: {max_abseta}")
 
         return max_abseta
+
+    @typed
+    def max_abseta_online(self, max_abseta_online: int | float | None) -> float | None:
+        if max_abseta_online is None:
+            return None
+
+        if isinstance(max_abseta_online, int):
+            max_abseta_online = float(max_abseta_online)
+        if not isinstance(max_abseta_online, float):
+            raise TypeError(f"invalid max_abseta_online: {max_abseta_online}")
+
+        return max_abseta_online
+
     
     @typed
     def trigger_bits(

@@ -38,11 +38,13 @@ set_ak_column_i64 = functools.partial(set_ak_column, value_type=np.int64)
         "Jet.pt", "bJet.pt",
         IF_RUN2("MET.pt", "MET.phi"),
         IF_RUN3("PuppiMET.pt", "PuppiMET.phi"),
+        "classifier_score",
     },
     produces={
         "is_os",
         "is_b_veto",
         "is_low_mt",
+        "is_high_mt",
         "is_lep_1",
         "is_iso_1", "is_iso_2",
         "is_real_1", "is_real_2",
@@ -54,6 +56,16 @@ set_ak_column_i64 = functools.partial(set_ak_column, value_type=np.int64)
         "is_a1_3pr_1pi0_1", "is_a1_3pr_1pi0_2",
         "is_ipsig_0to1_1",
         "has_0jet","has_1jet","has_2jet",
+        ## classifier based columns
+        "is_tautau_dy",
+        "is_tautau_fake",
+        "is_tautau_higgs",
+        ## futher binning of higgs node
+        "is_tautau_higgs_bin_1",
+        "is_tautau_higgs_bin_2",
+        "is_tautau_higgs_bin_3",
+        "is_tautau_higgs_bin_4",
+        "is_tautau_higgs_bin_5",
     },
     exposed=False,
 )
@@ -70,8 +82,7 @@ def build_abcd_masks(
 
     hcand = ak.with_name(events.hcand, "PtEtaPhiMLorentzVector")
     h1 = hcand[:,0:1]
-    h2 = hcand[:,1:2]
-
+    h2 = ak.values_astype(hcand[:,1:2], np.int32)
     
     # tau tagger wp
     tau_tagger      = self.config_inst.x.deep_tau_tagger
@@ -91,14 +102,23 @@ def build_abcd_masks(
     # leading tau isolation
     is_iso_1_dummy = h1.rawIdx < 0
     is_iso_1 = ak.where(events.channel_id == ch_tautau.id,
-                        h1.idVsJet >= vs_jet_wp(tau_tagger_info, ch_tautau.name),
-                        is_iso_1_dummy)
+                        ak.values_astype(h1.isolation, np.int32) >= vs_jet_wp(tau_tagger_info, ch_tautau.name),
+                        ak.where(events.channel_id == ch_mutau.id,
+                                 h1.isolation <= 0.15,
+                                 ak.where(events.channel_id == ch_etau.id,
+                                          h1.isolation <= 0.3,
+                                          is_iso_1_dummy)
+                                 )
+                        )
+    #is_iso_1 = ak.where(events.channel_id == ch_tautau.id,
+    #                    h1.isolation >= vs_jet_wp(tau_tagger_info, ch_tautau.name),
+    #                    is_iso_1_dummy)
     is_iso_1 = ak.fill_none(ak.any(is_iso_1, axis=1), False)
 
     # ISO2 --> required for alla channels
-    id_etau_pass = h2.idVsJet >= vs_jet_wp(tau_tagger_info, "etau")
-    id_mutau_pass = h2.idVsJet >= vs_jet_wp(tau_tagger_info, "mutau")
-    id_tautau_pass = h2.idVsJet >= vs_jet_wp(tau_tagger_info, "tautau")
+    id_etau_pass   = h2.isolation >= vs_jet_wp(tau_tagger_info, "etau")
+    id_mutau_pass  = h2.isolation >= vs_jet_wp(tau_tagger_info, "mutau")
+    id_tautau_pass = h2.isolation >= vs_jet_wp(tau_tagger_info, "tautau")
     
     is_iso_2 = ak.where(events.channel_id == ch_tautau.id,
                         id_tautau_pass,
@@ -153,8 +173,11 @@ def build_abcd_masks(
     met = events.MET if self.config_inst.campaign.x.run == 2 else events.PuppiMET
     met = ak.with_name(met, "PtEtaPhiMLorentzVector")
     #from IPython import embed; embed()
-    is_low_mt = transverse_mass(h1, met) < 50
-    is_low_mt = ak.fill_none(ak.any(is_low_mt, axis=1), False)
+    is_low_mt = transverse_mass(h1, met) < 70.0 # DESY
+    is_high_mt = ~is_low_mt & (transverse_mass(h1, met) < 200.0)
+    
+    is_low_mt  = ak.fill_none(ak.any(is_low_mt, axis=1), False)
+    is_high_mt = ak.fill_none(ak.any(is_high_mt, axis=1), False)
 
 
     is_lep_1 = h1.decayMode < 0
@@ -206,6 +229,7 @@ def build_abcd_masks(
     events = set_ak_column(events, "is_fake_2", is_fake_2)
     # mt
     events = set_ak_column(events, "is_low_mt", is_low_mt)
+    events = set_ak_column(events, "is_high_mt", is_high_mt)
     # bveto
     events = set_ak_column(events, "is_b_veto", is_b_veto)
     # for CP categories
@@ -226,8 +250,32 @@ def build_abcd_masks(
     events = set_ak_column(events, "has_0jet", has_0jet)
     events = set_ak_column(events, "has_1jet", has_1jet)
     events = set_ak_column(events, "has_2jet", has_2jet)
+
+    max_idx = ak.fill_none(ak.argmax(events.classifier_score, axis=1), -1)
+
+    is_tautau_dy    = max_idx == 0
+    is_tautau_higgs = max_idx == 1
+    is_tautau_fake  = max_idx == 2
     
+    events = set_ak_column(events, "is_tautau_dy",    is_tautau_dy)
+    events = set_ak_column(events, "is_tautau_fake",  is_tautau_fake)    
+    events = set_ak_column(events, "is_tautau_higgs", is_tautau_higgs)
+
+    # further categories with Higgs BDT score
+    tautau_higgs_score = ak.fill_none(ak.firsts(events.classifier_score[:,1:2], axis=1), -99.9)
     
-    
+    is_tautau_higgs_bin_1 = (tautau_higgs_score >= 0.0)  & (tautau_higgs_score < 0.55)
+    is_tautau_higgs_bin_2 = (tautau_higgs_score >= 0.55) & (tautau_higgs_score < 0.65)
+    is_tautau_higgs_bin_3 = (tautau_higgs_score >= 0.65) & (tautau_higgs_score < 0.80)
+    is_tautau_higgs_bin_4 = (tautau_higgs_score >= 0.80) & (tautau_higgs_score < 0.90)
+    is_tautau_higgs_bin_5 = (tautau_higgs_score >= 0.90) & (tautau_higgs_score <= 1.0)
+
+    events = set_ak_column(events, "is_tautau_higgs_bin_1", is_tautau_higgs_bin_1)
+    events = set_ak_column(events, "is_tautau_higgs_bin_2", is_tautau_higgs_bin_2)
+    events = set_ak_column(events, "is_tautau_higgs_bin_3", is_tautau_higgs_bin_3)
+    events = set_ak_column(events, "is_tautau_higgs_bin_4", is_tautau_higgs_bin_4)
+    events = set_ak_column(events, "is_tautau_higgs_bin_5", is_tautau_higgs_bin_5)
+
+
     return events
 

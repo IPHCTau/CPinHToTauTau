@@ -1,0 +1,67 @@
+{
+    "schema_version": 2,
+    "description": "Extrapolation correction for the httcp analysis",
+    "corrections": [
+        {
+            "name": "extrapolation_correction",
+            "description": "Extrapolation correction for the httcp analysis",
+            "version": 1,
+            "inputs": [
+                {
+                    "name": "met_var_qcd_h1",
+                    "type": "real",
+                    "description": "Transverse momentum of the tau"
+                },
+                {
+                    "name": "syst",
+                    "type": "string",
+                    "description": "Systematic variations: 'nom', 'up', 'down'"
+                }
+            ],
+            "output": {
+                "name": "extrapolation_correction",
+                "type": "real",
+                "description": "Extrapolation correction to apply to data-MC"
+            },
+            "data": {
+                "nodetype": "category",
+                "input": "syst",
+                "content": [
+                    {
+                        "key": "nom",
+                        "value": {
+                            "nodetype": "formula",
+                            "expression": "(1.08645+0.267218*min(max(x,-1.5),1.5)+-0.130795*min(max(x,-1.5),1.5)*min(max(x,-1.5),1.5)+-0.116881*pow(min(max(x,-1.5),1.5),3))",
+                            "parser": "TFormula",
+                            "variables": [
+                                "met_var_qcd_h1"
+                            ]
+                        }
+                    },
+                    {
+                        "key": "up",
+                        "value": {
+                            "nodetype": "formula",
+                            "expression": "(1.12529+0.388387*min(max(x,-1.5),1.5)+-0.0361759*min(max(x,-1.5),1.5)*min(max(x,-1.5),1.5)+-0.00414949*pow(min(max(x,-1.5),1.5),3))",
+                            "parser": "TFormula",
+                            "variables": [
+                                "met_var_qcd_h1"
+                            ]
+                        }
+                    },
+                    {
+                        "key": "down",
+                        "value": {
+                            "nodetype": "formula",
+                            "expression": "(1.04761+0.146048*min(max(x,-1.5),1.5)+-0.225414*min(max(x,-1.5),1.5)*min(max(x,-1.5),1.5)+-0.229612*pow(min(max(x,-1.5),1.5),3))",
+                            "parser": "TFormula",
+                            "variables": [
+                                "met_var_qcd_h1"
+                            ]
+                        }
+                    }
+                ]
+            }
+        }
+    ]
+}

@@ -59,12 +59,6 @@ def main_init(self: WeightProducer) -> None:
             if self.dataset_inst.is_data:
                 if not weight_name in ["ff_weight","ff_ext_corr_weight"]:
                     continue
-                #if weight_name != "ff_weight":
-                #    continue
-                #elif weight_name != "ff_ext_corr_weight":
-                #    continue
-                #else:
-                #    break
 
             # skip pdf weights for samples that dont have lhe weight
             is_lhe_weight = any(
@@ -84,12 +78,21 @@ def main_init(self: WeightProducer) -> None:
                 if weight_name in ["zpt_reweight"] or is_zpt_reweight:
                     continue
 
+            # top pt weight only for ttbar samples
+            is_top_pt_reweight = any(
+                shift_inst.has_tag("top_pt_weight")
+                for shift_inst in self.config_inst.x.event_weights[weight_name]
+            )
+            if not self.dataset_inst.has_tag("is_tt"):
+                if weight_name in ["top_pt_weight"]:
+                    continue
+
             # tau-spinner weights are only for signal samples
             is_tauspinner_weight = any(
                 shift_inst.has_tag("tauspinner_weight")
                 for shift_inst in self.config_inst.x.event_weights[weight_name] 
             )
-            if not (self.dataset_inst.has_tag("is_ggf_signal") or self.dataset_inst.has_tag("is_vh_signal")):
+            if not (self.dataset_inst.has_tag("is_ggf_signal") or self.dataset_inst.has_tag("is_vh_signal") or self.dataset_inst.has_tag("is_vbf_signal")):
                 if weight_name in ["tauspinner_weight"] or is_tauspinner_weight:
                     continue
 

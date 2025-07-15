@@ -181,7 +181,23 @@ def debug_main(events, results, triggers, **kwargs):
     
     logger.info(channel_table)
     logger.info(f" ---> Total selected events in etau, mutau and tautau chennels : {etau_ev+mtau_ev+ttau_ev}\n\n")
-    #from IPython import embed; embed()
+
+    logger.info("checking pyarrow compatibility ...")
+    for key in events.fields:
+        field = events[key]
+        try:
+            field_arrow = ak.to_arrow(field)
+            logger.info(f"{key}: ✅ OK")
+        except Exception as e:
+            logging.critical(f"{key}: ❌ Error — {e}")
+            for k in field.fields:
+                f = field[k]
+                try:
+                    field_arrow = ak.to_arrow(f)
+                    logger.info(f"{k}: ✅ OK Subfield")
+                except Exception as e:
+                    logger.critical(f"{k}: ❌ Error — {e} Subfield")
+                    
 
     
 

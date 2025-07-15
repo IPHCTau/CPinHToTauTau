@@ -18,7 +18,7 @@ def add_common_features(cfg: od.config) -> None:
     cfg.add_variable(
         name="event",
         expression="event",
-        binning=(1, 0.0, 1.0e9),
+        binning=(1, 0.0, 1.0e6),
         x_title="Event number",
         discrete_x=True,
     )
@@ -208,7 +208,31 @@ def add_highlevel_features(cfg: od.Config) -> None:
         unit="GeV",
         x_title=r"$m_{vis}$",
     )
-    
+    # classifier scores
+    cfg.add_variable(
+        name="bdt_score_dy",
+        expression="classifier_score[:,0]",
+        null_value=EMPTY_FLOAT,
+        binning=(50, 0.0, 1.0),
+        unit="",
+        x_title="BDT Score (DYTau prob)",
+    )
+    cfg.add_variable(
+        name="bdt_score_higgs",
+        expression="classifier_score[:,1]",
+        null_value=EMPTY_FLOAT,
+        binning=(50, 0.0, 1.0),
+        unit="",
+        x_title="BDT Score (Higgs prob)",
+    )
+    cfg.add_variable(
+        name="bdt_score_fake",
+        expression="classifier_score[:,2]",
+        null_value=EMPTY_FLOAT,
+        binning=(50, 0.0, 1.0),
+        unit="",
+        x_title="BDT Score (Fake prob)",
+    )
     
 
 def add_weight_features(cfg: od.Config) -> None:
@@ -290,13 +314,28 @@ def add_hcand_features(cfg: od.Config) -> None:
             binning=[35,40,45,50,55,60,65,70,80,100,140,200],
             unit="GeV",
             x_title=f"hcand[{i+1}]" + r" $p_{T}$",
-        )        
+        )
+        cfg.add_variable(
+            name=f"hcand_{i+1}_pt_fastMTT",
+            expression=f"hcand.pt_fastMTT[:,{i}]",
+            null_value=EMPTY_FLOAT,
+            binning=(40, 0., 200.),
+            unit="GeV",
+            x_title=f"hcand[{i+1}]" + r" $p_{T}$ (fastMTT)",
+        )
         cfg.add_variable(
             name=f"hcand_{i+1}_phi",
             expression=f"hcand.phi[:,{i}]",
             null_value=EMPTY_FLOAT,
             binning=(32, -3.2, 3.2),
             x_title=f"hcand[{i+1}]" + r" $\phi$",
+        )
+        cfg.add_variable(
+            name=f"hcand_{i+1}_phi_fastMTT",
+            expression=f"hcand.phi_fastMTT[:,{i}]",
+            null_value=EMPTY_FLOAT,
+            binning=(32, -3.2, 3.2),
+            x_title=f"hcand[{i+1}]" + r" $\phi$ (fastMTT)",
         )
         cfg.add_variable(
             name=f"hcand_{i+1}_eta",
@@ -306,12 +345,27 @@ def add_hcand_features(cfg: od.Config) -> None:
             x_title=f"hcand[{i+1}]" + r" $\eta$",
         )
         cfg.add_variable(
+            name=f"hcand_{i+1}_eta_fastMTT",
+            expression=f"hcand.eta_fastMTT[:,{i}]",
+            null_value=EMPTY_FLOAT,
+            binning=(25, -2.5, 2.5),
+            x_title=f"hcand[{i+1}]" + r" $\eta$ (fastMTT)",
+        )
+        cfg.add_variable(
             name=f"hcand_{i+1}_mass",
             expression=f"hcand.mass[:,{i}]",
             null_value=EMPTY_FLOAT,
             binning=(30, 0., 3.0),
             unit="GeV",
             x_title=f"hcand[{i+1}]" + " mass",
+        )
+        cfg.add_variable(
+            name=f"hcand_{i+1}_mass_fastMTT",
+            expression=f"hcand.mass_fastMTT[:,{i}]",
+            null_value=EMPTY_FLOAT,
+            binning=(30, 0., 3.0),
+            unit="GeV",
+            x_title=f"hcand[{i+1}]" + " mass (fastMTT)",
         )
         cfg.add_variable(
             name=f"hcand_{i+1}_decayMode",
@@ -372,12 +426,100 @@ def add_hcand_features(cfg: od.Config) -> None:
         x_title=r"$visible mass$",
     )
     cfg.add_variable(
+        name="hcand_invm_1bin",
+        expression="hcand_invm",
+        null_value=EMPTY_FLOAT,
+        binning=(1, 0.0, 10000.0),
+        unit="GeV",
+        x_title=r"$visible mass$",
+    )
+    cfg.add_variable(
+        name="hcand_invm_10GeV",
+        expression="hcand_invm",
+        null_value=EMPTY_FLOAT,
+        binning=(40, 0.0, 400.0),
+        unit="GeV",
+        x_title=r"$visible mass$",
+    )
+    cfg.add_variable(
+        name="hcand_invm_fastMTT",
+        expression="hcand_invm_fastMTT",
+        null_value=EMPTY_FLOAT,
+        binning=(40, 0.0, 200.0),
+        unit="GeV",
+        x_title=r"$invariant mass (fastMTT)$",
+    )
+    cfg.add_variable(
+        name="hcand_invm_fastMTT_limit",
+        expression="hcand_invm_fastMTT",
+        null_value=EMPTY_FLOAT,
+        binning=(4000, 110.0, 150.0),
+        unit="GeV",
+        x_title=r"$invariant mass (fastMTT)$",
+    )
+    cfg.add_variable(
         name="hcand_dr",
         expression="hcand_dr",
         null_value=EMPTY_FLOAT,
         binning=(40, 0.0, 5.0),
         x_title=r"$\Delta R(h1,h2)$",
     )
+    cfg.add_variable(
+        name="hcand_dphi",
+        expression="hcand_dphi",
+        null_value=EMPTY_FLOAT,
+        binning=(32, 0.0, 3.2),
+        x_title=r"$\Delta \phi(h1,h2)$",
+    )
+    cfg.add_variable(
+        name="pt_vis",
+        expression="pt_vis",
+        null_value=EMPTY_FLOAT,
+        binning=(50, 0.0, 200.0),
+        unit="GeV",
+        x_title=r"$p_{T}$ (visible)",
+    )
+    cfg.add_variable(
+        name="pt_tt",
+        expression="pt_tt",
+        null_value=EMPTY_FLOAT,
+        binning=(50, 0.0, 200.0),
+        unit="GeV",
+        x_title=r"$p_{T}$ (transverse)",
+    )
+    cfg.add_variable(
+        name="mt_1",
+        expression="mt_1",
+        null_value=EMPTY_FLOAT,
+        binning=(50, 0.0, 200.0),
+        unit="GeV",
+        x_title=r"$m_{T} ~(\tau_{1}, E_{T})$",
+    )
+    cfg.add_variable(
+        name="mt_2",
+        expression="mt_2",
+        null_value=EMPTY_FLOAT,
+        binning=(50, 0.0, 200.0),
+        unit="GeV",
+        x_title=r"$m_{T} ~(\tau_{2}, E_{T})$",
+    )
+    cfg.add_variable(
+        name="mt_lep",
+        expression="mt_lep",
+        null_value=EMPTY_FLOAT,
+        binning=(50, 0.0, 200.0),
+        unit="GeV",
+        x_title=r"$m_{T} ~(\tau_{1}, \tau_{2})$",
+    )
+    cfg.add_variable(
+        name="mt_tot",
+        expression="mt_tot",
+        null_value=EMPTY_FLOAT,
+        binning=(50, 0.0, 200.0),
+        unit="GeV",
+        x_title=r"$m_{T} ~(\tau_{1}, \tau_{2}, E_{T})$",
+    )
+    
     # PhiCP - Det
     cfg.add_variable(
         name="PhiCP_IPIP",

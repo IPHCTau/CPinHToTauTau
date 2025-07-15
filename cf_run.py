@@ -67,16 +67,14 @@ ListOfMainFuncs = ['CalibrateEvents',
                    'ReduceEvents',
                    'PlotCutFlow',
                    'ProduceColumns',
-                   'CreateHistograms',
-                   'PlotVariables1D', 'PlotVariables2D',
+                   'CreateHistograms','MergeHistograms',
+                   'PlotVariables1D', 'PlotVariables2D', 'PlotVariablesPerProcess2D',
                    'PlotShiftedVariables1D', 'PlotShiftedVariables2D',
                    'UniteColumns']
 
 
 if not os.path.exists("cmdlogs"): os.mkdir("cmdlogs")
 else: print("logs exists")
-
-
 
 parser = argparse.ArgumentParser(description='Pre-Processing')
 parser.add_argument('-i',
@@ -89,8 +87,12 @@ parser.add_argument('-f',
                     type=str,
                     required=True,
                     help="e.g. SelectEvents")
-
-
+parser.add_argument('-l',
+                    '--limited',
+                    action='store_true',
+                    required=False,
+                    default=False,
+                    help="full or limited")
 
 pargs = parser.parse_args()
 
@@ -100,23 +102,29 @@ yml_config_file = pargs.inconfig
 with open(yml_config_file,'r') as conf:
     yml_config = yaml.safe_load(conf)
 
-#main_func = yml_config.get("main")
 main_func = pargs.func
 assert main_func in ListOfMainFuncs, f"Error: {main_func} is wrong"
+
+islimited = pargs.limited
+yml_config = yml_config.get("FULL") if not islimited else yml_config.get("LIMITED")
+
+#from IPython import embed; embed()
 
 era           = yml_config.get("era")
 run           = yml_config.get("run")
 postfix       = yml_config.get("postfix")
-islimited     = yml_config.get("limited")
 limit         = "limited" if islimited else "full"
 nworkers      = yml_config.get("workers")
 tasks_per_job = yml_config.get("tasks_per_job")
+wrapper       = yml_config.get("wrapper")
 
-#cmdfile = os.path.join(os.getcwd(),"cmdlogs",f"cmdlog_selectEvents_{datetime_tag}.sh")
-jobfile = os.path.join(os.getcwd(),"cmdlogs",f"joblog_run{run}_{era}{postfix}_{limit}_{main_func}_{datetime_tag}.log")
-logfile = os.path.join(os.getcwd(),"cmdlogs",f"cmdlog_run{run}_{era}{postfix}_{limit}_{main_func}_{datetime_tag}.log")
+main_args = yml_config.get("args")
+version_tag = main_args.get("version")
+if version_tag == "dummy":
+    version_tag = f"Run{run}_{era}{postfix}_{limit}_{datetime_tag}"
+
+logfile = os.path.join(os.getcwd(),"cmdlogs",f"cmd_{main_func}_{version_tag}.log")
 logger  = setup_logger(logfile)
-
 
 logger.info(f"Yaml     : {yml_config_file}")
 logger.info(f"Execute  : cf.{main_func}")
@@ -126,12 +134,10 @@ logger.info(f"Postfix  : {postfix}")
 logger.info(f"Limited? : {islimited}")
 logger.info(f"nWorkers : {nworkers}")
 logger.info(f"nTasks_per_job : {tasks_per_job}")
-
-wrapper   = yml_config.get("wrapper")
 logger.info(f"Wrapper  : {wrapper}")
 
-main_args = yml_config.get("args")
 config    = main_args.get("config")
+config    = config if not islimited else f"{config}_limited" 
 logger.info(f"Config   : {config}")
 
 dataset_list = main_args.get("datasets")
@@ -154,9 +160,7 @@ logger.info(f"worklflow: {workflow}")
 branch    = main_args.get("branch")
 logger.info(f"branch   : {branch}")
 
-version   = main_args.get('version')
-if version.startswith("dummy"):
-    version = f"Run{run}_{era}{postfix}_{limit}_{datetime_tag}"
+version = version_tag
 logger.info(f"version  : {version}")
 
 extras = []
@@ -165,21 +169,13 @@ if "extras" in list(main_args.keys()):
 
 categories = ",".join(main_args.get("categories")) if "categories" in list(main_args.keys()) else None
 variables  = ",".join(main_args.get("variables")) if "variables" in list(main_args.keys()) else None
+variables1D = ",".join([var for var in main_args.get("variables") if len(var.split('-')) < 2])
+variables2D = ",".join([var for var in main_args.get("variables") if len(var.split('-')) == 2])
 
-cmd_list = [
-    "law", "run", f"cf.{main_func}",
-    "--config", config,
-    "--dataset", datasets,
-    "--workflow", workflow,
-    #"--branch", branch,
-    "--version", version,
-    #"&>", jobfile, '&'
-]
-
-#skip_wrapping = ((main_func == "PlotVariables1D") or (main_func == "PlotVariables2D")
-skip_wrapping = main_func.startswith("PlotVariables")
 shifts_val = "nominal,{"+f"{shifts}"+"}_{up,down}" if shiftList else "nominal"
-if wrapper:
+
+skip_wrapping = main_func.startswith("PlotVariables")
+if wrapper:    
     if not skip_wrapping:
         cmd_list = [
             "law", "run", f"cf.{main_func}Wrapper",
@@ -194,25 +190,53 @@ if wrapper:
             "--workers", nworkers,
             #f"--cf.{main_func}-log-file", jobfile,
         ]
-        if main_func.startswith("CreateHistograms"):
+        if main_func.startswith("CreateHistograms") or main_func.startswith("MergeHistograms"):
             cmd_list.append(f"--cf.{main_func}-variables")
             cmd_list.append(variables)
     else:
+        _variables = variables1D if main_func == "PlotVariables1D" else variables2D
+        logger.info(f"variables : {_variables}")
         cmd_list = [
             "law", "run", f"cf.{main_func}",
             "--config", config,
             "--datasets", datasets,
             "--processes", processes,
             f"--workflow", workflow,
-            f"--branch", branch,
+            #f"--branch", branch,
             "--version", version,
             "--categories", categories,
-            "--variables", variables,
+            "--variables", _variables,
             "--workers", nworkers,
             "--pilot",
-            f"--log-file", jobfile,
+            #f"--log-file", jobfile,
         ] + extras
+
+else:
+    cmd_list = [
+        "law", "run", f"cf.{main_func}",
+        "--config", config,
+        "--dataset", datasets,
+        "--workflow", workflow,
+        "--workers", nworkers,
+        #"--branch", branch,
+        "--version", version,
+        "--pilot",
+        #"&>", jobfile, '&'
+    ]
+    if branch > 0:
+        cmd_list.append("--branch")
+        cmd_list.append(branch)
+    if main_func in ["CreateHistograms", "MergeHistograms", "PlotVariables1D", "PlotVariables2D"]:
+        cmd_list.append("--variables")
+        if main_func in ["PlotVariables1D", "PlotVariables2D"]:
+            cmd_list.append(variables1D) if "1D" in main_func else cmd_list.append(variables2D)
+            cmd_list.append("--categories")
+            cmd_list.append(categories)
+        else:
+            cmd_list.append(variables)
+
     
+        
 cmd_list = [str(item) for item in cmd_list]
 cmd = " ".join(cmd_list)
 

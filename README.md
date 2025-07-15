@@ -1,6 +1,8 @@
 # CPinHToTauTau Analysis
 
-A Columnflow based analysis framework from IPHC and DESY
+A Columnflow based analysis framework from IPHC, forked from [desyTau](https://github.com/DesyTau/CPinHToTauTau). Although the basic workflow is similar to the desyTau CP analysis setup, but some differences are there mainly in array structures, categorizations and implementations of some methods. However, synchronization study is being performed recently.
+
+### Link to the AN : [AN-25-008](https://gitlab.cern.ch/tdr/notes/AN-25-008)
 
 <!-- marker-before-logo -->
 
@@ -12,11 +14,11 @@ A Columnflow based analysis framework from IPHC and DESY
 
 ### Resources
 
-- [columnflow](https://github.com/columnflow/columnflow/tree/master)
-- [law](https://github.com/riga/law)
-- [order](https://github.com/riga/order)
 - [luigi](https://github.com/spotify/luigi)
-
+- [law](https://github.com/riga/law)
+- [columnflow](https://github.com/IPHCTau/columnflow)
+- [order](https://github.com/riga/order)
+- [cmsdb](https://github.com/IPHCTau/cmsdb)
 
 ### Installation
 
@@ -30,10 +32,13 @@ source setup.sh hcp
 
 Then follow the details:
 
+<span style="color:red">In LxPlus, in order to use HTCondor, make sure of the location of `CF_DATA` and `CF_JOB_BASE` must be in `afs` as HTCOndor does not support job submission from `eos` yet. </span>
+e.g.
+
 ```sh
-CERN username (CF_CERN_USER, default gsaha):  
-Local data directory (CF_DATA, default ./data):  
-Local directory for installing software (CF_SOFTWARE_BASE, default $CF_DATA/software):  /eos/user/g/gsaha/CPinHToTauTauData                            
+CERN username (CF_CERN_USER, default gsaha):
+Local data directory (CF_DATA, default ./data):
+Local directory for installing software (CF_SOFTWARE_BASE, default $CF_DATA/software):  /eos/user/g/gsaha/CPinHToTauTauData
 Local directory for storing job files (CF_JOB_BASE, default $CF_DATA/jobs):             
 Relative path used in store paths (see next queries) (CF_STORE_NAME, default cf_store):  
 Default local output store (CF_STORE_LOCAL, default $CF_DATA/$CF_STORE_NAME):  
@@ -47,23 +52,23 @@ base directory on storage element for crab specific job outputs (CF_CRAB_BASE_DI
 
 This will install the `softwares` in `eos`, but the `data` and `jobs` directories are in `afs`.
 In the next step, the big output files have to be stored in `eos`.
-So, `law.cfg` needs to be set like here in this repo.
+So, `law.cfg` needs to be set as used in this repo. 
 
 For any computing system, please make sure that this hard-coded (stupid) line is changed to the proper one:
 
-`thisdir` in the config e.g. here: https://github.com/gsaha009/CPinHToTauTau/blob/main/httcp/config/config_run3.py#L33
+`thisdir` in the main config e.g. [here](https://github.com/IPHCTau/CPinHToTauTau/blob/main/httcp/config/config_run3.py#L35)
 
 ### Best Practices :+1:
 
-To ensure a smooth workflow, here are some best practices:
+To ensure a smooth test of the workflow, here are some of the "best(?)" practices:
 
-- **Testing Changes:**  
-  Use a configuration file with the "_limited" suffix to speed up testing. It will only process one ROOT file for faster execution.
+- **Testing Changes:**
+  Use a configuration file (e.g. `httcp.config.config_run3.py`) with the `_limited` suffix to the campaign name to speed up testing. It will only process one `ROOT` file for faster execution. One has to modify the `campaign_dict` inside `httcp.config.analysis_httcp.py` before using the `limited` or `full` campaign. 
 
 - **For Production Runs:**  
-  Use `cf.ReduceEventsWrapper` to pre-process your events before running `cf.ProduceColumns`. This ensures that all event-level corrections are applied, and the workflow is ready for production. The typical process involves:
+  Use `cf.ReduceEventsWrapper` to pre-process your events before running `cf.ProduceColumns`. This ensures that all object and event level selections are done, and the workflow is ready for production. The typical process involves:
   - **Plotting**
-  - **Saving skimmed/corrected events (as flat ROOT ntuples)**
+  - **Saving skimmed/corrected events (as parquet files or flat ROOT ntuples)**
   - **Creating DataCards**
   - If necessary, you can include **ML training** or **evaluation tasks**.  
   Follow the default task graph in ColumnFlow [task-graph](https://github.com/columnflow/columnflow/wiki#default-task-graph) is recommended.
@@ -71,10 +76,10 @@ To ensure a smooth workflow, here are some best practices:
 - **Handling Large Datasets:**  
   If you have multiple datasets or processes, this [script](https://github.com/IPHCTau/CPinHToTauTau/blob/main/cf_run.py) can help generate the necessary commands for batch execution.  
   Steps:
-  1. Modify the `yaml` (e.g. [2022PreEE_full.yml](https://github.com/IPHCTau/CPinHToTauTau/blob/main/yamls/2022PreEE_full.yml)) for your needs.
+  1. Modify the `yaml` (e.g. [2022PreEE.yml](https://github.com/IPHCTau/CPinHToTauTau/blob/main/yamls/2022PreEE.yml)) based on your requirements.
   2. Run the `cf_run` script:  
      ```sh
-     python cf_run.py -i <yaml/2022PreEE_full.yml> -f <ReduceEvents or other>
+     python cf_run.py -i <yaml/2022PreEE_full.yml> -f <ReduceEvents or other> -l <if you want to use limited config>
      ```
      The script will generate the necessary commands for execution.
 
