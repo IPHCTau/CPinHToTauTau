@@ -160,6 +160,13 @@ def build_abcd_masks(
     is_fake_2 = is_real_2 # lets keep real and fake the same for data 
     if self.dataset_inst.is_mc:
         is_real_2 = (h2.genPartFlav > 0) & (h2.genPartFlav < 6)
+        if self.dataset_inst.has_tag("is_w") or self.dataset_inst.has_tag("no_lhe_weights") or self.dataset_inst.has_tag("is_st"):
+            # temporary, fake contribution from WJets
+            is_real_2 = ak.where(events.channel_id == ch_etau.id,
+                                 h2.genPartFlav >= 0,
+                                 ak.where(events.channel_id == ch_mutau.id,
+                                          h2.genPartFlav >= 0,
+                                          is_real_2))
         is_real_2 = ak.fill_none(ak.any(is_real_2, axis=1), False)
         
         is_fake_2 = ((h2.genPartFlav == 0) | (h2.genPartFlav == 6))
@@ -173,7 +180,7 @@ def build_abcd_masks(
     met = events.MET if self.config_inst.campaign.x.run == 2 else events.PuppiMET
     met = ak.with_name(met, "PtEtaPhiMLorentzVector")
     #from IPython import embed; embed()
-    is_low_mt = transverse_mass(h1, met) < 70.0 # DESY
+    is_low_mt = transverse_mass(h1, met) < 65.0 #70.0 # DESY
     is_high_mt = ~is_low_mt & (transverse_mass(h1, met) < 200.0)
     
     is_low_mt  = ak.fill_none(ak.any(is_low_mt, axis=1), False)
@@ -278,4 +285,3 @@ def build_abcd_masks(
 
 
     return events
-

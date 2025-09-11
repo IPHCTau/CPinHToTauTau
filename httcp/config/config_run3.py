@@ -33,7 +33,7 @@ ak = maybe_import("awkward")
 
 
 #thisdir = os.path.dirname(os.path.abspath(__file__))
-thisdir = "/afs/cern.ch/user/o/oponcet/private/analysis/CPinHToTauTau/httcp/config"
+thisdir = "/afs/cern.ch/work/g/gsaha/public/IPHC/Work/ColumnFlowAnalyses/CPinHToTauTau/httcp/config"
 #print(f"thisdir: {thisdir}")
 corrdir = os.path.join(os.path.dirname(thisdir), "data")
 #print(f"corrdir: {corrdir}")
@@ -92,19 +92,22 @@ def add_config (ana: od.Analysis,
         #"dy_m50toinf_tau",
         #"dy_m50toinf_jet",
         ## TTJets
-        "tt",
+        #"tt",
         ## Single top
-        "st",
-        #"top",
+        #"st",
+        "top",
         ## VV [diboson inclusive]
-        "vv",
-        "vvv",
-        #"multiboson",
+        #"vv",
+        #"vvv",
+        "multiboson",
         ## Signal
         "h_ggf_htt",
-        #"vh_htt",
+        #"h_ggf_htt_cpeven",
+        #"h_ggf_htt_cpmix",
+        #"h_ggf_htt_cpodd",
+        "vh_htt",
         #"wh_htt",
-        #"h_vbf_htt",
+        "h_vbf_htt",
         ##QCD
         "qcd",
     ]
@@ -147,15 +150,10 @@ def add_config (ana: od.Analysis,
         ##W+jets
         # --- LO --- #
         "wj_incl_madgraph",
-        #"wj_1j_madgraph",
-        #"wj_2j_madgraph",
-        #"wj_3j_madgraph",
-        #"wj_4j_madgraph",
-        #"wj_ht40to100_madgraph",
-        #"wj_ht100to400_madgraph",
-        #"wj_ht400to800_madgraph",
-        #"wj_ht800to1500_madgraph",
-        #"wj_ht1500to2500_madgraph",
+        "wj_1j_madgraph",
+        "wj_2j_madgraph",
+        "wj_3j_madgraph",
+        "wj_4j_madgraph",
         # --- NLO --- #
         #"wj_incl_amcatnlo",
         #"wj_0j_amcatnlo",
@@ -164,29 +162,33 @@ def add_config (ana: od.Analysis,
 
         ##Drell-Yan
         # --- LO --- #
-        "dy_lep_m10to50_madgraph",
-        "dy_lep_m50_madgraph",
-        "dy_lep_m50_1j_madgraph",
-        "dy_lep_m50_2j_madgraph",
-        "dy_lep_m50_3j_madgraph",
-        "dy_lep_m50_4j_madgraph",
+        #"dy_lep_m10to50_madgraph",
+        #"dy_lep_m50_madgraph",
+        #"dy_lep_m50_1j_madgraph",
+        #"dy_lep_m50_2j_madgraph",
+        #"dy_lep_m50_3j_madgraph",
+        #"dy_lep_m50_4j_madgraph",
         # --- NLO --- #
         #"dy_lep_m10to50_amcatnlo",
-        #"dy_lep_m50_amcatnlo",
-        #"dy_lep_m50_0j_amcatnlo",
-        #"dy_lep_m50_1j_amcatnlo",
-        #"dy_lep_m50_2j_amcatnlo",
-        #"dy_lep_m50_1j_pt40to100_amcatnlo",
-        #"dy_lep_m50_2j_pt40to100_amcatnlo",
-        #"dy_lep_m50_1j_pt100to200_amcatnlo",
-        #"dy_lep_m50_2j_pt100to200_amcatnlo",
-        #"dy_lep_m50_1j_pt200to400_amcatnlo",
-        #"dy_lep_m50_2j_pt200to400_amcatnlo",
-        #"dy_lep_m50_1j_pt400to600_amcatnlo",
-        #"dy_lep_m50_2j_pt400to600_amcatnlo",
-        #"dy_lep_m50_1j_pt600toInf_amcatnlo",
-        #"dy_lep_m50_2j_pt600toInf_amcatnlo",
-
+        "dy_lep_m50_amcatnlo",
+        "dy_lep_m50_0j_amcatnlo",
+        "dy_lep_m50_1j_amcatnlo",
+        "dy_lep_m50_2j_amcatnlo",
+        "dy_lep_m50_1j_pt40to100_amcatnlo",
+        "dy_lep_m50_2j_pt40to100_amcatnlo",
+        "dy_lep_m50_1j_pt100to200_amcatnlo",
+        "dy_lep_m50_2j_pt100to200_amcatnlo",
+        "dy_lep_m50_1j_pt200to400_amcatnlo",
+        "dy_lep_m50_2j_pt200to400_amcatnlo",
+        "dy_lep_m50_1j_pt400to600_amcatnlo",
+        "dy_lep_m50_2j_pt400to600_amcatnlo",
+        "dy_lep_m50_1j_pt600toInf_amcatnlo",
+        "dy_lep_m50_2j_pt600toInf_amcatnlo",
+        # dy to 2 tau
+        "dy_2tau_m50_0j_amcatnlo",
+        "dy_2tau_m50_1j_amcatnlo",
+        "dy_2tau_m50_2j_amcatnlo",
+        
         ## ttbar
         "tt_sl",
         "tt_dl",
@@ -201,8 +203,8 @@ def add_config (ana: od.Analysis,
         "st_tw_tb_dl",
         "st_tw_t_fh",
         "st_tw_tb_fh",
-        "st_schannel_t",
-        "st_schannel_tbar",
+        #"st_schannel_t",
+        #"st_schannel_tbar",
 
         ##Diboson
         "ww",
@@ -217,15 +219,26 @@ def add_config (ana: od.Analysis,
 
         ##Signal
         #"h_ggf_tautau_uncorrelated_filter",
-        #"h_ggf_tautau_uncorrelatedDecay_CPodd_Filtered_ProdAndDecay",
-        #"h_ggf_tautau_uncorrelatedDecay_MM_Filtered_ProdAndDecay",
         "h_ggf_tautau_uncorrelatedDecay_SM_Filtered_ProdAndDecay",
-        #"zh_tautau_uncorrelatedDecay_Filtered",
-        #"wph_tautau_uncorrelatedDecay_Filtered",
-        #"wmh_tautau_uncorrelatedDecay_Filtered",
-        #"h_vbf_tautau_uncorrelatedDecay_Filtered",
+        #"h_ggf_tautau_uncorrelatedDecay_MM_Filtered_ProdAndDecay",
+        #"h_ggf_tautau_uncorrelatedDecay_CPodd_Filtered_ProdAndDecay",
+        "zh_tautau_uncorrelatedDecay_Filtered",
+        "wph_tautau_uncorrelatedDecay_Filtered",
+        "wmh_tautau_uncorrelatedDecay_Filtered",
+        "h_vbf_tautau_uncorrelatedDecay_Filtered",
         "qcd",
     ]
+
+    cfg.x.signal_filter_efficiency = DotDict.wrap({
+        "h_ggf_tautau_uncorrelatedDecay_SM_Filtered_ProdAndDecay": 0.3847,
+        "h_ggf_tautau_uncorrelatedDecay_MM_Filtered_ProdAndDecay": 0.3848,
+        "h_ggf_tautau_uncorrelatedDecay_CPodd_Filtered_ProdAndDecay": 0.3848,
+        "wph_tautau_uncorrelatedDecay_Filtered": 0.3743,
+        "wmh_tautau_uncorrelatedDecay_Filtered": 0.3944,
+        "zh_tautau_uncorrelatedDecay_Filtered": 0.3933,
+        "h_vbf_tautau_uncorrelatedDecay_Filtered": 0.4091,
+    })
+
     
     datasets_data = []
     if year == 2022:
@@ -272,18 +285,29 @@ def add_config (ana: od.Analysis,
         dataset = cfg.add_dataset(campaign.get_dataset(dataset_name))
         if re.match(r"^(ww|wz|zz|www|wwz|wzz|zzz)$", dataset.name):
             dataset.add_tag("no_lhe_weights")
-        elif re.match(r"^dy_lep_m50.*$", dataset.name):
+        #elif re.match(r"^dy_lep_m.*$", dataset.name):
+        #    dataset.add_tag("is_dy")
+        if re.match(r"^dy_.*$", dataset.name):
             dataset.add_tag("is_dy")
+        if re.match(r"^dy_lep_m50.*$", dataset.name):
+            dataset.add_tag("is_dy_m50")
+        if re.match(r"^dy_2tau_m50.*$", dataset.name):
+            dataset.add_tag("is_dy_tautau") 
         elif re.match(r"^wj.*$", dataset.name):
             dataset.add_tag("is_w")
         elif re.match(r"^h_ggf_tautau.*$", dataset.name):
+            dataset.add_tag("is_signal")
             dataset.add_tag("is_ggf_signal")
         elif re.match(r"^h_vbf_tautau.*$", dataset.name):
+            dataset.add_tag("is_signal")
             dataset.add_tag("is_vbf_signal")
         elif re.match(r"^(.*)h_tautau(.*)Filtered$", dataset.name):
+            dataset.add_tag("is_signal")
             dataset.add_tag("is_vh_signal")
         elif dataset.name.startswith("tt_"):
             dataset.add_tag("is_tt")
+        elif dataset.name.startswith("st_"):
+            dataset.add_tag("is_st")
             #dataset.add_tag({"has_top", "ttbar", "tt"})
         #elif dataset.name.startswith("st_"):
         #    dataset.add_tag({"has_top", "single_top", "st"})
@@ -368,11 +392,26 @@ def add_config (ana: od.Analysis,
     # (currently set to false because the number of files per dataset is truncated to 2)
     cfg.x.validate_dataset_lfns = False
 
-    
-    # define inclusive datasets for the stitched process identification with corresponding leaf processes
-    # drell-yan [NLO]
     cfg.x.allow_dy_stitching = True
     cfg.x.allow_dy_stitching_for_plotting = False
+    """
+    # define inclusive datasets for the stitched process identification with corresponding leaf processes
+    # drell-yan [NLO]
+    cfg.x.dy_stitching = {
+        "dy": {
+            "inclusive_dataset": cfg.datasets.n.dy_lep_m50_amcatnlo,
+            "leaf_processes": [
+                # the following processes cover the full njet phasespace
+                *(
+                    procs.get(f"dy_m50toinf_{nj}j")
+                    for nj in [0, 1, 2]
+                ),
+            ],
+        },
+    }
+
+
+    # drell-yan [NLO]
     cfg.x.dy_stitching = {
         "dy": {
             "inclusive_dataset": cfg.datasets.n.dy_lep_m50_madgraph,
@@ -397,12 +436,12 @@ def add_config (ana: od.Analysis,
                     for nj in [1, 2]
                     for pt in ["0to40", "40to100", "100to200", "200to400", "400to600", "600toinf"]
                 ),
-                #procs.n.dy_m50toinf_ge3j,
+                procs.n.dy_m50toinf_ge3j,
             ],
         },
     }
-    """
-    cfg.x.allow_w_stitching = False
+
+    cfg.x.allow_w_stitching = True
     cfg.x.allow_w_stitching_for_plotting = False
     # w+jets [NLO]
     cfg.x.w_stitching = {
@@ -455,11 +494,11 @@ def add_config (ana: od.Analysis,
 
     elif year == 2023:
         if postfix == "preBPix":
-            cfg.x.luminosity = Number(17_794 , {
+            cfg.x.luminosity = Number(18_063 , {
                 "lumi_13TeV_correlated": 0.0j,
             })
         elif postfix == "postBPix":
-            cfg.x.luminosity = Number(9_451, {
+            cfg.x.luminosity = Number(9_693, {
                 "lumi_13TeV_correlated": 0.0j,
             })
             
@@ -535,7 +574,8 @@ def add_config (ana: od.Analysis,
         normtagjson = "/cvmfs/cms-bril.cern.ch/cms-lumi-pog/Normtags/normtag_BRIL.json"
         goldenjson = "/eos/user/c/cmsdqm/www/CAF/certification/Collisions22/Cert_Collisions2022_355100_362760_Golden.json"
     elif year == 2023:
-        normtagjson = "/afs/cern.ch/user/l/lumipro/public/Normtags/normtag_PHYSICS.json"
+        normtagjson = "/cvmfs/cms-bril.cern.ch/cms-lumi-pog/Normtags/normtag_BRIL.json"
+        #normtagjson = "/afs/cern.ch/user/l/lumipro/public/Normtags/normtag_PHYSICS.json"
         goldenjson = "/eos/user/c/cmsdqm/www/CAF/certification/Collisions23/Cert_Collisions2023_366442_370790_Golden.json"
     elif year == 2024:
         raise RuntimeWarning("too early")
@@ -562,10 +602,13 @@ def add_config (ana: od.Analysis,
         "muon_xtrig_sf"     : (f"{json_mirror}/POG/MUO/{year}_Summer{year2}{year_postfix}/CrossMuTauHlt.json",         "v1"), # Mu xTrig SF
         "electron_sf"       : (f"{json_mirror}/POG/EGM/{year}_Summer{year2}{year_postfix}/electron.json.gz",           "v1"), # Ele POG SF
         "electron_trig_sf"  : (f"{json_mirror}/POG/EGM/{year}_Summer{year2}{year_postfix}/electronHlt.json.gz",        "v1"), # Ele HLT SF
-        "electron_ss"       : (f"{json_mirror}/POG/EGM/{year}_Summer{year2}{year_postfix}/electronSS.json.gz",         "v1"), # Ele Scale Smearing to add when availbale for 2023 
+        "electron_ss"       : (f"{json_mirror}/POG/EGM/{year}_Summer{year2}{year_postfix}/electronSS.json.gz",         "v1"), # Ele Scale Smearing
         # https://gitlab.cern.ch/cclubbtautau/AnalysisCore/-/blob/main/data/TriggerScaleFactors/2022preEE/CrossEleTauHlt.json?ref_type=heads
         "electron_xtrig_sf" : (f"{json_mirror}/POG/EGM/{year}_Summer{year2}{year_postfix}/CrossEleTauHlt.json",        "v1"), # Ele xTrig SF
         "tau_sf"            : (f"{json_mirror}/POG/TAU/{year}_{postfix}/tau_DeepTau2018v2p5_{year}_{postfix}.json.gz", "v1"), # TEC and ID SF
+        "gen_tau_sf"        : (f"{external_path_parent}/Run3/NewTauSFs_IC/tau_sf_pt-dm_DeepTau2018v2p5VSjet_{year}_{postfix}.json.gz", "v1"), # Tau ID SF (NEW FROM IC)
+        "tes_sf"            : (f"{external_path_parent}/Run3/NewTauSFs_IC/tau_es_dm_DeepTau2018v2p5_{year}_{postfix}.json.gz", "v1"), # Tau ID SF (NEW FROM IC)
+        "tau_trig_sf"       : (f"{external_path_parent}/Run3/NewTauSFs_IC/tau_trigger_DeepTau2018v2p5_{year}_{postfix}.json.gz", "v1"), # Tau ID SF (NEW FROM IC)
         # https://gitlab.cern.ch/cclubbtautau/AnalysisCore/-/blob/main/data/TriggerScaleFactors/2022preEE/ditaujet_jetleg_SFs_preEE.json?ref_type=heads
         "ditau_jet_trig_sf" : (f"{json_mirror}/POG/TAU/{year}_{postfix}/ditaujet_jetleg_SFs_{postfix}.json",           "v1"),
         "jet_veto_map"      : (f"{json_mirror}/POG/JME/{year}_Summer{year2}{year_postfix}/jetvetomaps.json.gz",        "v1"), # JetVeto
@@ -579,14 +622,21 @@ def add_config (ana: od.Analysis,
         #"tautau_ff"         : (f"{external_path}/Fake_tautau/fake_factor_{year}_{postfix}.json",                       "v1"),
         #"tautau_ff"         : (f"{external_path}/Fake_tautau/fake_factor_{year}_{postfix}.json",                       "v1"),
         #"tautau_ff"         : (f"{external_path_parent}/FF_TauTau_combined/fake_factor_20222023.json",                 "v1"),
-        "tautau_ff"         : (f"{external_path_parent}/Run3/fake_factor_2023_HPS_DM_0_to_10.json",                    "v1"),
+        #"tautau_ff"         : (f"{external_path_parent}/Run3/fake_factor_2023_HPS_DM_0_to_10.json",                    "v1"),
+        "tautau_ff"         : (f"{external_path_parent}/Run3/FFtautauJSONs/fake_factor_20222023.json",                 "v1"),
+        "tautau_ff_closure" : (f"{external_path_parent}/Run3/FFtautauJSONs/closure_correction_2023_postBPix_merged.json",   "v1"),
         #"tautau_ff0"        : (f"{external_path}/Fake_tautau/fake_factor_{year}_{postfix}_0cat_v2.json",               "v1"),
         #"tautau_ext_corr"   : (f"{external_path}/Fake_tautau/extrapolation_correction_inclusive.json",                 "v1"),
         #"btag_sf_corr": (f"{json_mirror}/POG/BTV/{year}_Summer{year2}{year_postfix}/btagging.json.gz",                "v1"),
         #"met_phi_corr": (f"{json_mirror}/POG/JME/2018_UL/met.json.gz",                                                "v1"), #met phi, unavailable Run3
-        "met_recoil"        : (f"{external_path_parent}/Run3/Recoil_corrections.json.gz",                              "v1"),
-        "model_tt_EVEN"     : (f"{external_path_parent}/Run3/ClassifierModels/model_tt_EVEN.json",                       ""),
-        "model_tt_ODD"      : (f"{external_path_parent}/Run3/ClassifierModels/model_tt_ODD.json",                        ""),
+        #"met_recoil"        : (f"{external_path_parent}/Run3/Recoil_corrections.json.gz",                              "v1"),
+        "met_recoil"        : (f"{external_path_parent}/Run3/MET_Recoil/Recoil_corrections_v3.json.gz",                "v1"),
+        "model_et_EVEN"     : (f"{external_path_parent}/Run3/ClassifierModels/Model_IC_etau/model_EVEN.json",            ""),
+        "model_et_ODD"      : (f"{external_path_parent}/Run3/ClassifierModels/Model_IC_etau/model_ODD.json",             ""),        
+        "model_mt_EVEN"     : (f"{external_path_parent}/Run3/ClassifierModels/Model_IC_mutau/model_EVEN.json",           ""),
+        "model_mt_ODD"      : (f"{external_path_parent}/Run3/ClassifierModels/Model_IC_mutau/model_ODD.json",            ""),        
+        "model_tt_EVEN"     : (f"{external_path_parent}/Run3/ClassifierModels/Model_IC_tautau/model_EVEN.json",          ""),
+        "model_tt_ODD"      : (f"{external_path_parent}/Run3/ClassifierModels/Model_IC_tautau/model_ODD.json",           ""),
     })
 
     # --------------------------------------------------------------------------------------------- #
@@ -653,7 +703,6 @@ def add_config (ana: od.Analysis,
     # common jec/jer settings configuration
     # https://twiki.cern.ch/twiki/bin/view/CMS/JECDataMC?rev=201
     # https://twiki.cern.ch/twiki/bin/view/CMS/JetResolution?rev=107
-    # https://cms-jerc.web.cern.ch/Recommendations/#jet-energy-scale
     # --------------------------------------------------------------------------------------------- #
 
     if year == 2022:
@@ -803,7 +852,7 @@ def add_config (ana: od.Analysis,
                 "tautau" : "Tight", #"VLoose",
             },
             "vs_j": {
-                "etau"   : "Tight",
+                "etau"   : "VTight",
                 "mutau"  : "VTight", ##"Medium" : OLD,
                 "tautau" : "VTight", ## VTight : Proposed by Imperial, was Medium in Run2 
             },
@@ -858,7 +907,7 @@ def add_config (ana: od.Analysis,
         "e_down": 0.991 * 0.5,
         "f": 0.000075,
         "f_up": 0.000075 * 1.5,
-        "f_down": 0.000075 * 0.5,        
+        "f_down": 0.000075 * 0.5,   
     }
 
     
@@ -1038,7 +1087,6 @@ def add_config (ana: od.Analysis,
             #"normalized_pdf_weight": "normalized_pdf_weight_{direction}",
         },
     )
-
     # --- >>> tau spinner weight <<< --- #
     cfg.add_shift(name="tauspinner_up",   id=150, type="shape") # cp-even
     cfg.add_shift(name="tauspinner_down", id=151, type="shape") # cp-odd
@@ -1049,7 +1097,6 @@ def add_config (ana: od.Analysis,
             "tauspinner_weight": "tauspinner_weight_{direction}",
         },
     )
-
     # --- >>> zpt weight <<< --- #    
     cfg.add_shift(name="zpt_up", id=160, type="shape")
     cfg.add_shift(name="zpt_down", id=161, type="shape")
@@ -1070,6 +1117,16 @@ def add_config (ana: od.Analysis,
         "ff",
         {
             "ff_weight": "ff_weight_{direction}",
+            #"normalized_pdf_weight": "normalized_pdf_weight_{direction}",
+        },
+    )
+    cfg.add_shift(name="ff_cls_corr_up", id=172, type="shape")
+    cfg.add_shift(name="ff_cls_corr_down", id=173, type="shape")
+    add_shift_aliases(
+        cfg,
+        "ff_cls_corr",
+        {
+            "ff_cls_corr_weight": "ff_cls_corr_weight_{direction}",
             #"normalized_pdf_weight": "normalized_pdf_weight_{direction}",
         },
     )
@@ -1113,21 +1170,21 @@ def add_config (ana: od.Analysis,
     cfg.x.event_weights = DotDict({
         "normalization_weight"                  : [],
         "pu_weight"                             : get_shifts("minbias_xs"),
-        "electron_idiso_weight"                 : [], #get_shifts("e"),
-        "electron_Ele30_WPTight_trigger_weight" : [], #get_shifts("e_xtrig"),
-        "electron_xtrig_weight"                 : [], #get_shifts("e_xtrig"),
-        "muon_id_weight"                        : [], #get_shifts("mu_id"),
-        "muon_iso_weight"                       : [], #get_shifts("mu_iso"),
-        "muon_IsoMu24_trigger_weight"           : [], #get_shifts("mu_trig"),
-        "muon_xtrig_weight"                     : [], #get_shifts("mu_xtrig"),
+        "electron_idiso_weight"                 : get_shifts("e"),
+        "electron_Ele30_WPTight_trigger_weight" : get_shifts("e_trig"),
+        "electron_xtrig_weight"                 : get_shifts("e_xtrig"),
+        "muon_id_weight"                        : get_shifts("mu_id"),
+        "muon_iso_weight"                       : get_shifts("mu_iso"),
+        "muon_IsoMu24_trigger_weight"           : get_shifts("mu_trig"),
+        "muon_xtrig_weight"                     : get_shifts("mu_xtrig"),
         "tau_weight"                            : get_shifts("tau"),
-        "tau_trigger_weight"                    : [], #get_shifts("tau_trig"),
+        "tau_trigger_weight"                    : get_shifts("tau_trig"),
         "ff_weight"                             : [],
-        #"ff_ext_corr_weight"                    : [],
-        #"tes_weight"                           : [], #get_shifts("tes"),
+        #"ff_cls_corr_weight"                    : [],
+        ##"ff_ext_corr_weight"                    : [],
         "tauspinner_weight"                     : get_shifts("tauspinner"),
-        "pdf_weight"                            : [],
-        "zpt_reweight"                          : [], #get_shifts("zpt"),
+        #"pdf_weight"                            : [],
+        "zpt_reweight"                          : get_shifts("zpt"),
         "top_pt_weight"                         : [],
     })
 
@@ -1172,17 +1229,18 @@ def add_config (ana: od.Analysis,
     if campaign_tag == "desy" or campaign_tag == "IPHC":
         def get_dataset_lfns(dataset_inst: od.Dataset, shift_inst: od.Shift, dataset_key: str) -> list[str]:
             # destructure dataset_key into parts and create the lfn base directory
-            print(f"Creating custom get_dataset_lfns for {config_name}")   
+            logger.info(f"Creating custom get_dataset_lfns for {config_name}")   
             try:
                basepath = cfg.campaign.x("custom").get("location")
             except:
-                print("Did not find any basebath in the campaigns")
+                logger.warning("Did not find any basebath in the campaigns")
                 basepath = "" 
             lfn_base = law.wlcg.WLCGDirectoryTarget(
                 f"{basepath}{dataset_key}",
-                fs="wlcg_fs_eoscms_redirector",
+                #fs="wlcg_fs_eoscms_redirector",
+                fs="wlcg_fs_imperial_redirector",
             )
-            print(f"lfn basedir:{lfn_base}")
+            logger.info(f"lfn basedir:{lfn_base}")
             # loop though files and interpret paths as lfns
             return [
                 lfn_base.child(basename, type="f").path
@@ -1193,7 +1251,8 @@ def add_config (ana: od.Analysis,
         # define a custom sandbox
         cfg.x.get_dataset_lfns_sandbox = dev_sandbox("bash::$CF_BASE/sandboxes/cf.sh")
         # define custom remote fs's to look at
-        cfg.x.get_dataset_lfns_remote_fs =  lambda dataset_inst: "wlcg_fs_eoscms_redirector"
+        #cfg.x.get_dataset_lfns_remote_fs =  lambda dataset_inst: "wlcg_fs_eoscms_redirector"
+        cfg.x.get_dataset_lfns_remote_fs =  lambda dataset_inst: "wlcg_fs_imperial_redirector"
         
     #---------------------------------------------------------------------------------------------#
     # Add categories described in categorization.py
@@ -1264,6 +1323,7 @@ def add_config (ana: od.Analysis,
             ]            
         } | {
             f"PuppiMET.{var}" for var in [
+                "pt_no_tes", "phi_no_tes",
                 "pt_no_corr", "phi_no_corr",
                 "pt", "phi", "significance",
                 "covXX", "covXY", "covYY",
@@ -1450,6 +1510,7 @@ def add_config (ana: od.Analysis,
     # --------------------------------------------------------------------------------------------- #
 
     cfg.x.regions_to_extrapolate_fake = "CD" # "AB" or "CD" or "C0D0"
+    cfg.x.save_qcd = False
     from httcp.config.hist_hooks import add_hist_hooks
     add_hist_hooks(cfg)
 
